@@ -2583,8 +2583,10 @@ static void RADEONUpdatePanelSize(ScrnInfoPtr pScrn)
 	if (ddc->det_mon[j].type == 0) {
 	    struct detailed_timings *d_timings =
 		&ddc->det_mon[j].section.d_timings;
-	    if (info->PanelXRes < d_timings->h_active &&
-		info->PanelYRes < d_timings->v_active) {
+	    if (info->PanelXRes <= d_timings->h_active &&
+		info->PanelYRes <= d_timings->v_active) {
+
+		if (info->DotClock) continue; /* Timings already inited */
 
 		info->PanelXRes  = d_timings->h_active;
 		info->PanelYRes  = d_timings->v_active;
