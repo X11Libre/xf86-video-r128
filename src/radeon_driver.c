@@ -4495,10 +4495,12 @@ Bool RADEONScreenInit(int scrnIndex, ScreenPtr pScreen, int argc, char **argv)
 
     RADEONSave(pScrn);
 
-    if (xf86ReturnOptValBool(info->Options, OPTION_DYNAMIC_CLOCKS, FALSE)) {
-	RADEONSetDynamicClock(pScrn, 1);
-    } else {
-	RADEONSetDynamicClock(pScrn, 0);
+    if ((!info->IsSecondary) && info->IsMobility) {
+        if (xf86ReturnOptValBool(info->Options, OPTION_DYNAMIC_CLOCKS, FALSE)) {
+	    RADEONSetDynamicClock(pScrn, 1);
+        } else {
+	    RADEONSetDynamicClock(pScrn, 0);
+        }
     }
 
     if (info->FBDev) {
@@ -7157,6 +7159,7 @@ void RADEONAdjustFrame(int scrnIndex, int x, int y, int flags)
 	RADEONDoAdjustFrame(pScrn, x, y, FALSE);
     }
 
+    RADEONSetFBLocation (pScrn);
 #ifdef XF86DRI
 	if (info->CPStarted) DRIUnlock(pScrn->pScreen);
 #endif
