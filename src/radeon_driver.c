@@ -1712,6 +1712,13 @@ static BOOL RADEONQueryConnectedMonitors(ScrnInfoPtr pScrn)
 		break;
 	    }
 	}
+	for (i = 0; i < max_mt; i++) {
+	    if (strcmp(s2, MonTypeName[i]) == 0) {
+		pRADEONEnt->PortInfo[1].MonType = MonTypeID[i];
+		break;
+	    }
+	}
+
 	if (i ==  max_mt)
 	    xf86DrvMsg(pScrn->scrnIndex, X_WARNING,
 		       "Invalid Monitor type specified for 2nd port \n");
@@ -1744,31 +1751,44 @@ static BOOL RADEONQueryConnectedMonitors(ScrnInfoPtr pScrn)
 
     }
 
-    if (pRADEONEnt->PortInfo[0].MonType == MT_UNKNOWN || pRADEONEnt->PortInfo[1].MonType == MT_UNKNOWN) {
-
-	if(((!info->HasCRTC2) || info->IsDellServer) && 
-	   (pRADEONEnt->PortInfo[0].MonType == MT_UNKNOWN)) {
+    if(((!info->HasCRTC2) || info->IsDellServer)) {
+	if (pRADEONEnt->PortInfo[0].MonType == MT_UNKNOWN) {
 	    if((pRADEONEnt->PortInfo[0].MonType = RADEONDisplayDDCConnected(pScrn, DDC_DVI, &pRADEONEnt->PortInfo[0])));
 	    else if((pRADEONEnt->PortInfo[0].MonType = RADEONDisplayDDCConnected(pScrn, DDC_VGA, &pRADEONEnt->PortInfo[0])));
 	    else if((pRADEONEnt->PortInfo[0].MonType = RADEONDisplayDDCConnected(pScrn, DDC_CRT2, &pRADEONEnt->PortInfo[0])));
 	    else
 		pRADEONEnt->PortInfo[0].MonType = MT_CRT;
-
-	    if (!ignore_edid) {
-		if (pRADEONEnt->PortInfo[0].MonInfo) {
-		    xf86DrvMsg(pScrn->scrnIndex, X_INFO, "Monitor1 EDID data ---------------------------\n");
-		    xf86PrintEDID(pRADEONEnt->PortInfo[0].MonInfo );
-		    xf86DrvMsg(pScrn->scrnIndex, X_INFO, "End of Monitor1 EDID data --------------------\n");
-		}
-	    }
-
-	    pRADEONEnt->MonType1 = pRADEONEnt->PortInfo[0].MonType;
-	    pRADEONEnt->MonInfo1 = pRADEONEnt->PortInfo[0].MonInfo;
-	    pRADEONEnt->MonType2 = MT_NONE;
-	    pRADEONEnt->MonInfo2 = NULL;
-	    info->MergeType = MT_NONE;
-	    return TRUE;
 	}
+
+	if (!ignore_edid) {
+	    if (pRADEONEnt->PortInfo[0].MonInfo) {
+		xf86DrvMsg(pScrn->scrnIndex, X_INFO, "Monitor1 EDID data ---------------------------\n");
+		xf86PrintEDID(pRADEONEnt->PortInfo[0].MonInfo );
+		xf86DrvMsg(pScrn->scrnIndex, X_INFO, "End of Monitor1 EDID data --------------------\n");
+	    }
+	}
+
+	pRADEONEnt->MonType1 = pRADEONEnt->PortInfo[0].MonType;
+	pRADEONEnt->MonInfo1 = pRADEONEnt->PortInfo[0].MonInfo;
+	pRADEONEnt->MonType2 = MT_NONE;
+	pRADEONEnt->MonInfo2 = NULL;
+	info->MergeType = MT_NONE;
+	info->DisplayType = pRADEONEnt->MonType1;
+
+	xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+		   "Primary:\n Monitor   -- %s\n Connector -- %s\n DAC Type  -- %s\n TMDS Type -- %s\n DDC Type  -- %s\n",
+		   MonTypeName[pRADEONEnt->PortInfo[0].MonType+1],
+		   info->IsAtomBios ?
+		   ConnectorTypeNameATOM[pRADEONEnt->PortInfo[0].ConnectorType]:
+		   ConnectorTypeName[pRADEONEnt->PortInfo[0].ConnectorType],
+		   DACTypeName[pRADEONEnt->PortInfo[0].DACType+1],
+		   TMDSTypeName[pRADEONEnt->PortInfo[0].TMDSType+1],
+		   DDCTypeName[pRADEONEnt->PortInfo[0].DDCType]);
+
+	return TRUE;
+    }
+
+    if (pRADEONEnt->PortInfo[0].MonType == MT_UNKNOWN || pRADEONEnt->PortInfo[1].MonType == MT_UNKNOWN) {
 
 	/* Primary Head (DVI or Laptop Int. panel)*/
 	/* A ddc capable display connected on DVI port */
