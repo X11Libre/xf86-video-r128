@@ -365,6 +365,7 @@ static const char *int10Symbols[] = {
     "xf86InitInt10",
     "xf86FreeInt10",
     "xf86int10Addr",
+    "xf86ExecX86int10",
     NULL
 };
 
@@ -1311,7 +1312,7 @@ static void RADEONGetPanelInfoFromReg (ScrnInfoPtr pScrn)
 	info->PanelYRes = (INREG(RADEON_CRTC_V_TOTAL_DISP)>>16) + 1;
     }
     if (fp_horz_stretch & RADEON_HORZ_STRETCH_ENABLE) {
-	info->PanelXRes = ((fp_vert_stretch>>16) + 1) * 8;
+	info->PanelXRes = ((fp_horz_stretch>>16) + 1) * 8;
     } else {
 	info->PanelXRes = ((INREG(RADEON_CRTC_H_TOTAL_DISP)>>16) + 1) * 8;
     }
@@ -1712,6 +1713,13 @@ static BOOL RADEONQueryConnectedMonitors(ScrnInfoPtr pScrn)
 		break;
 	    }
 	}
+	for (i = 0; i < max_mt; i++) {
+	    if (strcmp(s2, MonTypeName[i]) == 0) {
+		pRADEONEnt->PortInfo[1].MonType = MonTypeID[i];
+		break;
+	    }
+	}
+
 	if (i ==  max_mt)
 	    xf86DrvMsg(pScrn->scrnIndex, X_WARNING,
 		       "Invalid Monitor type specified for 2nd port \n");
@@ -1744,31 +1752,44 @@ static BOOL RADEONQueryConnectedMonitors(ScrnInfoPtr pScrn)
 
     }
 
-    if (pRADEONEnt->PortInfo[0].MonType == MT_UNKNOWN || pRADEONEnt->PortInfo[1].MonType == MT_UNKNOWN) {
-
-	if(((!info->HasCRTC2) || info->IsDellServer) && 
-	   (pRADEONEnt->PortInfo[0].MonType == MT_UNKNOWN)) {
+    if(((!info->HasCRTC2) || info->IsDellServer)) {
+	if (pRADEONEnt->PortInfo[0].MonType == MT_UNKNOWN) {
 	    if((pRADEONEnt->PortInfo[0].MonType = RADEONDisplayDDCConnected(pScrn, DDC_DVI, &pRADEONEnt->PortInfo[0])));
 	    else if((pRADEONEnt->PortInfo[0].MonType = RADEONDisplayDDCConnected(pScrn, DDC_VGA, &pRADEONEnt->PortInfo[0])));
 	    else if((pRADEONEnt->PortInfo[0].MonType = RADEONDisplayDDCConnected(pScrn, DDC_CRT2, &pRADEONEnt->PortInfo[0])));
 	    else
 		pRADEONEnt->PortInfo[0].MonType = MT_CRT;
-
-	    if (!ignore_edid) {
-		if (pRADEONEnt->PortInfo[0].MonInfo) {
-		    xf86DrvMsg(pScrn->scrnIndex, X_INFO, "Monitor1 EDID data ---------------------------\n");
-		    xf86PrintEDID(pRADEONEnt->PortInfo[0].MonInfo );
-		    xf86DrvMsg(pScrn->scrnIndex, X_INFO, "End of Monitor1 EDID data --------------------\n");
-		}
-	    }
-
-	    pRADEONEnt->MonType1 = pRADEONEnt->PortInfo[0].MonType;
-	    pRADEONEnt->MonInfo1 = pRADEONEnt->PortInfo[0].MonInfo;
-	    pRADEONEnt->MonType2 = MT_NONE;
-	    pRADEONEnt->MonInfo2 = NULL;
-	    info->MergeType = MT_NONE;
-	    return TRUE;
 	}
+
+	if (!ignore_edid) {
+	    if (pRADEONEnt->PortInfo[0].MonInfo) {
+		xf86DrvMsg(pScrn->scrnIndex, X_INFO, "Monitor1 EDID data ---------------------------\n");
+		xf86PrintEDID(pRADEONEnt->PortInfo[0].MonInfo );
+		xf86DrvMsg(pScrn->scrnIndex, X_INFO, "End of Monitor1 EDID data --------------------\n");
+	    }
+	}
+
+	pRADEONEnt->MonType1 = pRADEONEnt->PortInfo[0].MonType;
+	pRADEONEnt->MonInfo1 = pRADEONEnt->PortInfo[0].MonInfo;
+	pRADEONEnt->MonType2 = MT_NONE;
+	pRADEONEnt->MonInfo2 = NULL;
+	info->MergeType = MT_NONE;
+	info->DisplayType = pRADEONEnt->MonType1;
+
+	xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+		   "Primary:\n Monitor   -- %s\n Connector -- %s\n DAC Type  -- %s\n TMDS Type -- %s\n DDC Type  -- %s\n",
+		   MonTypeName[pRADEONEnt->PortInfo[0].MonType+1],
+		   info->IsAtomBios ?
+		   ConnectorTypeNameATOM[pRADEONEnt->PortInfo[0].ConnectorType]:
+		   ConnectorTypeName[pRADEONEnt->PortInfo[0].ConnectorType],
+		   DACTypeName[pRADEONEnt->PortInfo[0].DACType+1],
+		   TMDSTypeName[pRADEONEnt->PortInfo[0].TMDSType+1],
+		   DDCTypeName[pRADEONEnt->PortInfo[0].DDCType]);
+
+	return TRUE;
+    }
+
+    if (pRADEONEnt->PortInfo[0].MonType == MT_UNKNOWN || pRADEONEnt->PortInfo[1].MonType == MT_UNKNOWN) {
 
 	/* Primary Head (DVI or Laptop Int. panel)*/
 	/* A ddc capable display connected on DVI port */
@@ -2583,8 +2604,10 @@ static void RADEONUpdatePanelSize(ScrnInfoPtr pScrn)
 	if (ddc->det_mon[j].type == 0) {
 	    struct detailed_timings *d_timings =
 		&ddc->det_mon[j].section.d_timings;
-	    if (info->PanelXRes < d_timings->h_active &&
-		info->PanelYRes < d_timings->v_active) {
+	    if (info->PanelXRes <= d_timings->h_active &&
+		info->PanelYRes <= d_timings->v_active) {
+
+		if (info->DotClock) continue; /* Timings already inited */
 
 		info->PanelXRes  = d_timings->h_active;
 		info->PanelYRes  = d_timings->v_active;
@@ -3157,8 +3180,9 @@ static int RADEONValidateFPModes(ScrnInfoPtr pScrn, char **ppModeName)
 		new->next       = NULL;
 		new->prev       = last;
 
-		last->next = new;
+		if (last) last->next = new;
 		last = new;
+		if (!first) first = new;
 	    }
 	}
     }
@@ -4471,10 +4495,12 @@ Bool RADEONScreenInit(int scrnIndex, ScreenPtr pScreen, int argc, char **argv)
 
     RADEONSave(pScrn);
 
-    if (xf86ReturnOptValBool(info->Options, OPTION_DYNAMIC_CLOCKS, FALSE)) {
-	RADEONSetDynamicClock(pScrn, 1);
-    } else {
-	RADEONSetDynamicClock(pScrn, 0);
+    if ((!info->IsSecondary) && info->IsMobility) {
+        if (xf86ReturnOptValBool(info->Options, OPTION_DYNAMIC_CLOCKS, FALSE)) {
+	    RADEONSetDynamicClock(pScrn, 1);
+        } else {
+	    RADEONSetDynamicClock(pScrn, 0);
+        }
     }
 
     if (info->FBDev) {
@@ -7133,6 +7159,7 @@ void RADEONAdjustFrame(int scrnIndex, int x, int y, int flags)
 	RADEONDoAdjustFrame(pScrn, x, y, FALSE);
     }
 
+    RADEONSetFBLocation (pScrn);
 #ifdef XF86DRI
 	if (info->CPStarted) DRIUnlock(pScrn->pScreen);
 #endif
@@ -7145,8 +7172,21 @@ Bool RADEONEnterVT(int scrnIndex, int flags)
 {
     ScrnInfoPtr    pScrn = xf86Screens[scrnIndex];
     RADEONInfoPtr  info  = RADEONPTR(pScrn);
+    unsigned char *RADEONMMIO = info->MMIO;
 
     RADEONTRACE(("RADEONEnterVT\n"));
+
+    if (INREG(RADEON_CONFIG_MEMSIZE) == 0) { /* Softboot V_BIOS */
+       xf86Int10InfoPtr pInt;
+       xf86DrvMsg(pScrn->scrnIndex, X_WARNING,
+                  "zero MEMSIZE, probably at D3cold. Re-POSTing via int10.\n");
+       pInt = xf86InitInt10 (info->pEnt->index);
+       if (pInt) {
+           pInt->num = 0xe6;
+           xf86ExecX86int10 (pInt);
+           xf86FreeInt10 (pInt);
+       }
+    }
 
     if (info->FBDev) {
 	unsigned char *RADEONMMIO = info->MMIO;
@@ -7157,6 +7197,8 @@ Bool RADEONEnterVT(int scrnIndex, int flags)
 	RADEONRestoreFBDevRegisters(pScrn, &info->ModeReg);
     } else
 	if (!RADEONModeInit(pScrn, pScrn->currentMode)) return FALSE;
+
+    RADEONSetFBLocation (pScrn);
 
 #ifdef XF86DRI
     if (info->directRenderingEnabled) {
