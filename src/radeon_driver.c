@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/drivers/ati/radeon_driver.c,v 1.116 2003/11/19 02:08:15 martin Exp $ */
+/* $XFree86: xc/programs/Xserver/hw/xfree86/drivers/ati/radeon_driver.c,v 1.117 2004/02/19 22:38:12 tsi Exp $ */
 /*
  * Copyright 2000 ATI Technologies Inc., Markham, Ontario, and
  *                VA Linux Systems Inc., Fremont, California.
@@ -2258,27 +2258,66 @@ static Bool RADEONPreInitConfig(ScrnInfoPtr pScrn)
 
 #ifdef XF86DRI
 				/* AGP/PCI */
-
-    /* There are signatures in BIOS and PCI-SSID for a PCI card, but
-     * they are not very reliable.  Following detection method works for
-     * all cards tested so far.  Note, checking AGP_ENABLE bit after
-     * drmAgpEnable call can also give the correct result.  However,
-     * calling drmAgpEnable on a PCI card can cause some strange lockup
-     * when the server restarts next time.
+    /* Proper autodetection of an AGP capable device requires examining
+     * PCI config registers to determine if the device implements extended
+     * PCI capabilities, and then walking the capability list as indicated
+     * in the PCI 2.2 and AGP 2.0 specifications, to determine if AGP
+     * capability is present.  The procedure is outlined as follows:
+     *
+     * 1) Test bit 4 (CAP_LIST) of the PCI status register of the device
+     *    to determine wether or not this device implements any extended
+     *    capabilities.  If this bit is zero, then the device is a PCI 2.1
+     *    or earlier device and is not AGP capable, and we can conclude it
+     *    to be a PCI device.
+     *
+     * 2) If bit 4 of the status register is set, then the device implements
+     *    extended capabilities.  There is an 8 bit wide capabilities pointer
+     *    register located at offset 0x34 in PCI config space which points to
+     *    the first capability in a linked list of extended capabilities that
+     *    this device implements.  The lower two bits of this register are
+     *    reserved and MBZ so must be masked out.
+     *
+     * 3) The extended capabilities list is formed by one or more extended
+     *    capabilities structures which are aligned on DWORD boundaries.
+     *    The first byte of the structure is the capability ID (CAP_ID)
+     *    indicating what extended capability this structure refers to.  The
+     *    second byte of the structure is an offset from the beginning of
+     *    PCI config space pointing to the next capability in the linked
+     *    list (NEXT_PTR) or NULL (0x00) at the end of the list.  The lower
+     *    two bits of this pointer are reserved and MBZ.  By examining the
+     *    CAP_ID of each capability and walking through the list, we will
+     *    either find the AGP_CAP_ID (0x02) indicating this device is an
+     *    AGP device, or we'll reach the end of the list, indicating it is
+     *    a PCI device.
+     *
+     * Mike A. Harris <mharris@redhat.com>
+     *
+     * References:
+     *	- PCI Local Bus Specification Revision 2.2, Chapter 6
+     *	- AGP Interface Specification Revision 2.0, Section 6.1.5
      */
 
-    agpCommand = pciReadLong(info->PciTag, RADEON_AGP_COMMAND_PCI_CONFIG);
-    pciWriteLong(info->PciTag, RADEON_AGP_COMMAND_PCI_CONFIG,
-		 agpCommand | RADEON_AGP_ENABLE);
-    if (pciReadLong(info->PciTag, RADEON_AGP_COMMAND_PCI_CONFIG)
-	& RADEON_AGP_ENABLE) {
-	info->IsPCI = FALSE; 
-	xf86DrvMsg(pScrn->scrnIndex, X_INFO, "AGP card detected\n");
-    } else {
-	info->IsPCI = TRUE; 
-	xf86DrvMsg(pScrn->scrnIndex, X_INFO, "PCI card detected\n");
+    info->IsPCI = TRUE;
+
+    if (pciReadLong(info->PciTag, PCI_CMD_STAT_REG) & RADEON_CAP_LIST) {
+	CARD32 cap_ptr, cap_id;
+
+	cap_ptr = pciReadLong(info->PciTag,
+			      RADEON_CAPABILITIES_PTR_PCI_CONFIG)
+	    & RADEON_CAP_PTR_MASK;
+
+	while(cap_ptr != RADEON_CAP_ID_NULL) {
+	    cap_id = pciReadLong(info->PciTag, cap_ptr);
+	    if ((cap_id & 0xff)== RADEON_CAP_ID_AGP) {
+		info->IsPCI = FALSE;
+		break;
+	    }
+	    cap_ptr = (cap_id >> 8) & RADEON_CAP_PTR_MASK;
+	}
     }
-    pciWriteLong(info->PciTag, RADEON_AGP_COMMAND_PCI_CONFIG, agpCommand);
+
+    xf86DrvMsg(pScrn->scrnIndex, X_INFO, "%s card detected\n",
+	       (info->IsPCI) ? "PCI" : "AGP");
 
     if ((s = xf86GetOptValString(info->Options, OPTION_BUS_TYPE))) {
 	if (strcmp(s, "AGP") == 0) {
@@ -5058,6 +5097,7 @@ static void RADEONRestorePLLRegisters(ScrnInfoPtr pScrn,
 	    ~(RADEON_PLL_DIV_SEL));
 
     if ((info->ChipFamily == CHIP_FAMILY_R300) ||
+	(info->ChipFamily == CHIP_FAMILY_RS300) ||
 	(info->ChipFamily == CHIP_FAMILY_R350) ||
 	(info->ChipFamily == CHIP_FAMILY_RV350)) {
 	if (restore->ppll_ref_div & R300_PPLL_REF_DIV_ACC_MASK) {
@@ -5455,12 +5495,12 @@ static void RADEONSaveMode(ScrnInfoPtr pScrn, RADEONSavePtr save)
     RADEONInfoPtr  info = RADEONPTR(pScrn);
 
     RADEONTRACE(("RADEONSaveMode(%p)\n", save));
+    RADEONSaveCommonRegisters(pScrn, save);
     if (info->IsSecondary) {
 	RADEONSaveCrtc2Registers(pScrn, save);
 	RADEONSavePLL2Registers(pScrn, save);
     } else {
 	RADEONSavePLLRegisters(pScrn, save);
-	RADEONSaveCommonRegisters(pScrn, save);
 	RADEONSaveCrtcRegisters(pScrn, save);
 	RADEONSaveFPRegisters(pScrn, save);
 
@@ -6064,13 +6104,16 @@ static Bool RADEONInitCrtcRegisters(ScrnInfoPtr pScrn, RADEONSavePtr save,
     save->disp_merge_cntl &= ~RADEON_DISP_RGB_OFFSET_EN;
 
 #if X_BYTE_ORDER == X_BIG_ENDIAN
+    /* Alhought we current onlu use aperture 0, also setting aperture 1 should not harm -ReneR */
     switch (pScrn->bitsPerPixel) {
     case 16:
 	save->surface_cntl |= RADEON_NONSURF_AP0_SWP_16BPP;
+	save->surface_cntl |= RADEON_NONSURF_AP1_SWP_16BPP;
 	break;
 
     case 32:
 	save->surface_cntl |= RADEON_NONSURF_AP0_SWP_32BPP;
+	save->surface_cntl |= RADEON_NONSURF_AP1_SWP_32BPP;
 	break;
     }
 #endif
@@ -6634,12 +6677,12 @@ static Bool RADEONInit(ScrnInfoPtr pScrn, DisplayModePtr mode,
 
     info->Flags = mode->Flags;
 
+    RADEONInitCommonRegisters(save, info);
     if (info->IsSecondary) {
 	if (!RADEONInitCrtc2Registers(pScrn, save, mode, info))
 	    return FALSE;
 	RADEONInitPLL2Registers(save, &info->pll, dot_clock);
     } else {
-	RADEONInitCommonRegisters(save, info);
 	if (!RADEONInitCrtcRegisters(pScrn, save, mode, info))
 	    return FALSE;
 	dot_clock = mode->Clock/1000.0;
@@ -7027,12 +7070,79 @@ void RADEONFreeScreen(int scrnIndex, int flags)
     RADEONFreeRec(pScrn);
 }
 
+/*
+ * Powering done DAC, needed for DPMS problem with ViewSonic P817 (or its variant).
+ *
+ * Note for current DAC mapping when calling this function:
+ * For most of cards:
+ * single CRT:  Driver doesn't change the existing CRTC->DAC mapping, 
+ *              CRTC1 could be driving either DAC or both DACs.
+ * CRT+CRT:     CRTC1->TV DAC, CRTC2->Primary DAC
+ * DFP/LCD+CRT: CRTC2->TV DAC, CRTC2->Primary DAC.
+ * Some boards have two DACs reversed or don't even have a primary DAC,
+ * this is reflected in pRADEONEnt->ReversedDAC. And radeon 7200 doesn't 
+ * have a second DAC.
+ * It's kind of messy, we'll need to redo DAC mapping part some day.
+ */
+static void RADEONDacPowerSet(ScrnInfoPtr pScrn, Bool IsOn, Bool IsPrimaryDAC)
+{
+    RADEONInfoPtr  info       = RADEONPTR(pScrn);
+    unsigned char *RADEONMMIO = info->MMIO;
+
+    if (IsPrimaryDAC) {
+	CARD32 dac_cntl;
+	CARD32 dac_macro_cntl = 0;
+	dac_cntl = INREG(RADEON_DAC_CNTL);
+	if ((!info->IsMobility) || (info->ChipFamily == CHIP_FAMILY_RV350)) 
+	    dac_macro_cntl = INREG(RADEON_DAC_MACRO_CNTL);
+	if (IsOn) {
+	    dac_cntl &= ~RADEON_DAC_PDWN;
+	    dac_macro_cntl &= ~(RADEON_DAC_PDWN_R |
+				RADEON_DAC_PDWN_G |
+				RADEON_DAC_PDWN_B);
+	} else {
+	    dac_cntl |= RADEON_DAC_PDWN;
+	    dac_macro_cntl |= (RADEON_DAC_PDWN_R |
+			       RADEON_DAC_PDWN_G |
+			       RADEON_DAC_PDWN_B);
+	}
+	OUTREG(RADEON_DAC_CNTL, dac_cntl);
+	if ((!info->IsMobility) || (info->ChipFamily == CHIP_FAMILY_RV350)) 
+	    OUTREG(RADEON_DAC_MACRO_CNTL, dac_macro_cntl);
+    } else {
+	if (info->ChipFamily != CHIP_FAMILY_R200) {
+	    CARD32 tv_dac_cntl = INREG(RADEON_TV_DAC_CNTL);
+	    if (IsOn) {
+		tv_dac_cntl &= ~(RADEON_TV_DAC_RDACPD |
+				 RADEON_TV_DAC_GDACPD |
+				 RADEON_TV_DAC_BDACPD |
+				 RADEON_TV_DAC_BGSLEEP);
+	    } else {
+		tv_dac_cntl |= (RADEON_TV_DAC_RDACPD |
+				RADEON_TV_DAC_GDACPD |
+				RADEON_TV_DAC_BDACPD |
+				RADEON_TV_DAC_BGSLEEP);
+	    }
+	    OUTREG(RADEON_TV_DAC_CNTL, tv_dac_cntl);
+	} else {
+	    CARD32 fp2_gen_cntl = INREG(RADEON_FP2_GEN_CNTL);
+	    if (IsOn) {
+		fp2_gen_cntl |= RADEON_FP2_DV0_EN;
+	    } else {
+		fp2_gen_cntl &= ~RADEON_FP2_DV0_EN;
+	    }
+	    OUTREG(RADEON_FP2_GEN_CNTL, fp2_gen_cntl);
+	}
+    }
+}
+
 /* Sets VESA Display Power Management Signaling (DPMS) Mode */
 static void RADEONDisplayPowerManagementSet(ScrnInfoPtr pScrn,
 					    int PowerManagementMode,
 					    int flags)
 {
     RADEONInfoPtr  info       = RADEONPTR(pScrn);
+    RADEONEntPtr pRADEONEnt   = RADEONEntPriv(pScrn);
     unsigned char *RADEONMMIO = info->MMIO;
 
 #ifdef XF86DRI
@@ -7050,8 +7160,6 @@ static void RADEONDisplayPowerManagementSet(ScrnInfoPtr pScrn,
 	int             mask2     = (RADEON_CRTC2_DISP_DIS |
 				     RADEON_CRTC2_VSYNC_DIS |
 				     RADEON_CRTC2_HSYNC_DIS);
-
-	/* TODO: additional handling for LCD ? */
 
 	switch (PowerManagementMode) {
 	case DPMSModeOn:
@@ -7119,13 +7227,19 @@ static void RADEONDisplayPowerManagementSet(ScrnInfoPtr pScrn,
 		    if (info->ChipFamily >= CHIP_FAMILY_R200) {
 			OUTREGP (RADEON_FP2_GEN_CNTL, RADEON_FP2_DV0_EN, ~RADEON_FP2_DV0_EN);
 		    }
+		} else if (info->DisplayType == MT_CRT) {
+		    RADEONDacPowerSet(pScrn, TRUE, !pRADEONEnt->ReversedDAC);
 		}
 	    } else {
-		if ((info->Clone) && (info->CloneType == MT_DFP)) {
-		    OUTREGP (RADEON_FP2_GEN_CNTL, 0, ~RADEON_FP2_BLANK_EN);
-		    OUTREGP (RADEON_FP2_GEN_CNTL, RADEON_FP2_ON, ~RADEON_FP2_ON);
-		    if (info->ChipFamily >= CHIP_FAMILY_R200) {
-			OUTREGP (RADEON_FP2_GEN_CNTL, RADEON_FP2_DV0_EN, ~RADEON_FP2_DV0_EN);
+		if (info->Clone) {
+		    if (info->CloneType == MT_DFP) {
+			OUTREGP (RADEON_FP2_GEN_CNTL, 0, ~RADEON_FP2_BLANK_EN);
+			OUTREGP (RADEON_FP2_GEN_CNTL, RADEON_FP2_ON, ~RADEON_FP2_ON);
+			if (info->ChipFamily >= CHIP_FAMILY_R200) {
+			    OUTREGP (RADEON_FP2_GEN_CNTL, RADEON_FP2_DV0_EN, ~RADEON_FP2_DV0_EN);
+			}
+		    } else if (info->CloneType == MT_CRT) {
+			RADEONDacPowerSet(pScrn, TRUE, !pRADEONEnt->ReversedDAC);
 		    }
 		}
 		if (info->DisplayType == MT_DFP) {
@@ -7136,6 +7250,14 @@ static void RADEONDisplayPowerManagementSet(ScrnInfoPtr pScrn,
 		    OUTREGP (RADEON_LVDS_GEN_CNTL, RADEON_LVDS_BLON, ~RADEON_LVDS_BLON);
 		    usleep (info->PanelPwrDly * 1000);
 		    OUTREGP (RADEON_LVDS_GEN_CNTL, RADEON_LVDS_ON, ~RADEON_LVDS_ON);
+		} else if (info->DisplayType == MT_CRT) {
+		    if ((pRADEONEnt->HasSecondary) || info->Clone) {
+			RADEONDacPowerSet(pScrn, TRUE, pRADEONEnt->ReversedDAC);
+		    } else {
+			RADEONDacPowerSet(pScrn, TRUE, TRUE);
+			if (info->HasCRTC2)
+			    RADEONDacPowerSet(pScrn, TRUE, FALSE);
+		    }
 		}
 	    }
 	} else if ((PowerManagementMode == DPMSModeOff) ||
@@ -7148,13 +7270,19 @@ static void RADEONDisplayPowerManagementSet(ScrnInfoPtr pScrn,
 		    if (info->ChipFamily >= CHIP_FAMILY_R200) {
 			OUTREGP (RADEON_FP2_GEN_CNTL, 0, ~RADEON_FP2_DV0_EN);
 		    }
+		} else if (info->DisplayType == MT_CRT) {
+		    RADEONDacPowerSet(pScrn, FALSE, !pRADEONEnt->ReversedDAC);
 		}
 	    } else {
-		if ((info->Clone) && (info->CloneType == MT_DFP)) {
-		    OUTREGP (RADEON_FP2_GEN_CNTL, RADEON_FP2_BLANK_EN, ~RADEON_FP2_BLANK_EN);
-		    OUTREGP (RADEON_FP2_GEN_CNTL, 0, ~RADEON_FP2_ON);
-		    if (info->ChipFamily >= CHIP_FAMILY_R200) {
-			OUTREGP (RADEON_FP2_GEN_CNTL, 0, ~RADEON_FP2_DV0_EN);
+		if (info->Clone) {
+		    if(info->CloneType == MT_DFP) {
+			OUTREGP (RADEON_FP2_GEN_CNTL, RADEON_FP2_BLANK_EN, ~RADEON_FP2_BLANK_EN);
+			OUTREGP (RADEON_FP2_GEN_CNTL, 0, ~RADEON_FP2_ON);
+			if (info->ChipFamily >= CHIP_FAMILY_R200) {
+			    OUTREGP (RADEON_FP2_GEN_CNTL, 0, ~RADEON_FP2_DV0_EN);
+			}
+		    } else if (info->CloneType == MT_CRT) {
+			RADEONDacPowerSet(pScrn, FALSE, !pRADEONEnt->ReversedDAC);
 		    }
 		}
 		if (info->DisplayType == MT_DFP) {
@@ -7174,6 +7302,17 @@ static void RADEONDisplayPowerManagementSet(ScrnInfoPtr pScrn,
 
 		    if (info->IsMobility || info->IsIGP) {
 			OUTPLL(RADEON_PIXCLKS_CNTL, tmpPixclksCntl);
+		    }
+		} else if (info->DisplayType == MT_CRT) {
+		    if ((pRADEONEnt->HasSecondary) || info->Clone) {
+			RADEONDacPowerSet(pScrn, FALSE, pRADEONEnt->ReversedDAC);
+		    } else {
+			/* single CRT, turning both DACs off, we don't really know 
+			 * which DAC is actually connected.
+			 */
+			RADEONDacPowerSet(pScrn, FALSE, TRUE);
+			if (info->HasCRTC2) /* don't apply this to old radeon (singel CRTC) card */
+			    RADEONDacPowerSet(pScrn, FALSE, FALSE);
 		    }
 		}
 	    }
