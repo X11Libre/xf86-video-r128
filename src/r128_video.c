@@ -579,20 +579,20 @@ R128AllocateMemory(
 
    pScreen = screenInfo.screens[pScrn->scrnIndex];
 
-   new_linear = xf86AllocateOffscreenLinear(pScreen, size, 16,
+   new_linear = xf86AllocateOffscreenLinear(pScreen, size, 8,
 						NULL, NULL, NULL);
 
    if(!new_linear) {
 	int max_size;
 
-	xf86QueryLargestOffscreenLinear(pScreen, &max_size, 16,
+	xf86QueryLargestOffscreenLinear(pScreen, &max_size, 8,
 						PRIORITY_EXTREME);
 
 	if(max_size < size)
 	   return NULL;
 
 	xf86PurgeUnlockedOffscreenAreas(pScreen);
-	new_linear = xf86AllocateOffscreenLinear(pScreen, size, 16,
+	new_linear = xf86AllocateOffscreenLinear(pScreen, size, 8,
 						NULL, NULL, NULL);
    }
 

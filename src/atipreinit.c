@@ -1918,11 +1918,11 @@ ATIPreInit
                    VBlankEnd += 0x0100U;
 
                 pATI->LCDHBlankWidth = HBlankEnd - HBlankStart;
-                pATI->LCDHSyncStart = HSyncStart - HBlankStart - 1;
+                pATI->LCDHSyncStart = HSyncStart - HBlankStart;
                 pATI->LCDHSyncWidth = HSyncEnd - HSyncStart;
 
                 pATI->LCDVBlankWidth = VBlankEnd - VBlankStart;
-                pATI->LCDVSyncStart = VSyncStart - VBlankStart - 1;
+                pATI->LCDVSyncStart = VSyncStart - VBlankStart;
                 pATI->LCDVSyncWidth = VSyncEnd - VSyncStart;
 
                 HDisplay = HTotal + 5 - pATI->LCDHBlankWidth;
