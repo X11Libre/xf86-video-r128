@@ -65,6 +65,13 @@
 #       define RADEON_AGP_APER_SIZE_8MB     (0x3e << 0)
 #       define RADEON_AGP_APER_SIZE_4MB     (0x3f << 0)
 #       define RADEON_AGP_APER_SIZE_MASK    (0x3f << 0)
+#define RADEON_STATUS_PCI_CONFIG            0x06
+#       define RADEON_CAP_LIST              0x10
+#define RADEON_CAPABILITIES_PTR             0x0f34 /* PCI */
+#define RADEON_CAPABILITIES_PTR_PCI_CONFIG  0x34 /* offset in PCI config*/
+#       define RADEON_CAP_PTR_MASK          0xfc /* mask off reserved bits of CAP_PTR */
+#       define RADEON_CAP_ID_NULL           0x00 /* End of capability list */
+#       define RADEON_CAP_ID_AGP            0x02 /* AGP capability ID */
 #define RADEON_AGP_COMMAND                  0x0f60 /* PCI */
 #define RADEON_AGP_COMMAND_PCI_CONFIG       0x0060 /* offset in PCI config*/
 #       define RADEON_AGP_ENABLE            (1<<8)
