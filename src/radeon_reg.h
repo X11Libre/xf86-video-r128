@@ -66,8 +66,7 @@
 #       define RADEON_AGP_APER_SIZE_4MB     (0x3f << 0)
 #       define RADEON_AGP_APER_SIZE_MASK    (0x3f << 0)
 #define RADEON_STATUS_PCI_CONFIG            0x06
-#       define RADEON_CAP_LIST              0x10
-#define RADEON_CAPABILITIES_PTR             0x0f34 /* PCI */
+#       define RADEON_CAP_LIST              0x100000
 #define RADEON_CAPABILITIES_PTR_PCI_CONFIG  0x34 /* offset in PCI config*/
 #       define RADEON_CAP_PTR_MASK          0xfc /* mask off reserved bits of CAP_PTR */
 #       define RADEON_CAP_ID_NULL           0x00 /* End of capability list */
@@ -408,11 +407,16 @@
 #       define RADEON_DAC_FORCE_DATA_SEL_MASK (3 << 6)
 #       define RADEON_DAC_FORCE_DATA_MASK   0x0003ff00
 #       define RADEON_DAC_FORCE_DATA_SHIFT  8
+#define RADEON_DAC_MACRO_CNTL               0x0d04
+#       define RADEON_DAC_PDWN_R            (1 << 16)
+#       define RADEON_DAC_PDWN_G            (1 << 17)
+#       define RADEON_DAC_PDWN_B            (1 << 18)
 #define RADEON_TV_DAC_CNTL                  0x088c
 #       define RADEON_TV_DAC_STD_MASK       0x0300
 #       define RADEON_TV_DAC_RDACPD         (1 <<  24)
 #       define RADEON_TV_DAC_GDACPD         (1 <<  25)
 #       define RADEON_TV_DAC_BDACPD         (1 <<  26)
+#       define RADEON_TV_DAC_BGSLEEP        (1 <<  26)
 #define RADEON_DISP_HW_DEBUG                0x0d14
 #       define RADEON_CRT2_DISP1_SEL        (1 <<  5)
 #define RADEON_DISP_OUTPUT_CNTL             0x0d64
