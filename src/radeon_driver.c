@@ -3157,8 +3157,9 @@ static int RADEONValidateFPModes(ScrnInfoPtr pScrn, char **ppModeName)
 		new->next       = NULL;
 		new->prev       = last;
 
-		last->next = new;
+		if (last) last->next = new;
 		last = new;
+		if (!first) first = new;
 	    }
 	}
     }
