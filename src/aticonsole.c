@@ -19,18 +19,32 @@
  * DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
+ *
+ * DRI support by:
+ *    Manuel Teira
+ *    Leif Delgass <ldelgass@retinalburn.net>
  */
 
+#include "ati.h"
 #include "atiadapter.h"
 #include "aticonsole.h"
 #include "aticrtc.h"
 #include "atii2c.h"
 #include "atilock.h"
 #include "atimach64.h"
+#include "atimach64io.h"
 #include "atimode.h"
 #include "atistruct.h"
 #include "ativga.h"
 #include "atividmem.h"
+
+#ifdef XF86DRI_DEVEL
+#include "mach64_common.h"
+#endif
+
+#include "mach64_common.h"
+
+
 
 #include "xf86.h"
 
@@ -242,7 +256,28 @@ ATISwitchMode
     if (pScreenInfo->vtSema)
     {
         pScreenInfo->currentMode = pMode;
+
+#ifdef XF86DRI_DEVEL
+
+        if (pATI->directRenderingEnabled) 
+        {
+            DRILock(pScreenInfo->pScreen,0);
+	    ATIDRIWaitForIdle(pATI);
+        }
+
+#endif /* XF86DRI_DEVEL */
+
         ATIModeSet(pScreenInfo, pATI, &pATI->NewHW);
+
+#ifdef XF86DRI_DEVEL
+
+        if (pATI->directRenderingEnabled) 
+        {
+            DRIUnlock(pScreenInfo->pScreen);
+        }
+
+#endif /* XF86DRI_DEVEL */
+
     }
 
     SetTimeSinceLastInputEvent();
@@ -274,7 +309,19 @@ ATIEnterVT
 
     /* The rest of this isn't needed for shadowfb */
     if (pATI->OptionShadowFB)
+    {
+
+#ifdef XF86DRI_DEVEL
+
+        if (pATI->directRenderingEnabled) 
+        {
+            DRIUnlock(pScreen);
+        }
+
+#endif /* XF86DRI_DEVEL */
+
         return TRUE;
+    }
 
 #ifndef AVOID_CPIO
 
@@ -299,6 +346,15 @@ ATIEnterVT
         pScreenPixmap->devPrivate.ptr = NULL;
     }
 
+#ifdef XF86DRI_DEVEL
+
+    if (pATI->directRenderingEnabled) 
+    {
+        DRIUnlock(pScreen);
+    }
+
+#endif /* XF86DRI_DEVEL */
+
     return Entered;
 }
 
@@ -316,6 +372,18 @@ ATILeaveVT
 )
 {
     ScrnInfoPtr pScreenInfo = xf86Screens[iScreen];
+    ScreenPtr   pScreen     = pScreenInfo->pScreen;
+    ATIPtr      pATI        = ATIPTR(pScreenInfo);
+
+#ifdef XF86DRI_DEVEL
+
+    if (pATI->directRenderingEnabled) 
+    {
+        DRILock(pScreen,0);
+        ATIDRIWaitForIdle(pATI);
+    }
+
+#endif /* XF86DRI_DEVEL */
 
     ATILeaveGraphics(pScreenInfo, ATIPTR(pScreenInfo));
 }

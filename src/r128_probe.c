@@ -48,86 +48,7 @@
 #include "xf86_ansic.h"
 #include "xf86Resources.h"
 
-#ifdef XFree86LOADER
-
-/*
- * The following exists to prevent the compiler from considering entry points
- * defined in a separate module from being constants.
- */
-static xf86PreInitProc     * const volatile PreInitProc     = R128PreInit;
-static xf86ScreenInitProc  * const volatile ScreenInitProc  = R128ScreenInit;
-static xf86SwitchModeProc  * const volatile SwitchModeProc  = R128SwitchMode;
-static xf86AdjustFrameProc * const volatile AdjustFrameProc = R128AdjustFrame;
-static xf86EnterVTProc     * const volatile EnterVTProc     = R128EnterVT;
-static xf86LeaveVTProc     * const volatile LeaveVTProc     = R128LeaveVT;
-static xf86FreeScreenProc  * const volatile FreeScreenProc  = R128FreeScreen;
-static xf86ValidModeProc   * const volatile ValidModeProc   = R128ValidMode;
-
-#define R128PreInit     PreInitProc
-#define R128ScreenInit  ScreenInitProc
-#define R128SwitchMode  SwitchModeProc
-#define R128AdjustFrame AdjustFrameProc
-#define R128EnterVT     EnterVTProc
-#define R128LeaveVT     LeaveVTProc
-#define R128FreeScreen  FreeScreenProc
-#define R128ValidMode   ValidModeProc
-
-#endif
-
-SymTabRec R128Chipsets[] = {
-    /* FIXME: The chipsets with (PCI/AGP) are not known wether they are AGP or
-     *        PCI, so I've labeled them as such in hopes users will submit
-     *        data if we're unable to gather it from official documentation
-     */
-    { PCI_CHIP_RAGE128LE, "ATI Rage 128 Mobility M3 LE (PCI)" },
-    { PCI_CHIP_RAGE128LF, "ATI Rage 128 Mobility M3 LF (AGP)" },
-    { PCI_CHIP_RAGE128MF, "ATI Rage 128 Mobility M4 MF (AGP)" },
-    { PCI_CHIP_RAGE128ML, "ATI Rage 128 Mobility M4 ML (AGP)" },
-    { PCI_CHIP_RAGE128PA, "ATI Rage 128 Pro GL PA (PCI/AGP)" },
-    { PCI_CHIP_RAGE128PB, "ATI Rage 128 Pro GL PB (PCI/AGP)" },
-    { PCI_CHIP_RAGE128PC, "ATI Rage 128 Pro GL PC (PCI/AGP)" },
-    { PCI_CHIP_RAGE128PD, "ATI Rage 128 Pro GL PD (PCI)" },
-    { PCI_CHIP_RAGE128PE, "ATI Rage 128 Pro GL PE (PCI/AGP)" },
-    { PCI_CHIP_RAGE128PF, "ATI Rage 128 Pro GL PF (AGP)" },
-    { PCI_CHIP_RAGE128PG, "ATI Rage 128 Pro VR PG (PCI/AGP)" },
-    { PCI_CHIP_RAGE128PH, "ATI Rage 128 Pro VR PH (PCI/AGP)" },
-    { PCI_CHIP_RAGE128PI, "ATI Rage 128 Pro VR PI (PCI/AGP)" },
-    { PCI_CHIP_RAGE128PJ, "ATI Rage 128 Pro VR PJ (PCI/AGP)" },
-    { PCI_CHIP_RAGE128PK, "ATI Rage 128 Pro VR PK (PCI/AGP)" },
-    { PCI_CHIP_RAGE128PL, "ATI Rage 128 Pro VR PL (PCI/AGP)" },
-    { PCI_CHIP_RAGE128PM, "ATI Rage 128 Pro VR PM (PCI/AGP)" },
-    { PCI_CHIP_RAGE128PN, "ATI Rage 128 Pro VR PN (PCI/AGP)" },
-    { PCI_CHIP_RAGE128PO, "ATI Rage 128 Pro VR PO (PCI/AGP)" },
-    { PCI_CHIP_RAGE128PP, "ATI Rage 128 Pro VR PP (PCI)" },
-    { PCI_CHIP_RAGE128PQ, "ATI Rage 128 Pro VR PQ (PCI/AGP)" },
-    { PCI_CHIP_RAGE128PR, "ATI Rage 128 Pro VR PR (PCI)" },
-    { PCI_CHIP_RAGE128PS, "ATI Rage 128 Pro VR PS (PCI/AGP)" },
-    { PCI_CHIP_RAGE128PT, "ATI Rage 128 Pro VR PT (PCI/AGP)" },
-    { PCI_CHIP_RAGE128PU, "ATI Rage 128 Pro VR PU (PCI/AGP)" },
-    { PCI_CHIP_RAGE128PV, "ATI Rage 128 Pro VR PV (PCI/AGP)" },
-    { PCI_CHIP_RAGE128PW, "ATI Rage 128 Pro VR PW (PCI/AGP)" },
-    { PCI_CHIP_RAGE128PX, "ATI Rage 128 Pro VR PX (PCI/AGP)" },
-    { PCI_CHIP_RAGE128RE, "ATI Rage 128 GL RE (PCI)" },
-    { PCI_CHIP_RAGE128RF, "ATI Rage 128 GL RF (AGP)" },
-    { PCI_CHIP_RAGE128RG, "ATI Rage 128 RG (AGP)" },
-    { PCI_CHIP_RAGE128RK, "ATI Rage 128 VR RK (PCI)" },
-    { PCI_CHIP_RAGE128RL, "ATI Rage 128 VR RL (AGP)" },
-    { PCI_CHIP_RAGE128SE, "ATI Rage 128 4X SE (PCI/AGP)" },
-    { PCI_CHIP_RAGE128SF, "ATI Rage 128 4X SF (PCI/AGP)" },
-    { PCI_CHIP_RAGE128SG, "ATI Rage 128 4X SG (PCI/AGP)" },
-    { PCI_CHIP_RAGE128SH, "ATI Rage 128 4X SH (PCI/AGP)" },
-    { PCI_CHIP_RAGE128SK, "ATI Rage 128 4X SK (PCI/AGP)" },
-    { PCI_CHIP_RAGE128SL, "ATI Rage 128 4X SL (PCI/AGP)" },
-    { PCI_CHIP_RAGE128SM, "ATI Rage 128 4X SM (AGP)" },
-    { PCI_CHIP_RAGE128SN, "ATI Rage 128 4X SN (PCI/AGP)" },
-    { PCI_CHIP_RAGE128TF, "ATI Rage 128 Pro ULTRA TF (AGP)" },
-    { PCI_CHIP_RAGE128TL, "ATI Rage 128 Pro ULTRA TL (AGP)" },
-    { PCI_CHIP_RAGE128TR, "ATI Rage 128 Pro ULTRA TR (AGP)" },
-    { PCI_CHIP_RAGE128TS, "ATI Rage 128 Pro ULTRA TS (AGP?)" },
-    { PCI_CHIP_RAGE128TT, "ATI Rage 128 Pro ULTRA TT (AGP?)" },
-    { PCI_CHIP_RAGE128TU, "ATI Rage 128 Pro ULTRA TU (AGP?)" },
-    { -1,                 NULL }
-};
+#include "r128_chipset.h"
 
 PciChipsets R128PciChipsets[] = {
     { PCI_CHIP_RAGE128LE, PCI_CHIP_RAGE128LE, RES_SHARED_VGA },
@@ -194,7 +115,7 @@ R128AvailableOptions(int chipid, int busid)
 	chipid -= PCI_VENDOR_ATI << 16;
     for (i = 0; R128PciChipsets[i].PCIid > 0; i++) {
 	if (chipid == R128PciChipsets[i].PCIid)
-	    return R128Options;
+	    return R128OptionsWeak();
     }
     return NULL;
 }
@@ -280,18 +201,8 @@ R128Probe(DriverPtr drv, int flags)
 
 #endif
 
-	    pScrn->driverVersion = R128_VERSION_CURRENT;
-	    pScrn->driverName    = R128_DRIVER_NAME;
-	    pScrn->name          = R128_NAME;
 	    pScrn->Probe         = R128Probe;
-	    pScrn->PreInit       = R128PreInit;
-	    pScrn->ScreenInit    = R128ScreenInit;
-	    pScrn->SwitchMode    = R128SwitchMode;
-	    pScrn->AdjustFrame   = R128AdjustFrame;
-	    pScrn->EnterVT       = R128EnterVT;
-	    pScrn->LeaveVT       = R128LeaveVT;
-	    pScrn->FreeScreen    = R128FreeScreen;
-	    pScrn->ValidMode     = R128ValidMode;
+	    R128FillInScreenInfo(pScrn);
 
 	    foundScreen          = TRUE;
 

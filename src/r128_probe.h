@@ -49,7 +49,6 @@ extern void                  R128Identify
 extern Bool                  R128Probe
 			     FunctionPrototype((DriverPtr, int));
 
-extern SymTabRec             R128Chipsets[];
 extern PciChipsets           R128PciChipsets[];
 
 /* r128_driver.c */
@@ -73,6 +72,10 @@ extern ModeStatus            R128ValidMode
 			     FunctionPrototype((int, DisplayModePtr, Bool,
 						int));
 
-extern const OptionInfoRec   R128Options[];
+extern const OptionInfoRec * R128OptionsWeak
+                             FunctionPrototype((void));
+
+extern void                  R128FillInScreenInfo
+                             FunctionPrototype((ScrnInfoPtr));
 
 #endif /* _R128_PROBE_H_ */

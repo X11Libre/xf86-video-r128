@@ -1479,7 +1479,7 @@ ATIPreInit
 
     if (pATI->Chip >= ATI_CHIP_264GT)
         xf86DrvMsg(pScreenInfo->scrnIndex, X_NOTICE,
-            "For information on using the multimedia capabilities\n of this"
+            "For information on using the multimedia capabilities\n\tof this"
             " adapter, please see http://gatos.sf.net.\n");
 
     if ((pATI->DAC & ~0x0FU) == ATI_DAC_INTERNAL)

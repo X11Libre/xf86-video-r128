@@ -39,6 +39,7 @@ const char *ATISymbols[] =
     "ATILeaveVT",
     "ATIFreeScreen",
     "ATIValidMode",
+    "ATIFillInScreenInfo",
     NULL
 };
 
@@ -52,7 +53,8 @@ const char *R128Symbols[] =
     "R128LeaveVT",
     "R128FreeScreen",
     "R128ValidMode",
-    "R128Options",
+    "R128OptionsWeak",
+    "R128FillInScreenInfo",
     NULL
 };
 
@@ -66,8 +68,9 @@ const char *RADEONSymbols[] =
     "RADEONLeaveVT",
     "RADEONFreeScreen",
     "RADEONValidMode",
-    "RADEONOptions",
+    "RADEONOptionsWeak",
     "RADEONHandleMessage",
+    "RADEONFillInScreenInfo",
     NULL
 };
 
@@ -77,7 +80,7 @@ static XF86ModuleVersionInfo ATIVersionRec =
     MODULEVENDORSTRING,
     MODINFOSTRING1,
     MODINFOSTRING2,
-    XF86_VERSION_CURRENT,
+    XORG_VERSION_CURRENT,
     ATI_VERSION_MAJOR, ATI_VERSION_MINOR, ATI_VERSION_PATCH,
     ABI_CLASS_VIDEODRV,
     ABI_VIDEODRV_VERSION,

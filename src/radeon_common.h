@@ -31,7 +31,7 @@
  * Converted to common header format:
  *   Jens Owen <jens@tungstengraphics.com>
  *
- * $XdotOrg: xc/programs/Xserver/hw/xfree86/drivers/ati/radeon_common.h,v 1.1.4.3.4.1 2004/03/04 17:47:39 eich Exp $
+ * $XdotOrg: xc/programs/Xserver/hw/xfree86/drivers/ati/radeon_common.h,v 1.3 2004/06/16 09:43:58 anholt Exp $
  * $XFree86: xc/programs/Xserver/hw/xfree86/drivers/ati/radeon_common.h,v 1.8tsi Exp $
  *
  */
@@ -39,6 +39,7 @@
 #ifndef _RADEON_COMMON_H_
 #define _RADEON_COMMON_H_
 
+#include <inttypes.h>
 #include "xf86drm.h"
 
 /* WARNING: If you change any of these defines, make sure to change
@@ -277,7 +278,7 @@ typedef struct {
 	int bufsz;
 	char *buf;
 	int nbox;
-        drmClipRect *boxes;
+        drm_clip_rect_t *boxes;
 } drmRadeonCmdBuffer;
 
 /* New style per-packet identifiers for use in cmd_buffer ioctl with
@@ -360,7 +361,8 @@ typedef struct {
 #define RADEON_EMIT_PP_TEX_SIZE_0                   73
 #define RADEON_EMIT_PP_TEX_SIZE_1                   74
 #define RADEON_EMIT_PP_TEX_SIZE_2                   75
-#define RADEON_MAX_STATE_PACKETS                    76
+#define R200_EMIT_RB3D_BLENDCOLOR                   76
+#define RADEON_MAX_STATE_PACKETS                    77
 
 
 /* Commands understood by cmd_buffer ioctl.  More can be added but
@@ -402,17 +404,27 @@ typedef union {
 #define RADEON_WAIT_3D  0x2
 
 
+/* 1.3: An ioctl to get parameters that aren't available to the 3d
+ * client any other way.  
+ */
+#define RADEON_PARAM_GART_BUFFER_OFFSET    1 /* card offset of 1st GART buffer */
+#define RADEON_PARAM_LAST_FRAME            2
+#define RADEON_PARAM_LAST_DISPATCH         3
+#define RADEON_PARAM_LAST_CLEAR            4
+/* Added with DRM version 1.6. */
+#define RADEON_PARAM_IRQ_NR                5
+#define RADEON_PARAM_GART_BASE             6 /* card offset of GART base */
+/* Added with DRM version 1.8. */
+#define RADEON_PARAM_REGISTER_HANDLE       7 /* for drmMap() */
+#define RADEON_PARAM_STATUS_HANDLE         8
+#define RADEON_PARAM_SAREA_HANDLE          9
+#define RADEON_PARAM_GART_TEX_HANDLE       10
+#define RADEON_PARAM_SCRATCH_OFFSET        11
+
 typedef struct drm_radeon_getparam {
 	int param;
 	int *value;
 } drmRadeonGetParam;
-
-#define RADEON_PARAM_GART_BUFFER_OFFSET 1
-#define RADEON_PARAM_LAST_FRAME         2
-#define RADEON_PARAM_LAST_DISPATCH      3
-#define RADEON_PARAM_LAST_CLEAR         4
-#define RADEON_PARAM_IRQ_NR             5
-#define RADEON_PARAM_GART_BASE          6
 
 
 #define RADEON_MEM_REGION_GART 1
@@ -453,7 +465,7 @@ typedef struct drm_radeon_irq_wait {
 
 typedef struct drm_radeon_set_param {
 	unsigned int param;
-	long long    value;
+	int64_t      value;
 } drmRadeonSetParam;
 
 #define RADEON_SETPARAM_FB_LOCATION     1

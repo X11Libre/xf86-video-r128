@@ -19,6 +19,9 @@
  * DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
+ *
+ * DRI support by:
+ *    Leif Delgass <ldelgass@retinalburn.net>
  */
 
 #ifdef XFree86LOADER
@@ -35,7 +38,7 @@ static XF86ModuleVersionInfo ATIVersionRec =
     MODULEVENDORSTRING,
     MODINFOSTRING1,
     MODINFOSTRING2,
-    XF86_VERSION_CURRENT,
+    XORG_VERSION_CURRENT,
     ATI_VERSION_MAJOR, ATI_VERSION_MINOR, ATI_VERSION_PATCH,
     ABI_CLASS_VIDEODRV,
     ABI_VIDEODRV_VERSION,
@@ -110,6 +113,13 @@ ATISetup
             ATIxf4bppSymbols,
 
 #endif /* AVOID_CPIO */
+
+#ifdef XF86DRI_DEVEL
+
+            ATIdrmSymbols,
+            ATIdriSymbols,
+
+#endif /* XF86DRI_DEVEL */
 
             ATIfbSymbols,
             ATIshadowfbSymbols,

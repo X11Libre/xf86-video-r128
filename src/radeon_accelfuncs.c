@@ -181,8 +181,8 @@ FUNC_NAME(RADEONRestoreAccelState)(ScrnInfoPtr pScrn)
 
     pitch64 = ((pScrn->displayWidth * (pScrn->bitsPerPixel / 8) + 0x3f)) >> 6;
 
-    OUTREG(RADEON_DEFAULT_OFFSET, (((INREG(RADEON_DISPLAY_BASE_ADDR) + pScrn->fbOffset) >> 10) |
-				   (pitch64 << 22)));
+    OUTREG(RADEON_DEFAULT_OFFSET, ((info->fbLocation + pScrn->fbOffset) >> 10)
+				 | (pitch64 << 22));
 
     /* FIXME: May need to restore other things, like BKGD_CLK FG_CLK... */
 
@@ -271,6 +271,7 @@ FUNC_NAME(RADEONSetupForSolidLine)(ScrnInfoPtr pScrn,
 	BEGIN_ACCEL(1);
 	OUT_ACCEL_REG(RADEON_DST_LINE_PATCOUNT,
 		      0x55 << RADEON_BRES_CNTL_SHIFT);
+	FINISH_ACCEL();
     }
 
     BEGIN_ACCEL(3);
@@ -1169,7 +1170,7 @@ RADEONSelectBuffer(ScrnInfoPtr pScrn, int buffer)
 }
 #endif
 
-static void
+void
 FUNC_NAME(RADEONAccelInit)(ScreenPtr pScreen, XAAInfoRecPtr a)
 {
     ScrnInfoPtr    pScrn = xf86Screens[pScreen->myNum];
@@ -1224,9 +1225,10 @@ FUNC_NAME(RADEONAccelInit)(ScreenPtr pScreen, XAAInfoRecPtr a)
 	   | LEFT_EDGE_CLIPPING_NEGATIVE_X);
     a->NumScanlineColorExpandBuffers    = 1;
     a->ScanlineColorExpandBuffers       = info->scratch_buffer;
-    info->scratch_save
-	= xalloc(((pScrn->virtualX+31)/32*4)
-		 + (pScrn->virtualX * info->CurrentLayout.pixel_bytes));
+    if (!info->scratch_save)
+	info->scratch_save
+	    = xalloc(((pScrn->virtualX+31)/32*4)
+		     + (pScrn->virtualX * info->CurrentLayout.pixel_bytes));
     info->scratch_buffer[0]             = info->scratch_save;
     a->SetupForScanlineCPUToScreenColorExpandFill
 	= FUNC_NAME(RADEONSetupForScanlineCPUToScreenColorExpandFill);
@@ -1346,6 +1348,59 @@ FUNC_NAME(RADEONAccelInit)(ScreenPtr pScreen, XAAInfoRecPtr a)
 					   | HARDWARE_PATTERN_SCREEN_ORIGIN
 					   | BIT_ORDER_IN_BYTE_LSBFIRST);
 #endif
+
+#ifdef RENDER
+    if (info->RenderAccel
+#ifdef XFree86LOADER
+	&& info->xaaReq.minorversion >= 2
+#endif
+	) {
+
+	a->CPUToScreenAlphaTextureFlags = XAA_RENDER_POWER_OF_2_TILE_ONLY;
+	a->CPUToScreenAlphaTextureFormats = RADEONTextureFormats;
+	a->CPUToScreenAlphaTextureDstFormats = RADEONDstFormats;
+	a->CPUToScreenTextureFlags = XAA_RENDER_POWER_OF_2_TILE_ONLY;
+	a->CPUToScreenTextureFormats = RADEONTextureFormats;
+	a->CPUToScreenTextureDstFormats = RADEONDstFormats;
+
+	if (IS_R300_VARIANT) {
+	    xf86DrvMsg(pScrn->scrnIndex, X_INFO, "Render acceleration "
+		       "unsupported on Radeon 9500/9700 and newer.\n");
+	} else if ((info->ChipFamily == CHIP_FAMILY_RV250) || 
+		   (info->ChipFamily == CHIP_FAMILY_RV280) || 
+		   (info->ChipFamily == CHIP_FAMILY_RS300) || 
+		   (info->ChipFamily == CHIP_FAMILY_R200)) {
+	    a->SetupForCPUToScreenAlphaTexture2 =
+		FUNC_NAME(R200SetupForCPUToScreenAlphaTexture);
+	    a->SubsequentCPUToScreenAlphaTexture = 
+		FUNC_NAME(R200SubsequentCPUToScreenTexture);
+
+	    a->SetupForCPUToScreenTexture2 =
+		FUNC_NAME(R200SetupForCPUToScreenTexture);
+	    a->SubsequentCPUToScreenTexture =
+		FUNC_NAME(R200SubsequentCPUToScreenTexture);
+	} else {
+	    a->SetupForCPUToScreenAlphaTexture2 =
+		FUNC_NAME(R100SetupForCPUToScreenAlphaTexture);
+	    a->SubsequentCPUToScreenAlphaTexture =
+		FUNC_NAME(R100SubsequentCPUToScreenTexture);
+
+	    a->SetupForCPUToScreenTexture2 =
+		FUNC_NAME(R100SetupForCPUToScreenTexture);
+	    a->SubsequentCPUToScreenTexture =
+		FUNC_NAME(R100SubsequentCPUToScreenTexture);
+	}
+    } else if (info->RenderAccel) {
+	xf86DrvMsg(pScrn->scrnIndex, X_INFO, "Render acceleration currently "
+		   "requires XAA v1.2 or newer.\n");
+    }
+
+    if (!a->SetupForCPUToScreenAlphaTexture2 && !a->SetupForCPUToScreenTexture2)
+	info->RenderAccel = FALSE;
+
+    xf86DrvMsg(pScrn->scrnIndex, X_INFO, "Render acceleration %s\n",
+	       info->RenderAccel ? "enabled" : "disabled");
+#endif /* RENDER */
 }
 
 #undef FUNC_NAME

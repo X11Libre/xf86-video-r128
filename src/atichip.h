@@ -97,13 +97,18 @@ typedef enum
     ATI_CHIP_R200,              /* R200 */
     ATI_CHIP_RV250,             /* RV250 */
     ATI_CHIP_RADEONMOBILITY9,   /* Radeon M9 */
-    ATI_CHIP_RS300,             /* Radoen 9000 IGP */
+    ATI_CHIP_RS300,             /* Radoen 9100 IGP */
+    ATI_CHIP_RS350,             /* Radoen 9200 IGP */
     ATI_CHIP_RV280,             /* RV250 */
     ATI_CHIP_RADEONMOBILITY9PLUS,   /* Radeon M9+ */
     ATI_CHIP_R300,              /* R300 */
-    ATI_CHIP_RV350,             /* RV350 */
+    ATI_CHIP_RV350,             /* RV350/M10/M11 */
     ATI_CHIP_R350,              /* R350 */
     ATI_CHIP_R360,              /* R360 */
+    ATI_CHIP_RV370,             /* RV370/M22 */
+    ATI_CHIP_RV380,             /* RV380/M24 */
+    ATI_CHIP_R420,              /* R420/M18 */
+    ATI_CHIP_R423,              /* R423 */
     ATI_CHIP_Radeon,            /* Last among Radeon's */
     ATI_CHIP_HDTV               /* HDTV */
 } ATIChipType;

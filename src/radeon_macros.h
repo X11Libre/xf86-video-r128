@@ -55,6 +55,14 @@
 #endif
 #include "compiler.h"
 
+#define RADEON_BIOS8(v)  (info->VBIOS[v])
+#define RADEON_BIOS16(v) (info->VBIOS[v] | \
+                          (info->VBIOS[(v) + 1] << 8))
+#define RADEON_BIOS32(v) (info->VBIOS[v] | \
+                          (info->VBIOS[(v) + 1] << 8) | \
+                          (info->VBIOS[(v) + 2] << 16) | \
+                          (info->VBIOS[(v) + 3] << 24))
+
 				/* Memory mapped register access macros */
 #define INREG8(addr)        MMIO_IN8(RADEONMMIO, addr)
 #define INREG16(addr)       MMIO_IN16(RADEONMMIO, addr)

@@ -160,7 +160,7 @@ typedef struct {
 
     /* The current cliprects, or a subset thereof.
      */
-    XF86DRIClipRectRec boxes[R128_NR_SAREA_CLIPRECTS];
+    drm_clip_rect_t boxes[R128_NR_SAREA_CLIPRECTS];
     unsigned int nbox;
 
     /* Counters for throttling of rendering clients.

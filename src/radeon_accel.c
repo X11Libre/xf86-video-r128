@@ -79,6 +79,7 @@
 #ifdef XF86DRI
 #define _XF86DRI_SERVER_
 #include "radeon_dri.h"
+#include "radeon_common.h"
 #include "radeon_sarea.h"
 #endif
 
@@ -109,8 +110,6 @@ static struct {
     { RADEON_ROP3_DSan, RADEON_ROP3_DPan }, /* GXnand         */
     { RADEON_ROP3_ONE,  RADEON_ROP3_ONE  }  /* GXset          */
 };
-
-extern int gRADEONEntityIndex;
 
 /* The FIFO has 64 slots.  This routines waits until at least `entries'
  * of these slots are empty.
@@ -174,6 +173,7 @@ void RADEONEngineReset(ScrnInfoPtr pScrn)
     clock_cntl_index = INREG(RADEON_CLOCK_CNTL_INDEX);
     if (info->R300CGWorkaround) R300CGWorkaround(pScrn);
 
+#if 0 /* taken care of by new PM code */
     /* Some ASICs have bugs with dynamic-on feature, which are
      * ASIC-version dependent, so we force all blocks on for now
      */
@@ -190,8 +190,11 @@ void RADEONEngineReset(ScrnInfoPtr pScrn)
 	    OUTPLL(RADEON_SCLK_MORE_CNTL, tmp | RADEON_SCLK_MORE_FORCEON);
 	}
     }
+#endif /* new PM code */
 
     mclk_cntl = INPLL(pScrn, RADEON_MCLK_CNTL);
+
+#if 0 /* handled by new PM code */
     OUTPLL(RADEON_MCLK_CNTL, (mclk_cntl |
 			      RADEON_FORCEON_MCLKA |
 			      RADEON_FORCEON_MCLKB |
@@ -199,6 +202,7 @@ void RADEONEngineReset(ScrnInfoPtr pScrn)
 			      RADEON_FORCEON_YCLKB |
 			      RADEON_FORCEON_MC |
 			      RADEON_FORCEON_AIC));
+#endif /* new PM code */
 
     /* Soft resetting HDP thru RBBM_SOFT_RESET register can cause some
      * unexpected behaviour on some machines.  Here we use
@@ -207,9 +211,7 @@ void RADEONEngineReset(ScrnInfoPtr pScrn)
     host_path_cntl = INREG(RADEON_HOST_PATH_CNTL);
     rbbm_soft_reset = INREG(RADEON_RBBM_SOFT_RESET);
 
-    if ((info->ChipFamily == CHIP_FAMILY_R300) ||
-	(info->ChipFamily == CHIP_FAMILY_R350) ||
-	(info->ChipFamily == CHIP_FAMILY_RV350)) {
+    if (IS_R300_VARIANT) {
 	CARD32 tmp;
 
 	OUTREG(RADEON_RBBM_SOFT_RESET, (rbbm_soft_reset |
@@ -223,7 +225,6 @@ void RADEONEngineReset(ScrnInfoPtr pScrn)
     } else {
 	OUTREG(RADEON_RBBM_SOFT_RESET, (rbbm_soft_reset |
 					RADEON_SOFT_RESET_CP |
-					RADEON_SOFT_RESET_HI |
 					RADEON_SOFT_RESET_SE |
 					RADEON_SOFT_RESET_RE |
 					RADEON_SOFT_RESET_PP |
@@ -232,7 +233,6 @@ void RADEONEngineReset(ScrnInfoPtr pScrn)
 	INREG(RADEON_RBBM_SOFT_RESET);
 	OUTREG(RADEON_RBBM_SOFT_RESET, (rbbm_soft_reset & (CARD32)
 					~(RADEON_SOFT_RESET_CP |
-					  RADEON_SOFT_RESET_HI |
 					  RADEON_SOFT_RESET_SE |
 					  RADEON_SOFT_RESET_RE |
 					  RADEON_SOFT_RESET_PP |
@@ -245,9 +245,7 @@ void RADEONEngineReset(ScrnInfoPtr pScrn)
     INREG(RADEON_HOST_PATH_CNTL);
     OUTREG(RADEON_HOST_PATH_CNTL, host_path_cntl);
 
-    if ((info->ChipFamily != CHIP_FAMILY_R300) &&
-        (info->ChipFamily != CHIP_FAMILY_R350) &&
-        (info->ChipFamily != CHIP_FAMILY_RV350))
+    if (IS_R300_VARIANT)
 	OUTREG(RADEON_RBBM_SOFT_RESET, rbbm_soft_reset);
 
     OUTREG(RADEON_CLOCK_CNTL_INDEX, clock_cntl_index);
@@ -275,16 +273,14 @@ void RADEONEngineRestore(ScrnInfoPtr pScrn)
      */
 
     /* Turn of all automatic flushing - we'll do it all */
-    if ((info->ChipFamily != CHIP_FAMILY_R300) &&
-	(info->ChipFamily != CHIP_FAMILY_R350) &&
-	(info->ChipFamily != CHIP_FAMILY_RV350))
+    if (!IS_R300_VARIANT)
 	OUTREG(RADEON_RB2D_DSTCACHE_MODE, 0);
 
     pitch64 = ((pScrn->displayWidth * (pScrn->bitsPerPixel / 8) + 0x3f)) >> 6;
 
     RADEONWaitForFifo(pScrn, 1);
-    OUTREG(RADEON_DEFAULT_OFFSET, ((INREG(RADEON_DISPLAY_BASE_ADDR) >> 10)
-				   | (pitch64 << 22)));
+    OUTREG(RADEON_DEFAULT_OFFSET, ((info->fbLocation >> 10)
+				  | (pitch64 << 22)));
 
     RADEONWaitForFifo(pScrn, 1);
 #if X_BYTE_ORDER == X_BIG_ENDIAN
@@ -318,6 +314,10 @@ void RADEONEngineRestore(ScrnInfoPtr pScrn)
     OUTREG(RADEON_DP_WRITE_MASK,     0xffffffff);
 
     RADEONWaitForIdleMMIO(pScrn);
+
+#ifdef RENDER
+    info->RenderInited3D = FALSE;
+#endif
 }
 
 /* Initialize the acceleration hardware */
@@ -331,15 +331,6 @@ void RADEONEngineInit(ScrnInfoPtr pScrn)
 		 info->CurrentLayout.bitsPerPixel));
 
     OUTREG(RADEON_RB3D_CNTL, 0);
-#if defined(__powerpc__)
-#if defined(XF86_DRI)
-    if(!info->directRenderingEnabled)
-#endif
-    {
-	OUTREG(RADEON_MC_FB_LOCATION, 0xffff0000);
-	OUTREG(RADEON_MC_AGP_LOCATION, 0xfffff000);
-    }
-#endif
 
     RADEONEngineReset(pScrn);
 
@@ -386,6 +377,9 @@ void RADEONEngineInit(ScrnInfoPtr pScrn)
 #define OUT_ACCEL_REG(reg, val) OUTREG(reg, val)
 #define FINISH_ACCEL()
 
+#ifdef RENDER
+#include "radeon_render.c"
+#endif
 #include "radeon_accelfuncs.c"
 
 #undef ACCEL_MMIO
@@ -404,6 +398,9 @@ void RADEONEngineInit(ScrnInfoPtr pScrn)
 #define OUT_ACCEL_REG(reg, val) OUT_RING_REG(reg, val)
 #define FINISH_ACCEL()          ADVANCE_RING()
 
+#ifdef RENDER
+#include "radeon_render.c"
+#endif
 #include "radeon_accelfuncs.c"
 
 #undef ACCEL_CP

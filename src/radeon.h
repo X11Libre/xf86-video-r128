@@ -45,6 +45,7 @@
 
 				/* XAA and Cursor Support */
 #include "xaa.h"
+#include "vbe.h"
 #include "xf86Cursor.h"
 
 				/* DDC support */
@@ -53,6 +54,7 @@
 				/* Xv support */
 #include "xf86xv.h"
 
+#include "radeon_probe.h"
 				/* DRI support */
 #ifdef XF86DRI
 #define _XF86DRI_SERVER_
@@ -65,6 +67,27 @@
 #ifdef RENDER
 #include "picturestr.h"
 #endif
+
+/* ------- mergedfb support ------------- */
+		/* Psuedo Xinerama support */
+#define NEED_REPLIES  		/* ? */
+#define EXTENSION_PROC_ARGS void *
+#include "extnsionst.h"  	/* required */
+#include "panoramiXproto.h"  	/* required */
+#define RADEON_XINERAMA_MAJOR_VERSION  1
+#define RADEON_XINERAMA_MINOR_VERSION  1
+
+
+/* Relative merge position */
+typedef enum {
+   radeonLeftOf,
+   radeonRightOf,
+   radeonAbove,
+   radeonBelow,
+   radeonClone
+} RADEONScrn2Rel;
+
+/* ------------------------------------- */
 
 #define RADEON_DEBUG            0 /* Turn off debugging output               */
 #define RADEON_IDLE_RETRY      16 /* Fall out of idle loops after this count */
@@ -109,7 +132,10 @@ typedef struct {
     CARD32            cap1_trig_cntl;
     CARD32            bus_cntl;
     CARD32            surface_cntl;
+    CARD32            bios_4_scratch;
     CARD32            bios_5_scratch;
+    CARD32            bios_6_scratch;
+
 				/* Other registers to save for VT switches */
     CARD32            dp_datatype;
     CARD32            rbbm_soft_reset;
@@ -190,6 +216,9 @@ typedef struct {
     Bool              palette_valid;
     CARD32            palette[256];
     CARD32            palette2[256];
+
+    CARD32            tv_dac_cntl;
+
 } RADEONSaveRec, *RADEONSavePtr;
 
 typedef struct {
@@ -210,31 +239,6 @@ typedef struct {
 } RADEONFBLayout;
 
 typedef enum {
-    MT_NONE,
-    MT_CRT,
-    MT_LCD,
-    MT_DFP,
-    MT_CTV,
-    MT_STV
-} RADEONMonitorType;
-
-typedef enum {
-    DDC_NONE_DETECTED,
-    DDC_MONID,
-    DDC_DVI,
-    DDC_VGA,
-    DDC_CRT2
-} RADEONDDCType;
-
-typedef enum {
-    CONNECTOR_NONE,
-    CONNECTOR_PROPRIETARY,
-    CONNECTOR_CRT,
-    CONNECTOR_DVI_I,
-    CONNECTOR_DVI_D
-} RADEONConnectorType;
-
-typedef enum {
     CHIP_FAMILY_UNKNOW,
     CHIP_FAMILY_LEGACY,
     CHIP_FAMILY_RADEON,
@@ -244,13 +248,31 @@ typedef enum {
     CHIP_FAMILY_RS200,    /* U2 (IGP330M/340M/350M) or A4 (IGP330/340/345/350), RS250 (IGP 7000) */
     CHIP_FAMILY_R200,
     CHIP_FAMILY_RV250,
-    CHIP_FAMILY_RS300,    /* Radeon 9000 IGP */
+    CHIP_FAMILY_RS300,    /* RS300/RS350 */
     CHIP_FAMILY_RV280,
     CHIP_FAMILY_R300,
     CHIP_FAMILY_R350,
     CHIP_FAMILY_RV350,
+    CHIP_FAMILY_RV380,    /* RV370/RV380/M22/M24 */
+    CHIP_FAMILY_R420,     /* R420/R423/M18 */
     CHIP_FAMILY_LAST
 } RADEONChipFamily;
+
+#define IS_RV100_VARIANT ((info->ChipFamily == CHIP_FAMILY_RV100)  ||  \
+        (info->ChipFamily == CHIP_FAMILY_RV200)  ||  \
+        (info->ChipFamily == CHIP_FAMILY_RS100)  ||  \
+        (info->ChipFamily == CHIP_FAMILY_RS200)  ||  \
+        (info->ChipFamily == CHIP_FAMILY_RV250)  ||  \
+        (info->ChipFamily == CHIP_FAMILY_RV280)  ||  \
+        (info->ChipFamily == CHIP_FAMILY_RS300))
+
+
+#define IS_R300_VARIANT ((info->ChipFamily == CHIP_FAMILY_R300)  ||  \
+        (info->ChipFamily == CHIP_FAMILY_RV350) ||  \
+        (info->ChipFamily == CHIP_FAMILY_R350)  ||  \
+        (info->ChipFamily == CHIP_FAMILY_RV380) ||  \
+        (info->ChipFamily == CHIP_FAMILY_R420))
+
 
 typedef struct {
     CARD32 freq;
@@ -269,10 +291,15 @@ typedef struct {
     unsigned long     LinearAddr;       /* Frame buffer physical address     */
     unsigned long     MMIOAddr;         /* MMIO region physical address      */
     unsigned long     BIOSAddr;         /* BIOS physical address             */
+    unsigned int      fbLocation;
 
     unsigned char     *MMIO;            /* Map of MMIO region                */
     unsigned char     *FB;              /* Map of frame buffer               */
     CARD8             *VBIOS;           /* Video BIOS pointer                */
+
+    Bool              IsAtomBios;       /* New BIOS used in R420 etc.        */
+    int               ROMHeaderStart;   /* Start of the ROM Info Table       */
+    int               MasterDataStart;  /* Offset for Master Data Table for ATOM BIOS */
 
     CARD32            MemCntl;
     CARD32            BusCntl;
@@ -286,18 +313,11 @@ typedef struct {
     Bool              HasCRTC2;         /* All cards except original Radeon  */
     Bool              IsMobility;       /* Mobile chips for laptops */
     Bool              IsIGP;            /* IGP chips */
+    Bool              HasSingleDAC;     /* only TVDAC on chip */
     Bool              IsSecondary;      /* Second Screen                     */
     Bool              IsSwitching;      /* Flag for switching mode           */
-    Bool              Clone;            /* Force second head to clone primary*/
-    RADEONMonitorType CloneType;
-    RADEONDDCType     CloneDDCType;
-    DisplayModePtr    CloneModes;
-    DisplayModePtr    CurCloneMode;
-    int               CloneFrameX0;
-    int               CloneFrameY0;
     Bool              OverlayOnCRTC2;
     Bool              PanelOff;         /* Force panel (LCD/DFP) off         */
-    int               FPBIOSstart;      /* Start of the flat panel info      */
     Bool              ddc_mode;         /* Validate mode by matching exactly
 					 * the modes supported in DDC data
 					 */
@@ -412,14 +432,14 @@ typedef struct {
     __GLXvisualConfig *pVisualConfigs;
     RADEONConfigPrivPtr pVisualConfigsPriv;
 
-    drmHandle         fbHandle;
+    drm_handle_t         fbHandle;
 
     drmSize           registerSize;
-    drmHandle         registerHandle;
+    drm_handle_t         registerHandle;
 
     Bool              IsPCI;            /* Current card is a PCI card */
     drmSize           pciSize;
-    drmHandle         pciMemHandle;
+    drm_handle_t         pciMemHandle;
     unsigned char     *PCI;             /* Map */
 
     Bool              depthMoves;       /* Enable depth moves -- slow! */
@@ -428,7 +448,7 @@ typedef struct {
     int               drmMinor;
 
     drmSize           gartSize;
-    drmHandle         agpMemHandle;     /* Handle from drmAgpAlloc */
+    drm_handle_t         agpMemHandle;     /* Handle from drmAgpAlloc */
     unsigned long     gartOffset;
     unsigned char     *AGP;             /* Map */
     int               agpMode;
@@ -445,20 +465,20 @@ typedef struct {
 
 				/* CP ring buffer data */
     unsigned long     ringStart;        /* Offset into GART space */
-    drmHandle         ringHandle;       /* Handle from drmAddMap */
+    drm_handle_t         ringHandle;       /* Handle from drmAddMap */
     drmSize           ringMapSize;      /* Size of map */
     int               ringSize;         /* Size of ring (in MB) */
     unsigned char     *ring;            /* Map */
     int               ringSizeLog2QW;
 
     unsigned long     ringReadOffset;   /* Offset into GART space */
-    drmHandle         ringReadPtrHandle; /* Handle from drmAddMap */
+    drm_handle_t         ringReadPtrHandle; /* Handle from drmAddMap */
     drmSize           ringReadMapSize;  /* Size of map */
     unsigned char     *ringReadPtr;     /* Map */
 
 				/* CP vertex/indirect buffer data */
     unsigned long     bufStart;         /* Offset into GART space */
-    drmHandle         bufHandle;        /* Handle from drmAddMap */
+    drm_handle_t         bufHandle;        /* Handle from drmAddMap */
     drmSize           bufMapSize;       /* Size of map */
     int               bufSize;          /* Size of buffers (in MB) */
     unsigned char     *buf;             /* Map */
@@ -467,7 +487,7 @@ typedef struct {
 
 				/* CP GART Texture data */
     unsigned long     gartTexStart;      /* Offset into GART space */
-    drmHandle         gartTexHandle;     /* Handle from drmAddMap */
+    drm_handle_t         gartTexHandle;     /* Handle from drmAddMap */
     drmSize           gartTexMapSize;    /* Size of map */
     int               gartTexSize;       /* Size of GART tex space (in MB) */
     unsigned char     *gartTex;          /* Map */
@@ -531,13 +551,52 @@ typedef struct {
     FBLinearPtr       videoLinear;
     int               videoKey;
 
+				/* Render */
+    Bool              RenderAccel;
+    Bool              RenderInited3D;
+    FBLinearPtr       RenderTex;
+    void              (*RenderCallback)(ScrnInfoPtr);
+    Time              RenderTimeout;
+
 				/* general */
     Bool              showCache;
     OptionInfoPtr     Options;
 #ifdef XFree86LOADER
     XF86ModReqInfo    xaaReq;
 #endif
+
+    /* merged fb stuff, also covers clone modes */
+    Bool		MergedFB;
+    RADEONScrn2Rel	CRT2Position;
+    char *		CRT2HSync;
+    char *		CRT2VRefresh;
+    char *		MetaModes;
+    ScrnInfoPtr		CRT2pScrn;
+    DisplayModePtr	CRT1Modes;
+    DisplayModePtr	CRT1CurrentMode;
+    int			CRT1frameX0;
+    int			CRT1frameY0;
+    int			CRT1frameX1;
+    int			CRT1frameY1;
+    RADEONMonitorType   MergeType;
+    RADEONDDCType       MergeDDCType;
+    void        	(*PointerMoved)(int index, int x, int y);
+    /* pseudo xinerama support for mergedfb */
+    int			maxCRT1_X1, maxCRT1_X2, maxCRT1_Y1, maxCRT1_Y2;
+    int			maxCRT2_X1, maxCRT2_X2, maxCRT2_Y1, maxCRT2_Y2;
+    int			maxClone_X1, maxClone_X2, maxClone_Y1, maxClone_Y2;
+    Bool		UseRADEONXinerama;
+    Bool		CRT2IsScrn0;
+    ExtensionEntry 	*XineramaExtEntry;
+    int			RADEONXineramaVX, RADEONXineramaVY;
+    Bool		AtLeastOneNonClone;
+    int			MergedFBXDPI, MergedFBYDPI;
+    Bool		NoVirtual;
+
+    /* special handlings for DELL triple-head server */
+    Bool		IsDellServer; 
 } RADEONInfoRec, *RADEONInfoPtr;
+
 
 #define RADEONWaitForFifo(pScrn, entries)				\
 do {									\
@@ -546,6 +605,7 @@ do {									\
     info->fifo_slots -= entries;					\
 } while (0)
 
+extern RADEONEntPtr RADEONEntPriv(ScrnInfoPtr pScrn);
 extern void        RADEONWaitForFifoFunction(ScrnInfoPtr pScrn, int entries);
 extern void        RADEONWaitForIdleMMIO(ScrnInfoPtr pScrn);
 #ifdef XF86DRI
@@ -566,6 +626,7 @@ extern void        RADEONWaitForVerticalSync2(ScrnInfoPtr pScrn);
 extern void        RADEONSelectBuffer(ScrnInfoPtr pScrn, int buffer);
 
 extern Bool        RADEONAccelInit(ScreenPtr pScreen);
+extern void        RADEONAccelInitMMIO(ScreenPtr pScreen, XAAInfoRecPtr a);
 extern void        RADEONEngineInit(ScrnInfoPtr pScrn);
 extern Bool        RADEONCursorInit(ScreenPtr pScreen);
 extern Bool        RADEONDGAInit(ScreenPtr pScreen);
@@ -577,6 +638,7 @@ extern void        RADEONResetVideo(ScrnInfoPtr pScrn);
 extern void        R300CGWorkaround(ScrnInfoPtr pScrn);
 
 #ifdef XF86DRI
+extern void        RADEONAccelInitCP(ScreenPtr pScreen, XAAInfoRecPtr a);
 extern Bool        RADEONDRIScreenInit(ScreenPtr pScreen);
 extern void        RADEONDRICloseScreen(ScreenPtr pScreen);
 extern void        RADEONDRIResume(ScreenPtr pScreen);
@@ -587,6 +649,12 @@ extern void        RADEONCPFlushIndirect(ScrnInfoPtr pScrn, int discard);
 extern void        RADEONCPReleaseIndirect(ScrnInfoPtr pScrn);
 extern int         RADEONCPStop(ScrnInfoPtr pScrn,  RADEONInfoPtr info);
 
+extern Bool        RADEONGetBIOSInfo(ScrnInfoPtr pScrn, xf86Int10InfoPtr pInt10);
+extern Bool        RADEONGetConnectorInfoFromBIOS (ScrnInfoPtr pScrn);
+extern Bool        RADEONGetClockInfoFromBIOS (ScrnInfoPtr pScrn);
+extern Bool        RADEONGetLVDSInfoFromBIOS (ScrnInfoPtr pScrn);
+extern Bool        RADEONGetTMDSInfoFromBIOS (ScrnInfoPtr pScrn);
+extern Bool        RADEONGetHardCodedEDIDFromBIOS (ScrnInfoPtr pScrn);
 
 #define RADEONCP_START(pScrn, info)					\
 do {									\

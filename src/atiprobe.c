@@ -27,6 +27,7 @@
 #include "atibus.h"
 #include "atichip.h"
 #include "aticonsole.h"
+#include "atifillin.h"
 #include "atiident.h"
 #include "atimach64io.h"
 #include "atimodule.h"
@@ -56,32 +57,6 @@
  *   Device sections.  Also, PCI configuration space for Mach32's is to be
  *   largely ignored.
  */
-
-#ifdef XFree86LOADER
-
-/*
- * The following exists to prevent the compiler from considering entry points
- * defined in a separate module from being constants.
- */
-static xf86PreInitProc     * const volatile PreInitProc     = ATIPreInit;
-static xf86ScreenInitProc  * const volatile ScreenInitProc  = ATIScreenInit;
-static xf86SwitchModeProc  * const volatile SwitchModeProc  = ATISwitchMode;
-static xf86AdjustFrameProc * const volatile AdjustFrameProc = ATIAdjustFrame;
-static xf86EnterVTProc     * const volatile EnterVTProc     = ATIEnterVT;
-static xf86LeaveVTProc     * const volatile LeaveVTProc     = ATILeaveVT;
-static xf86FreeScreenProc  * const volatile FreeScreenProc  = ATIFreeScreen;
-static xf86ValidModeProc   * const volatile ValidModeProc   = ATIValidMode;
-
-#define ATIPreInit     PreInitProc
-#define ATIScreenInit  ScreenInitProc
-#define ATISwitchMode  SwitchModeProc
-#define ATIAdjustFrame AdjustFrameProc
-#define ATIEnterVT     EnterVTProc
-#define ATILeaveVT     LeaveVTProc
-#define ATIFreeScreen  FreeScreenProc
-#define ATIValidMode   ValidModeProc
-
-#endif
 
 /* Used as a temporary buffer */
 #define Identifier ((char *)(pATI->MMIOCache))
@@ -2299,18 +2274,7 @@ NoVGAWonder:;
             ATIPtrs[j - 1] = NULL;
 
             /* Fill in probe data */
-            pScreenInfo->driverVersion = ATI_VERSION_CURRENT;
-            pScreenInfo->driverName    = ATI_DRIVER_NAME;
-            pScreenInfo->name          = ATI_NAME;
-            pScreenInfo->Probe         = ATIProbe;
-            pScreenInfo->PreInit       = ATIPreInit;
-            pScreenInfo->ScreenInit    = ATIScreenInit;
-            pScreenInfo->SwitchMode    = ATISwitchMode;
-            pScreenInfo->AdjustFrame   = ATIAdjustFrame;
-            pScreenInfo->EnterVT       = ATIEnterVT;
-            pScreenInfo->LeaveVT       = ATILeaveVT;
-            pScreenInfo->FreeScreen    = ATIFreeScreen;
-            pScreenInfo->ValidMode     = ATIValidMode;
+	    ATIFillInScreenInfo(pScreenInfo);
 
             pScreenInfo->driverPrivate = pATI;
 
