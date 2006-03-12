@@ -1,5 +1,5 @@
 /* $XFree86: xc/programs/Xserver/hw/xfree86/drivers/ati/radeon_driver.c,v 1.117 2004/02/19 22:38:12 tsi Exp $ */
-/* $XdotOrg: driver/xf86-video-ati/src/radeon_driver.c,v 1.92.2.2 2006/03/12 04:55:59 benh Exp $ */
+/* $XdotOrg: driver/xf86-video-ati/src/radeon_driver.c,v 1.92.2.3 2006/03/12 05:01:21 benh Exp $ */
 /*
  * Copyright 2000 ATI Technologies Inc., Markham, Ontario, and
  *                VA Linux Systems Inc., Fremont, California.
@@ -4608,6 +4608,7 @@ static Bool RADEONPreInitDRI(ScrnInfoPtr pScrn)
 					      OPTION_NO_BACKBUFFER,
 					      FALSE);
 
+#ifdef XF86DRI
     if (info->noBackBuffer) {
 	info->allowPageFlip = 0;
     } else if (!xf86LoadSubModule(pScrn, "shadowfb")) {
@@ -4629,6 +4630,7 @@ static Bool RADEONPreInitDRI(ScrnInfoPtr pScrn)
 
     xf86DrvMsg(pScrn->scrnIndex, X_INFO, "Page flipping %sabled\n",
 	       info->allowPageFlip ? "en" : "dis");
+#endif
 
     info->DMAForXv = TRUE;
     from = xf86GetOptValBool(info->Options, OPTION_XV_DMA, &info->DMAForXv)
@@ -5789,6 +5791,7 @@ _X_EXPORT Bool RADEONScreenInit(int scrnIndex, ScreenPtr pScreen,
 
     pScrn->AdjustFrame(scrnIndex, pScrn->frameX0, pScrn->frameY0, 0);
 
+#ifdef XF86DRI
     /* Depth moves are disabled by default since they are extremely slow */
     info->depthMoves = xf86ReturnOptValBool(info->Options,
 						 OPTION_DEPTH_MOVE, FALSE);
@@ -5802,6 +5805,7 @@ _X_EXPORT Bool RADEONScreenInit(int scrnIndex, ScreenPtr pScreen,
 	xf86DrvMsg(pScrn->scrnIndex, X_INFO,
 		   "Depth moves disabled by default\n");
     }
+#endif
 
     /* Initial setup of surfaces */
     if (!info->IsSecondary) {
@@ -5992,12 +5996,13 @@ _X_EXPORT Bool RADEONScreenInit(int scrnIndex, ScreenPtr pScreen,
 	info->accelOn = FALSE;
     }
 
-
+#ifdef XF86DRI
     /* Init page flipping if enabled now */
     if (info->allowPageFlip) {
 	RADEONTRACE(("Initializing Page Flipping\n"));
 	RADEONDRIInitPageFlip(pScreen);
     }
+#endif
 
     /* Init DPMS */
     RADEONTRACE(("Initializing DPMS\n"));
