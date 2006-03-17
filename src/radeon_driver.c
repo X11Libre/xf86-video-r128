@@ -1,5 +1,5 @@
 /* $XFree86: xc/programs/Xserver/hw/xfree86/drivers/ati/radeon_driver.c,v 1.117 2004/02/19 22:38:12 tsi Exp $ */
-/* $XdotOrg: driver/xf86-video-ati/src/radeon_driver.c,v 1.92.2.9 2006/03/16 04:35:53 benh Exp $ */
+/* $XdotOrg: driver/xf86-video-ati/src/radeon_driver.c,v 1.92.2.10 2006/03/16 21:55:37 benh Exp $ */
 /*
  * Copyright 2000 ATI Technologies Inc., Markham, Ontario, and
  *                VA Linux Systems Inc., Fremont, California.
@@ -2431,12 +2431,9 @@ static CARD32 RADEONGetAccessibleVRAM(ScrnInfoPtr pScrn)
 		   "[dri] limiting video memory to one aperture of %dK\n",
 		   aper_size);
 	xf86DrvMsg(pScrn->scrnIndex, X_WARNING,
-		   "[dri] use radeon.o kernel module version 1.23.0 for"
-		   " full memory mapping.\n",
-		   aper_size,
-		   info->pKernelDRMVersion->version_major,
-		   info->pKernelDRMVersion->version_minor,
-		   info->pKernelDRMVersion->version_patchlevel);
+		   "[dri] detected radeon kernel module version 1.%d but"
+		   " 1.23 or newer is required for full memory mapping.\n",
+		   info->pKernelDRMVersion->version_minor);
 	info->newMemoryMap = FALSE;
 	return aper_size;
     }
