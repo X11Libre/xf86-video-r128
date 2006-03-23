@@ -1,5 +1,5 @@
 /* $XFree86: xc/programs/Xserver/hw/xfree86/drivers/ati/radeon_driver.c,v 1.117 2004/02/19 22:38:12 tsi Exp $ */
-/* $XdotOrg: driver/xf86-video-ati/src/radeon_driver.c,v 1.92.2.11 2006/03/17 03:03:59 sroland Exp $ */
+/* $XdotOrg: driver/xf86-video-ati/src/radeon_driver.c,v 1.92.2.12 2006/03/18 00:11:39 benh Exp $ */
 /*
  * Copyright 2000 ATI Technologies Inc., Markham, Ontario, and
  *                VA Linux Systems Inc., Fremont, California.
@@ -6983,6 +6983,7 @@ static void RADEONRestoreMode(ScrnInfoPtr pScrn, RADEONSavePtr restore)
      */
     if (info->IsSecondary) {
 	RADEONRestoreMemMapRegisters(pScrn, restore);
+	RADEONRestoreCommonRegisters(pScrn, &restore0);
 	RADEONRestoreCrtc2Registers(pScrn, restore);
 	RADEONRestorePLL2Registers(pScrn, restore);
 
@@ -6994,7 +6995,6 @@ static void RADEONRestoreMode(ScrnInfoPtr pScrn, RADEONSavePtr restore)
 	if (pRADEONEnt->RestorePrimary) {
 	    pRADEONEnt->RestorePrimary = FALSE;
 
-	    RADEONRestoreCommonRegisters(pScrn, &restore0);
 	    RADEONRestoreCrtcRegisters(pScrn, &restore0);
 	    RADEONRestoreFPRegisters(pScrn, &restore0);
 	    RADEONRestorePLLRegisters(pScrn, &restore0);
@@ -7002,6 +7002,7 @@ static void RADEONRestoreMode(ScrnInfoPtr pScrn, RADEONSavePtr restore)
 	}
     } else {
 	RADEONRestoreMemMapRegisters(pScrn, restore);
+	RADEONRestoreCommonRegisters(pScrn, &restore0);
 	if (info->MergedFB) {
 	    RADEONRestoreCrtc2Registers(pScrn, restore);
 	    RADEONRestorePLL2Registers(pScrn, restore);
@@ -7011,7 +7012,6 @@ static void RADEONRestoreMode(ScrnInfoPtr pScrn, RADEONSavePtr restore)
 	    info->IsSwitching) {
 	    pRADEONEnt->IsSecondaryRestored = FALSE;
 
-	    RADEONRestoreCommonRegisters(pScrn, restore);
 	    RADEONRestoreCrtcRegisters(pScrn, restore);
 	    RADEONRestoreFPRegisters(pScrn, restore);
 	    RADEONRestorePLLRegisters(pScrn, restore);
@@ -7873,7 +7873,9 @@ static Bool RADEONInitCrtcRegisters(ScrnInfoPtr pScrn, RADEONSavePtr save,
     save->disp_merge_cntl &= ~RADEON_DISP_RGB_OFFSET_EN;
 
 #if X_BYTE_ORDER == X_BIG_ENDIAN
-    /* Alhought we current onlu use aperture 0, also setting aperture 1 should not harm -ReneR */
+    /* We must set both apertures as they can be both used to map the entire
+     * video memory. -BenH.
+     */
     switch (pScrn->bitsPerPixel) {
     case 16:
 	save->surface_cntl |= RADEON_NONSURF_AP0_SWP_16BPP;
@@ -8094,7 +8096,9 @@ static Bool RADEONInitCrtc2Registers(ScrnInfoPtr pScrn, RADEONSavePtr save,
     /* We must set SURFACE_CNTL properly on the second screen too */
     save->surface_cntl = 0;
 #if X_BYTE_ORDER == X_BIG_ENDIAN
-    /* Alhought we current onlu use aperture 0, also setting aperture 1 should not harm -ReneR */
+    /* We must set both apertures as they can be both used to map the entire
+     * video memory. -BenH.
+     */
     switch (pScrn->bitsPerPixel) {
     case 16:
        save->surface_cntl |= RADEON_NONSURF_AP0_SWP_16BPP;
