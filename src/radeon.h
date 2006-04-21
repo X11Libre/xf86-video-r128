@@ -588,7 +588,7 @@ typedef struct {
 
     int               pciGartSize;
     CARD32            pciGartOffset;
-
+    void              *pciGartBackup;
 #ifdef USE_XAA
     CARD32            frontPitchOffset;
     CARD32            backPitchOffset;
