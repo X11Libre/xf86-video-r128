@@ -138,6 +138,7 @@ EXTRA_DIST = \
 	atimodule.h \
 	atimono.h \
 	atioption.h \
+	atipciids.h \
 	atipreinit.h \
 	atiprint.h \
 	atipriv.h \
