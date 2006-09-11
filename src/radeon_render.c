@@ -389,6 +389,10 @@ static Bool FUNC_NAME(R100SetupTexture)(
 #endif
     ACCEL_PREAMBLE();
 
+    /* render repeat is broken - fix in stable tree by falling back */
+    if (flags & XAA_RENDER_REPEAT)
+	return FALSE;
+
     if ((width > 2048) || (height > 2048))
 	return FALSE;
 
@@ -720,6 +724,10 @@ static Bool FUNC_NAME(R200SetupTexture)(
     CARD8 *tmp_dst;
 #endif
     ACCEL_PREAMBLE();
+
+    /* render repeat is broken - fix in stable tree by falling back */
+    if (flags & XAA_RENDER_REPEAT)
+	return FALSE;
 
     if ((width > 2048) || (height > 2048))
 	return FALSE;
