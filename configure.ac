@@ -129,6 +129,12 @@ XORG_MANPAGE_SECTIONS
 XORG_RELEASE_VERSION
 XORG_CHECK_LINUXDOC
 
+AC_MSG_NOTICE(
+[Please change the Driver line in xorg.conf from "ati" to "r128" or install]
+[the ati wrapper as well:]
+[    git://anongit.freedesktop.org/git/xorg/driver/xf86-video-ati]
+)
+
 AC_OUTPUT([
 	Makefile
 	src/Makefile
