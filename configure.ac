@@ -56,12 +56,6 @@ AC_ARG_ENABLE(dri, AC_HELP_STRING([--disable-dri],
               [DRI="$enableval"],
               [DRI=auto])
 
-AC_ARG_ENABLE(exa,
-              AC_HELP_STRING([--disable-exa],
-                             [Disable EXA support [[default=enabled]]]),
-              [EXA="$enableval"],
-              [EXA=yes])
-
 # Checks for extensions
 XORG_DRIVER_CHECK_EXT(XINERAMA, xineramaproto)
 XORG_DRIVER_CHECK_EXT(RANDR, randrproto)
@@ -109,97 +103,11 @@ if test "$DRI" = yes; then
         AC_DEFINE(XF86DRI_DEVEL,1,[Enable developmental DRI driver support])
 fi
 
-# Note that this is sort of inverted from drivers/ati/Imakefile in
-# the monolith.  We test for foo, not for !foo (i.e. ATMISC_CPIO, not
-# ATIMISC_AVOID_CPIO), but the defines are negative.  So beware.  Oh yeah,
-# TV_OUT is the special case where it's a positive define, not AVOID_TV_OUT.
-
-# AVOID_CPIO: Only x86, amd64, and alpha are cool with CPIO.  It needs a
-# little-endian, undirected PIO space of at least 64kB.
-# AVOID_DGA: ???
-# ATI_TV_OUT: This only works on x86.
-
-ATIMISC_CPIO=no
-ATIMISC_DGA=yes
-ATIMISC_TV_OUT=no
-
-case $host_cpu in
-  i*86)
-    ATIMISC_TV_OUT=yes
-    ATIMISC_CPIO=yes
-    ;;
-  x86_64|amd64|alpha|ia64)
-    ATIMISC_CPIO=yes
-    ;;
-  sparc)
-    ATIMISC_DGA=no
-    ;;
-  *)
-    ;;
-esac
-
-AC_MSG_CHECKING([whether to include PIO support])
-AM_CONDITIONAL(ATIMISC_CPIO, test "x$ATIMISC_CPIO" = xyes)
-if test "x$ATIMISC_CPIO" = xyes; then
-	AC_MSG_RESULT([yes, PIO])
-else
-	AC_DEFINE(AVOID_CPIO, 1, [Avoid PIO and use MMIO for atimisc.])
-	AC_MSG_RESULT([no, MMIO])
-fi
-
-AC_MSG_CHECKING([whether to include DGA support])
-AC_MSG_RESULT([$ATIMISC_DGA])
-AM_CONDITIONAL(ATIMISC_DGA, test "x$ATIMISC_DGA" = xyes)
-if ! test "x$ATIMISC_DGA" = xyes; then
-	AC_DEFINE(AVOID_DGA, 1, [Do not build DGA support.])
-fi
-
-AC_MSG_CHECKING([whether to include TV Out support])
-AC_MSG_RESULT([$ATIMISC_TV_OUT])
-AM_CONDITIONAL(ATIMISC_TV_OUT, test "x$ATIMISC_TV_OUT" = xyes)
-if test "x$ATIMISC_TV_OUT" = xyes; then
-	AC_DEFINE(TV_OUT, 1, [Build TV-Out support for atimisc.])
-fi
-
-AC_DEFINE(USE_XAA, 1, [Build support for XAA])
-
-# Properly handle EXA.
-AC_MSG_CHECKING([whether to enable EXA support])
-if test "x$EXA" = xyes; then
-        AC_MSG_RESULT(yes)
-
-        SAVE_CPPFLAGS="$CPPFLAGS"
-        CPPFLAGS="$CPPFLAGS $XORG_CFLAGS"
-        AC_CHECK_HEADER(exa.h,
-                       [have_exa_h="yes"], [have_exa_h="no"])
-        CPPFLAGS="$SAVE_CPPFLAGS"
-else
-        AC_MSG_RESULT(no)
-fi 
-
 SAVE_CPPFLAGS="$CPPFLAGS"
 CPPFLAGS="$CPPFLAGS $XORG_CFLAGS"
-if test "x$have_exa_h" = xyes; then
-        AC_MSG_CHECKING([whether EXA version is at least 2.0.0])
-        AC_PREPROC_IFELSE([AC_LANG_PROGRAM([[
-#include "exa.h"
-#if EXA_VERSION_MAJOR < 2
-#error OLD EXA!
-#endif
-                          ]])],
-                          [USE_EXA=yes],
-                          [USE_EXA=no])
-        AC_MSG_RESULT($USE_EXA)
-
-        if test "x$USE_EXA" = xyes; then
-                AC_DEFINE(USE_EXA, 1, [Build support for Exa])
-        fi
-fi
-
 AC_CHECK_DECL(XSERVER_LIBPCIACCESS,
 	      [XSERVER_LIBPCIACCESS=yes],[XSERVER_LIBPCIACCESS=no],
 	      [#include "xorg-server.h"])
-
 CPPFLAGS="$SAVE_CPPFLAGS"
 
 AM_CONDITIONAL(USE_EXA, test "x$USE_EXA" = xyes)
