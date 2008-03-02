@@ -208,7 +208,7 @@ static const struct pci_id_match r128_device_match[] = {
 
 #endif /* XSERVER_LIBPCIACCESS */
 
-int gR128EntityIndex = -1;
+_X_EXPORT int gR128EntityIndex = -1;
 
 /* Return the options for supported chipset 'n'; NULL otherwise */
 static const OptionInfoRec *

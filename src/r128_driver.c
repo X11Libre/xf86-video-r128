@@ -192,13 +192,11 @@ R128RAMRec R128RAM[] = {        /* Memory Specifications
     { 4, 4, 3, 3, 2, 3, 1, 16, 12, "64-bit DDR SGRAM" },
 };
 
+extern _X_EXPORT int gR128EntityIndex;
+
 int getR128EntityIndex(void)
 {
-    int *r128_entity_index = LoaderSymbol("gR128EntityIndex");
-    if (!r128_entity_index)
-        return -1;
-    else
-        return *r128_entity_index;
+    return gR128EntityIndex;
 }
 
 R128EntPtr R128EntPriv(ScrnInfoPtr pScrn)
