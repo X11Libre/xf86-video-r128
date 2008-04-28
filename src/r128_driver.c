@@ -488,7 +488,8 @@ static Bool R128GetBIOSParameters(ScrnInfoPtr pScrn, xf86Int10InfoPtr pInt10)
 			(info->VBIOS[(v) + 3] << 24))
 
 #ifdef XSERVER_LIBPCIACCESS
-    info->VBIOS = xalloc(info->PciInfo->rom_size);
+    int size = info->PciInfo->rom_size > R128_VBIOS_SIZE ? info->PciInfo->rom_size : R128_VBIOS_SIZE;
+    info->VBIOS = xalloc(size);
 #else
     info->VBIOS = xalloc(R128_VBIOS_SIZE);
 #endif
