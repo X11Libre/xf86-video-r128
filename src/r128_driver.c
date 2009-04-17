@@ -234,6 +234,16 @@ static Bool R128MapMMIO(ScrnInfoPtr pScrn)
     if (info->FBDev) {
 	info->MMIO = fbdevHWMapMMIO(pScrn);
     } else {
+        /* If the primary screen has already mapped the MMIO region,
+           use its pointer instead of mapping it a second time. */
+        if (info->IsSecondary) {
+            DevUnion* pPriv = xf86GetEntityPrivate(pScrn->entityList[0], 
+                                                   getR128EntityIndex());
+            R128EntPtr pR128Ent = pPriv->ptr;
+            R128InfoPtr info0 = R128PTR(pR128Ent->pPrimaryScrn);
+            info->MMIO=info0->MMIO;
+            if (info->MMIO) return TRUE;
+        }
 #ifndef XSERVER_LIBPCIACCESS
 	info->MMIO = xf86MapPciMem(pScrn->scrnIndex,
 				   VIDMEM_MMIO | VIDMEM_READSIDEEFFECT,
