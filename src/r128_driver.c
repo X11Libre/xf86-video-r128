@@ -4337,6 +4337,8 @@ void R128FreeScreen(int scrnIndex, int flags)
     R128InfoPtr   info      = R128PTR(pScrn);
 
     R128TRACE(("R128FreeScreen\n"));
+    if (info == NULL)
+	return;
 #ifdef WITH_VGAHW
     if (info->VGAAccess && xf86LoaderCheckSymbol("vgaHWFreeHWRec"))
 	vgaHWFreeHWRec(pScrn);
