@@ -101,8 +101,13 @@
 #include "dixstruct.h"
 
 				/* DPMS support. */
+#ifdef HAVE_XEXTPROTO_71
+#include <X11/extensions/dpmsconst.h>
+#else
 #define DPMS_SERVER
 #include <X11/extensions/dpms.h>
+#endif
+
 
 #ifndef MAX
 #define MAX(a,b) ((a)>(b)?(a):(b))
