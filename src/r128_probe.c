@@ -46,8 +46,12 @@
 #include "xf86.h"
 #include "xf86PciInfo.h"
 
-#ifndef XSERVER_LIBPCIACCESS
+
+#if GET_ABI_MAJOR(ABI_VIDEODRV_VERSION) < 6
 #include "xf86Resources.h"
+#endif
+
+#ifndef XSERVER_LIBPCIACCESS
 static Bool R128Probe(DriverPtr drv, int flags);
 #endif
 
