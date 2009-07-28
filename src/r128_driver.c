@@ -87,8 +87,10 @@
 #include "xf86.h"
 #include "xf86_OSproc.h"
 #include "xf86PciInfo.h"
+#ifndef XSERVER_LIBPCIACCESS
 #include "xf86RAC.h"
 #include "xf86Resources.h"
+#endif
 #include "xf86cmap.h"
 #include "xf86xv.h"
 #include "vbe.h"
@@ -1980,10 +1982,12 @@ Bool R128PreInit(ScrnInfoPtr pScrn, int flags)
 	       PCI_DEV_DEV(info->PciInfo),
 	       PCI_DEV_FUNC(info->PciInfo));
 
+#ifndef XSERVER_LIBPCIACCESS
     if (xf86RegisterResources(info->pEnt->index, 0, ResNone)) goto fail;
     if (xf86SetOperatingState(resVga, info->pEnt->index, ResUnusedOpr)) goto fail;
 
     pScrn->racMemFlags = RAC_FB | RAC_COLORMAP | RAC_VIEWPORT | RAC_CURSOR;
+#endif
     pScrn->monitor     = pScrn->confScreen->monitor;
 
     if (!R128PreInitVisual(pScrn))    goto fail;

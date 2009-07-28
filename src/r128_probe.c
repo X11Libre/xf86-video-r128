@@ -45,9 +45,9 @@
 
 #include "xf86.h"
 #include "xf86PciInfo.h"
-#include "xf86Resources.h"
 
 #ifndef XSERVER_LIBPCIACCESS
+#include "xf86Resources.h"
 static Bool R128Probe(DriverPtr drv, int flags);
 #endif
 
