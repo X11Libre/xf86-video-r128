@@ -32,9 +32,11 @@ AC_CONFIG_AUX_DIR(.)
 
 AM_INIT_AUTOMAKE([dist-bzip2])
 
-# Require xorg-macros: XORG_CWARNFLAGS, XORG_CHANGELOG
-m4_ifndef([XORG_MACROS_VERSION], [AC_FATAL([must install xorg-macros 1.2 or later before running autoconf/autogen])])
-XORG_MACROS_VERSION(1.2)
+# Require xorg-macros: XORG_DEFAULT_OPTIONS
+m4_ifndef([XORG_MACROS_VERSION], 
+          [m4_fatal([must install xorg-macros 1.3 or later before running autoconf/autogen])])
+XORG_MACROS_VERSION(1.3)
+XORG_DEFAULT_OPTIONS
 
 AM_MAINTAINER_MODE
 
@@ -133,10 +135,7 @@ AC_SUBST([moduledir])
 DRIVER_NAME=r128
 AC_SUBST([DRIVER_NAME])
 
-XORG_MANPAGE_SECTIONS
-XORG_RELEASE_VERSION
 XORG_CHECK_LINUXDOC
-XORG_CHANGELOG
 
 AC_MSG_NOTICE(
 [Please change the Driver line in xorg.conf from "ati" to "r128" or install]

@@ -27,8 +27,7 @@ README.r128: README.r128.sgml
 
 endif
 
-EXTRA_DIST = README.r128 README.r128.sgml ChangeLog
-CLEANFILES = ChangeLog
+EXTRA_DIST = README.r128 README.r128.sgml
 
 .PHONY: ChangeLog
 
