@@ -134,8 +134,6 @@ AC_SUBST([moduledir])
 DRIVER_NAME=r128
 AC_SUBST([DRIVER_NAME])
 
-XORG_CHECK_LINUXDOC
-
 AC_MSG_NOTICE(
 [Please change the Driver line in xorg.conf from "ati" to "r128" or install]
 [the ati wrapper as well:]
