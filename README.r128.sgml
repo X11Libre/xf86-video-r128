@@ -1,14 +1,11 @@
 <!DOCTYPE linuxdoc PUBLIC "-//Xorg//DTD linuxdoc//EN"[
-<!ENTITY % defs SYSTEM "defs.ent"> %defs;
+<!ENTITY % defs SYSTEM "X11/defs.ent"> %defs;
 ]>
 
 <article>
 <title>Information for ATI Rage 128 Users
 <author>Precision Insight, Inc., SuSE GmbH
 <date>13 June 2000
-
-<ident>
-</ident>
 
 <toc>
 
@@ -95,8 +92,8 @@ The X11R&relvers; driver was originally part of XFree86 4.4 rc2.
 
 The XFree86 4 driver was ported from XFree86 3.3.x and enhanced by:
 <itemize>
-   <item>Rickard E. (Rik) Faith <email>faith@precisioninsight.com</email>
-   <item>Kevin E. Martin <email>kevin@precisioninsight.com</email>
+   <item>Rickard E. (Rik) Faith <url url="mailto:faith@precisioninsight.com">
+   <item>Kevin E. Martin <url url="mailto:kevin@precisioninsight.com">
 </itemize>
 <p>
 The XFree86 4 driver was funded by ATI and was donated to The XFree86
@@ -109,15 +106,15 @@ Project by:
 <p>
 The XFree86 3.3.x driver used for the port was written by:
 <itemize>
-   <item>Rickard E. (Rik) Faith <email>faith@precisioninsight.com</email>
-   <item>Kevin E. Martin <email>kevin@precisioninsight.com</email>
+   <item>Rickard E. (Rik) Faith <url url="mailto:faith@precisioninsight.com">
+   <item>Kevin E. Martin <url url="mailto:kevin@precisioninsight.com">
 </itemize>
 The XFree86 3.3.x driver was funded by ATI and was donated to The XFree86
 Project by Precision Insight, Inc.  It was based in part on an earlier
 driver that was written by:
 <itemize>
-   <item>Alan Hourihane <email>alanh@fairlite.demon.co.uk</email>
-   <item>Dirk Hohndel <email>hohndel@suse.de</email>
+   <item>Alan Hourihane <url url="mailto:alanh@fairlite.demon.co.uk">
+   <item>Dirk Hohndel <url url="mailto:hohndel@suse.de">
 </itemize>
 <p>This early driver was funded and donated to The XFree86 Project by:
 <verb>
