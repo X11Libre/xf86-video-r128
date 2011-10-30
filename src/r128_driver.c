@@ -228,7 +228,7 @@ static Bool R128GetRec(ScrnInfoPtr pScrn)
 static void R128FreeRec(ScrnInfoPtr pScrn)
 {
     if (!pScrn || !pScrn->driverPrivate) return;
-    xfree(pScrn->driverPrivate);
+    free(pScrn->driverPrivate);
     pScrn->driverPrivate = NULL;
 }
 
@@ -506,9 +506,9 @@ static Bool R128GetBIOSParameters(ScrnInfoPtr pScrn, xf86Int10InfoPtr pInt10)
 
 #ifdef XSERVER_LIBPCIACCESS
     int size = info->PciInfo->rom_size > R128_VBIOS_SIZE ? info->PciInfo->rom_size : R128_VBIOS_SIZE;
-    info->VBIOS = xalloc(size);
+    info->VBIOS = malloc(size);
 #else
-    info->VBIOS = xalloc(R128_VBIOS_SIZE);
+    info->VBIOS = malloc(R128_VBIOS_SIZE);
 #endif
 
     if (!info->VBIOS) {
@@ -541,7 +541,7 @@ static Bool R128GetBIOSParameters(ScrnInfoPtr pScrn, xf86Int10InfoPtr pInt10)
     }
     if (info->VBIOS[0] != 0x55 || info->VBIOS[1] != 0xaa) {
 	info->BIOSAddr = 0x00000000;
-	xfree(info->VBIOS);
+	free(info->VBIOS);
 	info->VBIOS = NULL;
 	xf86DrvMsg(pScrn->scrnIndex, X_WARNING,
 		   "Video BIOS not found!\n");
@@ -1519,7 +1519,7 @@ static void R128SetSyncRangeFromEdid(ScrnInfoPtr pScrn, int flag)
 }
 
 /***********
-   xfree's xf86ValidateModes routine deosn't work well with DFPs
+   free's xf86ValidateModes routine deosn't work well with DFPs
    here is our own validation routine. All modes between
    640<=XRes<=MaxRes and 480<=YRes<=MaxYRes will be permitted.
    NOTE: RageProII doesn't support rmx, can only work with the
@@ -1987,7 +1987,7 @@ Bool R128PreInit(ScrnInfoPtr pScrn, int flags)
 				/* We can't do this until we have a
 				   pScrn->display. */
     xf86CollectOptions(pScrn, NULL);
-    if (!(info->Options = xalloc(sizeof(R128Options))))    goto fail;
+    if (!(info->Options = malloc(sizeof(R128Options))))    goto fail;
     memcpy(info->Options, R128Options, sizeof(R128Options));
     xf86ProcessOptions(pScrn->scrnIndex, pScrn->options, info->Options);
 
@@ -2082,7 +2082,7 @@ Bool R128PreInit(ScrnInfoPtr pScrn, int flags)
 
 				/* Free the video bios (if applicable) */
     if (info->VBIOS) {
-	xfree(info->VBIOS);
+	free(info->VBIOS);
 	info->VBIOS = NULL;
     }
 
@@ -2101,7 +2101,7 @@ Bool R128PreInit(ScrnInfoPtr pScrn, int flags)
 
 				/* Free the video bios (if applicable) */
     if (info->VBIOS) {
-	xfree(info->VBIOS);
+	free(info->VBIOS);
 	info->VBIOS = NULL;
     }
 
@@ -4310,17 +4310,17 @@ static Bool R128CloseScreen(int scrnIndex, ScreenPtr pScreen)
     if (info->accel)             XAADestroyInfoRec(info->accel);
     info->accel                  = NULL;
 
-    if (info->scratch_save)      xfree(info->scratch_save);
+    if (info->scratch_save)      free(info->scratch_save);
     info->scratch_save           = NULL;
 
     if (info->cursor)            xf86DestroyCursorInfoRec(info->cursor);
     info->cursor                 = NULL;
 
-    if (info->DGAModes)          xfree(info->DGAModes);
+    if (info->DGAModes)          free(info->DGAModes);
     info->DGAModes               = NULL;
 
     if (info->adaptor) {
-        xfree(info->adaptor->pPortPrivates[0].ptr);
+        free(info->adaptor->pPortPrivates[0].ptr);
 	xf86XVFreeVideoAdaptorRec(info->adaptor);
 	info->adaptor = NULL;
     }

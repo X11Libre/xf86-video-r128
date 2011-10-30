@@ -95,7 +95,7 @@ void R128InitVideo(ScreenPtr pScreen)
 	    adaptors = &newAdaptor;
 	} else {
 	    newAdaptors =  /* need to free this someplace */
-		xalloc((num_adaptors + 1) * sizeof(XF86VideoAdaptorPtr*));
+		malloc((num_adaptors + 1) * sizeof(XF86VideoAdaptorPtr*));
 	    if(newAdaptors) {
 		memcpy(newAdaptors, adaptors, num_adaptors *
 					sizeof(XF86VideoAdaptorPtr));
@@ -110,7 +110,7 @@ void R128InitVideo(ScreenPtr pScreen)
 	xf86XVScreenInit(pScreen, adaptors, num_adaptors);
 
     if(newAdaptors)
-	xfree(newAdaptors);
+	free(newAdaptors);
 }
 
 #define MAXWIDTH 2048
@@ -188,9 +188,9 @@ R128AllocAdaptor(ScrnInfoPtr pScrn)
     if(!(adapt = xf86XVAllocateVideoAdaptorRec(pScrn)))
 	return NULL;
 
-    if(!(pPriv = xcalloc(1, sizeof(R128PortPrivRec) + sizeof(DevUnion))))
+    if(!(pPriv = calloc(1, sizeof(R128PortPrivRec) + sizeof(DevUnion))))
     {
-	xfree(adapt);
+	free(adapt);
 	return NULL;
     }
 

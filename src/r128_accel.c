@@ -1804,7 +1804,7 @@ static void R128MMIOAccelInit(ScrnInfoPtr pScrn, XAAInfoRecPtr a)
 					       | LEFT_EDGE_CLIPPING_NEGATIVE_X;
     a->NumScanlineColorExpandBuffers   = 1;
     a->ScanlineColorExpandBuffers      = info->scratch_buffer;
-    info->scratch_save                 = xalloc(((pScrn->virtualX+31)/32*4)
+    info->scratch_save                 = malloc(((pScrn->virtualX+31)/32*4)
 					    + (pScrn->virtualX
 					    * info->CurrentLayout.pixel_bytes));
     info->scratch_buffer[0]            = info->scratch_save;
