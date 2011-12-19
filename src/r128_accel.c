@@ -1866,6 +1866,9 @@ Bool R128AccelInit(ScreenPtr pScreen)
     R128InfoPtr   info  = R128PTR(pScrn);
     XAAInfoRecPtr a;
 
+    if (!xf86LoadSubModule(pScrn, "xaa"))
+	return FALSE;
+
     if (!(a = info->accel = XAACreateInfoRec())) return FALSE;
 
 #ifdef XF86DRI

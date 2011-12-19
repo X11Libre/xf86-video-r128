@@ -1753,17 +1753,6 @@ static Bool R128PreInitCursor(ScrnInfoPtr pScrn)
     return TRUE;
 }
 
-/* This is called by R128PreInit to initialize hardware acceleration. */
-static Bool R128PreInitAccel(ScrnInfoPtr pScrn)
-{
-    R128InfoPtr   info = R128PTR(pScrn);
-
-    if (!xf86ReturnOptValBool(info->Options, OPTION_NOACCEL, FALSE)) {
-	if (!xf86LoadSubModule(pScrn, "xaa")) return FALSE;
-    }
-    return TRUE;
-}
-
 static Bool R128PreInitInt10(ScrnInfoPtr pScrn, xf86Int10InfoPtr *ppInt10)
 {
     R128InfoPtr   info = R128PTR(pScrn);
@@ -2074,8 +2063,6 @@ Bool R128PreInit(ScrnInfoPtr pScrn, int flags)
 
     if (!R128PreInitCursor(pScrn))             goto fail;
 
-    if (!R128PreInitAccel(pScrn))              goto fail;
-
 #ifdef XF86DRI
     if (!R128PreInitDRI(pScrn))                goto fail;
 #endif
@@ -2204,6 +2191,7 @@ Bool R128ScreenInit(int scrnIndex, ScreenPtr pScreen,
     R128InfoPtr info   = R128PTR(pScrn);
     BoxRec      MemBox;
     int		y2;
+    Bool	noAccel;
 
     R128TRACE(("R128ScreenInit %x %d\n", pScrn->memPhysBase, pScrn->fbOffset));
 
@@ -2243,6 +2231,8 @@ Bool R128ScreenInit(int scrnIndex, ScreenPtr pScreen,
 			  pScrn->defaultVisual)) return FALSE;
     miSetPixmapDepths ();
 
+    noAccel = xf86ReturnOptValBool(info->Options, OPTION_NOACCEL, FALSE);
+
 #ifdef XF86DRI
 				/* Setup DRI after visuals have been
 				   established, but before fbScreenInit is
@@ -2257,7 +2247,7 @@ Bool R128ScreenInit(int scrnIndex, ScreenPtr pScreen,
 			   info->CurrentLayout.pixel_bytes);
 	int maxy        = info->FbMapSize / width_bytes;
 
-	if (xf86ReturnOptValBool(info->Options, OPTION_NOACCEL, FALSE)) {
+	if (noAccel) {
 	    xf86DrvMsg(scrnIndex, X_WARNING,
 		       "Acceleration disabled, not initializing the DRI\n");
 	    info->directRenderingEnabled = FALSE;
@@ -2541,7 +2531,7 @@ Bool R128ScreenInit(int scrnIndex, ScreenPtr pScreen,
     }
 
 				/* Acceleration setup */
-    if (!xf86ReturnOptValBool(info->Options, OPTION_NOACCEL, FALSE)) {
+    if (!noAccel) {
 	if (R128AccelInit(pScreen)) {
 	    xf86DrvMsg(scrnIndex, X_INFO, "Acceleration enabled\n");
 	    info->accelOn = TRUE;
