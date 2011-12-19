@@ -2002,8 +2002,10 @@ Bool R128PreInit(ScrnInfoPtr pScrn, int flags)
     } else
            xf86DrvMsg(pScrn->scrnIndex, X_INFO, "VGAAccess option set to FALSE,"
                       " VGA module load skipped\n");
-    if (info->VGAAccess)
+    if (info->VGAAccess) {
+	vgaHWSetStdFuncs(VGAHWPTR(pScrn));
         vgaHWGetIOBase(VGAHWPTR(pScrn));
+    }
 #else
     xf86DrvMsg(pScrn->scrnIndex, X_INFO, "VGAHW support not compiled, VGA "
                "module load skipped\n");
