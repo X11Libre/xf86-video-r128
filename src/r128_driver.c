@@ -71,7 +71,7 @@
 #include "r128_reg.h"
 #include "r128_version.h"
 
-#ifdef XF86DRI
+#ifdef R128DRI
 #define _XF86DRI_SERVER_
 #include "r128_dri.h"
 #include "r128_common.h"
@@ -133,7 +133,7 @@ typedef enum {
   OPTION_SW_CURSOR,
   OPTION_DAC_6BIT,
   OPTION_DAC_8BIT,
-#ifdef XF86DRI
+#ifdef R128DRI
   OPTION_XV_DMA,
   OPTION_IS_PCI,
   OPTION_CCE_PIO,
@@ -164,7 +164,7 @@ static const OptionInfoRec R128Options[] = {
   { OPTION_SW_CURSOR,    "SWcursor",         OPTV_BOOLEAN, {0}, FALSE },
   { OPTION_DAC_6BIT,     "Dac6Bit",          OPTV_BOOLEAN, {0}, FALSE },
   { OPTION_DAC_8BIT,     "Dac8Bit",          OPTV_BOOLEAN, {0}, TRUE  },
-#ifdef XF86DRI
+#ifdef R128DRI
   { OPTION_XV_DMA,       "DMAForXv",         OPTV_BOOLEAN, {0}, FALSE },
   { OPTION_IS_PCI,       "ForcePCIMode",     OPTV_BOOLEAN, {0}, FALSE },
   { OPTION_CCE_PIO,      "CCEPIOMode",       OPTV_BOOLEAN, {0}, FALSE },
@@ -1175,7 +1175,7 @@ static Bool R128PreInitConfig(ScrnInfoPtr pScrn)
 	}
     }
 
-#ifdef XF86DRI
+#ifdef R128DRI
 				/* DMA for Xv */
     info->DMAForXv = xf86ReturnOptValBool(info->Options, OPTION_XV_DMA, FALSE);
     if (info->DMAForXv) {
@@ -1766,7 +1766,7 @@ static Bool R128PreInitInt10(ScrnInfoPtr pScrn, xf86Int10InfoPtr *ppInt10)
     return TRUE;
 }
 
-#ifdef XF86DRI
+#ifdef R128DRI
 static Bool R128PreInitDRI(ScrnInfoPtr pScrn)
 {
     R128InfoPtr   info = R128PTR(pScrn);
@@ -2065,7 +2065,7 @@ Bool R128PreInit(ScrnInfoPtr pScrn, int flags)
 
     if (!R128PreInitCursor(pScrn))             goto fail;
 
-#ifdef XF86DRI
+#ifdef R128DRI
     if (!R128PreInitDRI(pScrn))                goto fail;
 #endif
 
@@ -2171,7 +2171,7 @@ R128BlockHandler(int i, pointer blockData, pointer pTimeout, pointer pReadmask)
     ScrnInfoPtr pScrn   = xf86Screens[i];
     R128InfoPtr info    = R128PTR(pScrn);
 
-#ifdef XF86DRI
+#ifdef R128DRI
     if (info->directRenderingEnabled)
         FLUSH_RING();
 #endif
@@ -2197,7 +2197,7 @@ Bool R128ScreenInit(int scrnIndex, ScreenPtr pScreen,
 
     R128TRACE(("R128ScreenInit %x %d\n", pScrn->memPhysBase, pScrn->fbOffset));
 
-#ifdef XF86DRI
+#ifdef R128DRI
 				/* Turn off the CCE for now. */
     info->CCEInUse     = FALSE;
     info->indirectBuffer = NULL;
@@ -2206,7 +2206,7 @@ Bool R128ScreenInit(int scrnIndex, ScreenPtr pScreen,
     if (!R128MapMem(pScrn)) return FALSE;
     pScrn->fbOffset    = 0;
     if(info->IsSecondary) pScrn->fbOffset = pScrn->videoRam * 1024;
-#ifdef XF86DRI
+#ifdef R128DRI
     info->fbX          = 0;
     info->fbY          = 0;
     info->frontOffset  = 0;
@@ -2235,7 +2235,7 @@ Bool R128ScreenInit(int scrnIndex, ScreenPtr pScreen,
 
     noAccel = xf86ReturnOptValBool(info->Options, OPTION_NOACCEL, FALSE);
 
-#ifdef XF86DRI
+#ifdef R128DRI
 				/* Setup DRI after visuals have been
 				   established, but before fbScreenInit is
 				   called.  fbScreenInit will eventually
@@ -2320,7 +2320,7 @@ Bool R128ScreenInit(int scrnIndex, ScreenPtr pScreen,
     fbPictureInit (pScreen, 0, 0);
 
 				/* Memory manager setup */
-#ifdef XF86DRI
+#ifdef R128DRI
     if (info->directRenderingEnabled) {
 	FBAreaPtr fbarea;
 	int width_bytes = (pScrn->displayWidth *
@@ -2622,7 +2622,7 @@ Bool R128ScreenInit(int scrnIndex, ScreenPtr pScreen,
     if (serverGeneration == 1)
 	xf86ShowUnusedOptions(pScrn->scrnIndex, pScrn->options);
 
-#ifdef XF86DRI
+#ifdef R128DRI
 				/* DRI finalization */
     if (info->directRenderingEnabled) {
 				/* Now that mi, fb, drm and others have
@@ -3351,7 +3351,7 @@ static void R128InitCommonRegisters(R128SavePtr save, R128InfoPtr info)
     save->subpic_cntl        = 0;
     save->viph_control       = 0;
     save->i2c_cntl_1         = 0;
-#ifdef XF86DRI
+#ifdef R128DRI
     save->gen_int_cntl       = info->gen_int_cntl;
 #else
     save->gen_int_cntl       = 0;
@@ -4234,7 +4234,7 @@ Bool R128EnterVT(int scrnIndex, int flags)
     if (info->accelOn)
 	R128EngineInit(pScrn);
 
-#ifdef XF86DRI
+#ifdef R128DRI
     if (info->directRenderingEnabled) {
 	if (info->irq) {
 	    /* Need to make sure interrupts are enabled */
@@ -4261,7 +4261,7 @@ void R128LeaveVT(int scrnIndex, int flags)
     R128SavePtr save  = &info->ModeReg;
 
     R128TRACE(("R128LeaveVT\n"));
-#ifdef XF86DRI
+#ifdef R128DRI
     if (info->directRenderingEnabled) {
 	DRILock(pScrn->pScreen, 0);
 	R128CCE_STOP(pScrn, info);
@@ -4286,7 +4286,7 @@ static Bool R128CloseScreen(int scrnIndex, ScreenPtr pScreen)
 
     R128TRACE(("R128CloseScreen\n"));
 
-#ifdef XF86DRI
+#ifdef R128DRI
 				/* Disable direct rendering */
     if (info->directRenderingEnabled) {
 	R128DRICloseScreen(pScreen);

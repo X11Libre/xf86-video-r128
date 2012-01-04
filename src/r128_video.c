@@ -8,7 +8,7 @@
 #include "r128.h"
 #include "r128_reg.h"
 
-#ifdef XF86DRI
+#ifdef R128DRI
 #include "r128_common.h"
 #include "r128_sarea.h"
 #endif
@@ -392,7 +392,7 @@ R128DMA(
   int w
 ){
 
-#ifdef XF86DRI
+#ifdef R128DRI
 
 #define BUFSIZE (R128_BUFFER_SIZE - R128_HOSTDATA_BLIT_OFFSET)
 #define MAXPASSES (MAXHEIGHT/(BUFSIZE/(MAXWIDTH*2))+1)
@@ -481,10 +481,10 @@ R128DMA(
 
 #else
 
-    /* This is to avoid cluttering the rest of the code with '#ifdef XF86DRI' */
+    /* This is to avoid cluttering the rest of the code with '#ifdef R128DRI' */
     return FALSE;
 
-#endif	/* XF86DRI */
+#endif	/* R128DRI */
 
 }
 
