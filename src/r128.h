@@ -53,8 +53,6 @@
 				/* Xv support */
 #include "xf86xv.h"
 
-#include "r128_probe.h"
-
 				/* DRI support */
 #ifndef XF86DRI
 #undef R128DRI
@@ -67,7 +65,10 @@
 #include "GL/glxint.h"
 #endif
 
+#include "compat-api.h"
 #include "atipcirename.h"
+
+#include "r128_probe.h"
 
 #define R128_DEBUG          0   /* Turn off debugging output               */
 #define R128_IDLE_RETRY    32   /* Fall out of idle loops after this count */
@@ -270,8 +271,8 @@ typedef struct {
 
     R128SaveRec       SavedReg;     /* Original (text) mode                  */
     R128SaveRec       ModeReg;      /* Current mode                          */
-    Bool              (*CloseScreen)(int, ScreenPtr);
-    void              (*BlockHandler)(int, pointer, pointer, pointer);
+    Bool              (*CloseScreen)(CLOSE_SCREEN_ARGS_DECL);
+    void              (*BlockHandler)(BLOCKHANDLER_ARGS_DECL);
 
     Bool              PaletteSavedOnVT; /* Palette saved on last VT switch   */
 

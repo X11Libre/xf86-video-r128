@@ -142,7 +142,7 @@ SECOND_PASS:
 Bool
 R128DGAInit(ScreenPtr pScreen)
 {
-   ScrnInfoPtr pScrn = xf86Screens[pScreen->myNum];
+   ScrnInfoPtr pScrn = xf86ScreenToScrn(pScreen);
    R128InfoPtr info = R128PTR(pScrn);
    DGAModePtr modes = NULL;
    int num = 0;
@@ -243,7 +243,7 @@ R128_SetMode(
 
 	pScrn->currentMode = info->CurrentLayout.mode;
 
-	pScrn->SwitchMode(indx, pScrn->currentMode, 0);
+	pScrn->SwitchMode(SWITCH_MODE_ARGS(pScrn, pScrn->currentMode));
 #ifdef R128DRI
 	if (info->directRenderingEnabled) {
 	    R128CCE_STOP(pScrn, info);
@@ -256,7 +256,7 @@ R128_SetMode(
 	    R128CCE_START(pScrn, info);
 	}
 #endif
-	pScrn->AdjustFrame(indx, 0, 0, 0);
+	pScrn->AdjustFrame(ADJUST_FRAME_ARGS(pScrn, 0, 0));
 	info->DGAactive = FALSE;
    } else {
 	if(!info->DGAactive) {  /* save the old parameters */
@@ -274,7 +274,7 @@ R128_SetMode(
 					  : pMode->depth);
 	/* R128ModeInit() will set the mode field */
 
-	pScrn->SwitchMode(indx, pMode->mode, 0);
+	pScrn->SwitchMode(SWITCH_MODE_ARGS(pScrn, pMode->mode));
 
 #ifdef R128DRI
 	if (info->directRenderingEnabled) {
@@ -313,7 +313,7 @@ R128_SetViewport(
 ){
    R128InfoPtr info = R128PTR(pScrn);
 
-   pScrn->AdjustFrame(pScrn->pScreen->myNum, x, y, flags);
+   pScrn->AdjustFrame(ADJUST_FRAME_ARGS(pScrn, x, y));
    info->DGAViewportStatus = 0;  /* FIXME */
 }
 

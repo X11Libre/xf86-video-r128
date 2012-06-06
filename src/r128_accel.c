@@ -1862,7 +1862,7 @@ static void R128MMIOAccelInit(ScrnInfoPtr pScrn, XAAInfoRecPtr a)
    graphics hardware for acceleration. */
 Bool R128AccelInit(ScreenPtr pScreen)
 {
-    ScrnInfoPtr   pScrn = xf86Screens[pScreen->myNum];
+    ScrnInfoPtr   pScrn = xf86ScreenToScrn(pScreen);
     R128InfoPtr   info  = R128PTR(pScrn);
     XAAInfoRecPtr a;
 
