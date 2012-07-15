@@ -44,7 +44,10 @@
 #include "xf86Pci.h"
 
 				/* XAA and Cursor Support */
+#ifdef HAVE_XAA_H
 #include "xaa.h"
+#endif
+#include "xf86fbman.h"
 #include "xf86Cursor.h"
 
 				/* DDC support */
@@ -64,6 +67,8 @@
 #include "dri.h"
 #include "GL/glxint.h"
 #endif
+
+#include "fb.h"
 
 #include "compat-api.h"
 #include "atipcirename.h"
@@ -276,7 +281,9 @@ typedef struct {
 
     Bool              PaletteSavedOnVT; /* Palette saved on last VT switch   */
 
+#ifdef HAVE_XAA_H
     XAAInfoRecPtr     accel;
+#endif
     Bool              accelOn;
     xf86CursorInfoPtr cursor;
     unsigned long     cursor_start;

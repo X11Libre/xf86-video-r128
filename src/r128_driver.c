@@ -78,8 +78,6 @@
 #include "r128_sarea.h"
 #endif
 
-#include "fb.h"
-
 				/* colormap initialization */
 #include "micmap.h"
 
@@ -4298,8 +4296,10 @@ static Bool R128CloseScreen(CLOSE_SCREEN_ARGS_DECL)
 	R128UnmapMem(pScrn);
     }
 
+#ifdef HAVE_XAA_H
     if (info->accel)             XAADestroyInfoRec(info->accel);
     info->accel                  = NULL;
+#endif
 
     if (info->scratch_save)      free(info->scratch_save);
     info->scratch_save           = NULL;

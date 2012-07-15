@@ -301,10 +301,11 @@ static void R128DestroyContext(ScreenPtr pScreen, drm_context_t hwContext,
    can start/stop the engine. */
 static void R128EnterServer(ScreenPtr pScreen)
 {
+#ifdef HAVE_XAA_H
     ScrnInfoPtr pScrn = xf86ScreenToScrn(pScreen);
     R128InfoPtr info = R128PTR(pScrn);
-
     if (info->accel) info->accel->NeedToSync = TRUE;
+#endif
 }
 
 /* Called when the X server goes to sleep to allow the X server's
@@ -358,9 +359,11 @@ static void R128DRIInitBuffers(WindowPtr pWin, RegionPtr prgn, CARD32 indx)
     ScreenPtr   pScreen = pWin->drawable.pScreen;
     ScrnInfoPtr pScrn   = xf86ScreenToScrn(pScreen);
     R128InfoPtr info    = R128PTR(pScrn);
+#ifdef HAVE_XAA_H
     BoxPtr      pbox, pboxSave;
     int         nbox, nboxSave;
     int         depth;
+#endif
 
     /* FIXME: Use accel when CCE 2D code is written
      * EA: What is this code kept for? Radeon doesn't have it and
@@ -369,7 +372,7 @@ static void R128DRIInitBuffers(WindowPtr pWin, RegionPtr prgn, CARD32 indx)
      */
     if (info->directRenderingEnabled)
 	return;
-
+#ifdef HAVE_XAA_H
     /* FIXME: This should be based on the __GLXvisualConfig info */
     switch (pScrn->bitsPerPixel) {
     case  8: depth = 0x000000ff; break;
@@ -413,6 +416,7 @@ static void R128DRIInitBuffers(WindowPtr pWin, RegionPtr prgn, CARD32 indx)
 						pbox->y2 - pbox->y1);
 
     info->accel->NeedToSync = TRUE;
+#endif
 }
 
 /* Copy the back and depth buffers when the X server moves a window. */
@@ -1386,8 +1390,10 @@ void R128DRICloseScreen(ScreenPtr pScreen)
 
 static void R128DRIRefreshArea(ScrnInfoPtr pScrn, int num, BoxPtr pbox)
 {
+#ifdef HAVE_XAA_H
     R128InfoPtr         info       = R128PTR(pScrn);
     int                 i;
+#endif
     R128SAREAPrivPtr    pSAREAPriv = DRIGetSAREAPrivate(pScrn->pScreen);
 
     /* Don't want to do this when no 3d is active and pages are
@@ -1396,6 +1402,7 @@ static void R128DRIRefreshArea(ScrnInfoPtr pScrn, int num, BoxPtr pbox)
     if (!pSAREAPriv->pfAllowPageFlip && pSAREAPriv->pfCurrentPage == 0)
 	return;
 
+#ifdef HAVE_XAA_H
     (*info->accel->SetupForScreenToScreenCopy)(pScrn,
 					       1, 1, GXcopy,
 					       (CARD32)(-1), -1);
@@ -1412,10 +1419,12 @@ static void R128DRIRefreshArea(ScrnInfoPtr pScrn, int num, BoxPtr pbox)
 							 yb - ya + 1);
 	}
     }
+#endif
 }
 
 static void R128EnablePageFlip(ScreenPtr pScreen)
 {
+#ifdef HAVE_XAA_H
     ScrnInfoPtr         pScrn      = xf86ScreenToScrn(pScreen);
     R128InfoPtr         info       = R128PTR(pScrn);
     R128SAREAPrivPtr    pSAREAPriv = DRIGetSAREAPrivate(pScreen);
@@ -1436,6 +1445,7 @@ static void R128EnablePageFlip(ScreenPtr pScreen)
 
 	pSAREAPriv->pfAllowPageFlip = 1;
     }
+#endif
 }
 
 static void R128DisablePageFlip(ScreenPtr pScreen)
