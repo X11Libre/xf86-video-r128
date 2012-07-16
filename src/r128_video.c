@@ -56,7 +56,8 @@ typedef struct {
    int           saturation;
    Bool          doubleBuffer;
    unsigned char currentBuffer;
-   FBLinearPtr   linear;
+   void*         BufferHandle;
+   int		 videoOffset;
    RegionRec     clip;
    CARD32        colorKey;
    CARD32        videoStatus;
@@ -270,9 +271,16 @@ R128StopVideo(ScrnInfoPtr pScrn, pointer data, Bool cleanup)
      if(pPriv->videoStatus & CLIENT_VIDEO_ON) {
 	OUTREG(R128_OV0_SCALE_CNTL, 0);
      }
-     if(pPriv->linear) {
-	xf86FreeOffscreenLinear(pPriv->linear);
-	pPriv->linear = NULL;
+     if(pPriv->BufferHandle) {
+        if (!info->useEXA) {
+	   xf86FreeOffscreenLinear((FBLinearPtr) pPriv->BufferHandle);
+	}
+#ifdef USE_EXA
+	else {
+	   exaOffscreenFree(pScrn->pScreen, (ExaOffscreenArea *) pPriv->BufferHandle);
+	}
+#endif
+	pPriv->BufferHandle = NULL;
      }
      pPriv->videoStatus = 0;
   } else {
@@ -381,7 +389,7 @@ R128QueryBestSize(
  *
  */
 
-static Bool
+Bool
 R128DMA(
   R128InfoPtr info,
   unsigned char *src,
@@ -564,45 +572,78 @@ R128CopyData420(
 }
 
 
-static FBLinearPtr
+static CARD32
 R128AllocateMemory(
    ScrnInfoPtr pScrn,
-   FBLinearPtr linear,
+   void **mem_struct,
    int size
 ){
-   ScreenPtr pScreen;
-   FBLinearPtr new_linear;
+   R128InfoPtr info = R128PTR(pScrn);
+   ScreenPtr pScreen = xf86ScrnToScreen(pScrn);
+   int offset = 0;
 
-   if(linear) {
-	if(linear->size >= size)
-	   return linear;
+   if(!info->useEXA) {
+        FBLinearPtr linear = *mem_struct;
+        int cpp = info->CurrentLayout.pixel_bytes;
 
-	if(xf86ResizeOffscreenLinear(linear, size))
-	   return linear;
+	/* XAA allocates in units of pixels at the screen bpp, so adjust size appropriately. */
+	size = (size + cpp - 1) / cpp;
 
-	xf86FreeOffscreenLinear(linear);
-   }
+        if(linear) {
+	     if(linear->size >= size)
+	        return linear->offset * cpp;
 
-   pScreen = xf86ScrnToScreen(pScrn);
+	     if(xf86ResizeOffscreenLinear(linear, size))
+	        return linear->offset * cpp;
 
-   new_linear = xf86AllocateOffscreenLinear(pScreen, size, 8,
+	     xf86FreeOffscreenLinear(linear);
+        }
+
+
+        linear = xf86AllocateOffscreenLinear(pScreen, size, 8,
 						NULL, NULL, NULL);
+	*mem_struct = linear;
 
-   if(!new_linear) {
-	int max_size;
+        if(!linear) {
+	     int max_size;
 
-	xf86QueryLargestOffscreenLinear(pScreen, &max_size, 8,
+	     xf86QueryLargestOffscreenLinear(pScreen, &max_size, 8,
 						PRIORITY_EXTREME);
 
-	if(max_size < size)
-	   return NULL;
+	     if(max_size < size)
+	        return 0;
 
-	xf86PurgeUnlockedOffscreenAreas(pScreen);
-	new_linear = xf86AllocateOffscreenLinear(pScreen, size, 8,
+	     xf86PurgeUnlockedOffscreenAreas(pScreen);
+	     linear = xf86AllocateOffscreenLinear(pScreen, size, 8,
 						NULL, NULL, NULL);
-   }
 
-   return new_linear;
+	     if(!linear) return 0;
+        }
+
+	offset = linear->offset * cpp;
+   }
+#ifdef USE_EXA
+   else {
+        /* EXA support based on mga driver */
+	ExaOffscreenArea *area = *mem_struct;
+
+	if(area) {
+	     if(area->size >= size)
+	        return area->offset;
+
+	     exaOffscreenFree(pScrn->pScreen, area);
+	}
+
+	area = exaOffscreenAlloc(pScrn->pScreen, size, 64, TRUE, NULL, NULL);
+	*mem_struct = area;
+
+	if(!area) return 0;
+
+	offset = area->offset;
+   }
+#endif
+
+   return offset;
 }
 
 static void
@@ -781,7 +822,7 @@ R128PutImage(
    int new_size, offset, s1offset, s2offset, s3offset;
    int srcPitch, srcPitch2, dstPitch;
    int d1line, d2line, d3line, d1offset, d2offset, d3offset;
-   int top, left, npixels, nlines, bpp;
+   int top, left, npixels, nlines;
    BoxRec dstBox;
    CARD32 tmp;
 #if X_BYTE_ORDER == X_BIG_ENDIAN
@@ -833,15 +874,13 @@ R128PutImage(
    dstBox.y1 -= pScrn->frameY0;
    dstBox.y2 -= pScrn->frameY0;
 
-   bpp = pScrn->bitsPerPixel >> 3;
-
    switch(id) {
    case FOURCC_YV12:
    case FOURCC_I420:
 	srcPitch = (width + 3) & ~3;
 	srcPitch2 = ((width >> 1) + 3) & ~3;
 	dstPitch = (width + 31) & ~31;  /* of luma */
-	new_size = ((dstPitch * (height + (height >> 1))) + bpp - 1) / bpp;
+	new_size = dstPitch * (height + (height >> 1));
 	s1offset = 0;
 	s2offset = srcPitch * height;
 	s3offset = (srcPitch2 * (height >> 1)) + s2offset;
@@ -852,14 +891,14 @@ R128PutImage(
 	srcPitch = width << 1;
 	srcPitch2 = 0;
 	dstPitch = ((width << 1) + 15) & ~15;
-	new_size = ((dstPitch * height) + bpp - 1) / bpp;
+	new_size = dstPitch * height;
 	s1offset = 0;
 	s2offset = 0;
 	s3offset = 0;
 	break;
    }
 
-   if(!(pPriv->linear = R128AllocateMemory(pScrn, pPriv->linear,
+   if(!(pPriv->videoOffset = R128AllocateMemory(pScrn, &(pPriv->BufferHandle),
 		pPriv->doubleBuffer ? (new_size << 1) : new_size)))
    {
 	return BadAlloc;
@@ -872,9 +911,9 @@ R128PutImage(
    left = (xa >> 16) & ~1;
    npixels = ((((xb + 0xffff) >> 16) + 1) & ~1) - left;
 
-   offset = pPriv->linear->offset * bpp;
+   offset = pPriv->videoOffset;
    if(pPriv->doubleBuffer)
-	offset += pPriv->currentBuffer * new_size * bpp;
+	offset += pPriv->currentBuffer * new_size;
 
    switch(id) {
     case FOURCC_YV12:
@@ -1015,9 +1054,16 @@ R128VideoTimerCallback(ScrnInfoPtr pScrn, Time now)
 	    }
 	} else {  /* FREE_TIMER */
 	    if(pPriv->freeTime < now) {
-		if(pPriv->linear) {
-		   xf86FreeOffscreenLinear(pPriv->linear);
-		   pPriv->linear = NULL;
+		if(pPriv->BufferHandle) {
+		   if (!info->useEXA) {
+		      xf86FreeOffscreenLinear((FBLinearPtr) pPriv->BufferHandle);
+		   }
+#ifdef USE_EXA
+		   else {
+		      exaOffscreenFree(pScrn->pScreen, (ExaOffscreenArea *) pPriv->BufferHandle);
+		   }
+#endif
+		   pPriv->BufferHandle = NULL;
 		}
 		pPriv->videoStatus = 0;
 		info->VideoTimerCallback = NULL;
