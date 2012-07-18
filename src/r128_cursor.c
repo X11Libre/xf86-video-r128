@@ -261,6 +261,8 @@ Bool R128CursorInit(ScreenPtr pScreen)
     FBAreaPtr             fbarea  = NULL;
 #ifdef USE_EXA
     ExaOffscreenArea*	  osArea  = NULL;
+#else
+    void*		  osArea  = NULL;
 #endif
     int                   width;
     int                   height;

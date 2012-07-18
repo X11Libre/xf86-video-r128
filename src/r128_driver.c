@@ -2244,6 +2244,8 @@ Bool R128ScreenInit(SCREEN_INIT_ARGS_DECL)
     Bool	noAccel;
 #ifdef USE_EXA
     ExaOffscreenArea*     osArea = NULL;
+#else
+    void*		  osArea = NULL;
 #endif
     char *optstr;
 
