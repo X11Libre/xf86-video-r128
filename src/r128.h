@@ -118,6 +118,7 @@
 #define R128_VBIOS_SIZE 0x00010000
 
 #if R128_DEBUG
+#include "r128_version.h"
 
 #define R128TRACE(x)                                          \
     do {                                                      \

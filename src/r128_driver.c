@@ -3043,11 +3043,11 @@ static void R128RestorePLL2Registers(ScrnInfoPtr pScrn, R128SavePtr restore)
 	       restore->p2pll_ref_div,
 	       restore->p2pll_div_0,
 	       restore->htotal_cntl2,
-	       INPLL(pScrn, RADEON_P2PLL_CNTL)));
+	       INPLL(pScrn, R128_P2PLL_CNTL)));
     R128TRACE(("Wrote: rd=%d, fd=%d, pd=%d\n",
-	       restore->p2pll_ref_div & RADEON_P2PLL_REF_DIV_MASK,
-	       restore->p2pll_div_0 & RADEON_P2PLL_FB3_DIV_MASK,
-	       (restore->p2pll_div_0 & RADEON_P2PLL_POST3_DIV_MASK) >>16));
+	       restore->p2pll_ref_div & R128_P2PLL_REF_DIV_MASK,
+	       restore->p2pll_div_0 & R128_P2PLL_FB0_DIV_MASK,
+	       (restore->p2pll_div_0 & R128_P2PLL_POST0_DIV_MASK) >>16));
 
     usleep(5000); /* Let the clock to lock */
 
@@ -3895,8 +3895,8 @@ static void R128InitPLLRegisters(ScrnInfoPtr pScrn, R128SavePtr save,
 }
 
 /* Define PLL2 registers for requested video mode. */
-static void R128InitPLL2Registers(R128SavePtr save, R128PLLPtr pll,
-				   double dot_clock)
+static void R128InitPLL2Registers(ScrnInfoPtr pScrn, R128SavePtr save,
+				   R128PLLPtr pll, double dot_clock)
 {
     unsigned long freq = dot_clock * 100;
     struct {
@@ -4158,7 +4158,7 @@ static Bool R128Init(ScrnInfoPtr pScrn, DisplayModePtr mode, R128SavePtr save)
         if (!R128InitCrtc2Registers(pScrn, save, 
              pScrn->currentMode,info)) 
             return FALSE;
-        R128InitPLL2Registers(save, &info->pll, dot_clock);
+        R128InitPLL2Registers(pScrn, save, &info->pll, dot_clock);
         if (!R128InitDDA2Registers(pScrn, save, &info->pll, info, mode))
 	    return FALSE;
     }
