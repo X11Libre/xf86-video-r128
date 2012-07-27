@@ -142,6 +142,7 @@ static void Emit2DState(ScrnInfoPtr pScrn)
     if (has_src) OUTREG(R128_SRC_PITCH_OFFSET, info->state_2d.src_pitch_offset);
 }
 
+#ifdef R128DRI
 static void EmitCCE2DState(ScrnInfoPtr pScrn)
 {
     R128InfoPtr   info      = R128PTR(pScrn);
@@ -166,6 +167,7 @@ static void EmitCCE2DState(ScrnInfoPtr pScrn)
 
     ADVANCE_RING();
 }
+#endif
 
 /* EXA Callbacks */
 
