@@ -1875,7 +1875,6 @@ Bool R128AccelInit(ScreenPtr pScreen)
 {
     ScrnInfoPtr   pScrn = xf86ScreenToScrn(pScreen);
     R128InfoPtr   info  = R128PTR(pScrn);
-    XAAInfoRecPtr a;
 
 #ifdef USE_EXA
     if (info->useEXA) {
@@ -1895,15 +1894,18 @@ Bool R128AccelInit(ScreenPtr pScreen)
 	info->ExaDriver = exaDriverAlloc();
 	if (!info->ExaDriver) {
 	    xf86DrvMsg(pScrn->scrnIndex, X_INFO, "Could not allocate EXA driver...\n");
-	    info->accel = FALSE;
+	    info->accelOn = FALSE;
 	}
 
 	return TRUE;
     }
 #endif
+
 #ifndef HAVE_XAA_H
     return FALSE;
 #else
+    XAAInfoRecPtr a;
+
     if (!info->useEXA) {
         if (!xf86LoadSubModule(pScrn, "xaa")) return FALSE;
     }
