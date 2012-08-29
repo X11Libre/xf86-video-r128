@@ -335,8 +335,7 @@ R128Done(PixmapPtr pPixmap)
     R128InfoPtr   info      = R128PTR(pScrn);
 
     info->state_2d.in_use = FALSE;
-#ifdef R128DRI
-#ifdef RENDER
+#if defined(R128DRI) && defined(RENDER)
     if (info->state_2d.src_pix) {
         pScreen->DestroyPixmap(info->state_2d.src_pix);
 	info->state_2d.src_pix = NULL;
@@ -345,7 +344,6 @@ R128Done(PixmapPtr pPixmap)
         pScreen->DestroyPixmap(info->state_2d.msk_pix);
 	info->state_2d.msk_pix = NULL;
     }
-#endif
 #endif
 }
 

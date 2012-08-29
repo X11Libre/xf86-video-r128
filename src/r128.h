@@ -284,8 +284,7 @@ struct r128_2d_state {
     uint32_t dp_src_frgd_clr;
     uint32_t dp_src_bkgd_clr;
     uint32_t default_sc_bottom_right;
-#ifdef R128DRI
-#ifdef RENDER
+#if defined(R128DRI) && defined(RENDER)
     Bool has_mask;
     int x_offset;
     int y_offset;
@@ -295,7 +294,6 @@ struct r128_2d_state {
     PictTransform *transform[2];
     PixmapPtr src_pix;
     PixmapPtr msk_pix;
-#endif
 #endif
 };
 #endif
