@@ -53,4 +53,5 @@ EXTRA_DIST = \
 	r128_reg.h \
 	r128_sarea.h \
 	r128_version.h \
+	r128_exa_render.c \
 	atipcirename.h
