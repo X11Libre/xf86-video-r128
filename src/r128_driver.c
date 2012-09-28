@@ -2251,6 +2251,11 @@ Bool R128ScreenInit(SCREEN_INIT_ARGS_DECL)
 
     R128TRACE(("R128ScreenInit %x %d\n", pScrn->memPhysBase, pScrn->fbOffset));
     info->useEXA = FALSE;
+#ifdef USE_EXA
+#ifndef HAVE_XAA_H
+    info->useEXA = TRUE;
+#endif
+#endif
 
 #ifdef USE_EXA
     optstr = (char *)xf86GetOptValString(info->Options, OPTION_ACCELMETHOD);
