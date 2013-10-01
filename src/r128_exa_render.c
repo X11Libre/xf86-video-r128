@@ -102,7 +102,7 @@ R128SolidPixmap(ScreenPtr pScreen, uint32_t solid)
 	return NULL;
     }
     info->ExaDriver->WaitMarker(pScreen, 0);
-    
+
 #if X_BYTE_ORDER == X_BIG_ENDIAN
     if (pScrn->bitsPerPixel == 32)
 	R128CopySwap(info->ExaDriver->memoryBase + exaGetPixmapOffset(pPix), (uint8_t*)&solid, 4,
