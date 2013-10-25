@@ -1758,8 +1758,8 @@ static Bool R128PreInitCursor(ScrnInfoPtr pScrn)
 static Bool R128PreInitInt10(ScrnInfoPtr pScrn, xf86Int10InfoPtr *ppInt10)
 {
     R128InfoPtr   info = R128PTR(pScrn);
-#if 1 && !defined(__alpha__)
-    /* int10 is broken on some Alphas */
+#if !defined(__powerpc__) && !defined(__alpha__)
+    /* int10 is broken on some Alphas and powerpc */
     if (xf86LoadSubModule(pScrn, "int10")) {
 	xf86DrvMsg(pScrn->scrnIndex,X_INFO,"initializing int10\n");
 	*ppInt10 = xf86InitInt10(info->pEnt->index);
@@ -1890,11 +1890,14 @@ static void
 R128ProbeDDC(ScrnInfoPtr pScrn, int indx)
 {
     vbeInfoPtr pVbe;
+
+#if !defined(__powerpc__) && !defined(__alpha__) && !defined(__sparc__)
     if (xf86LoadSubModule(pScrn, "vbe")) {
 	pVbe = VBEInit(NULL,indx);
 	ConfiguredMonitor = vbeDoEDID(pVbe, NULL);
 	vbeFree(pVbe);
     }
+#endif
 }
 
 /* R128PreInit is called once at server startup. */
