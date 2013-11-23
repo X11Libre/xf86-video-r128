@@ -84,7 +84,6 @@
 				/* X and server generic header files */
 #include "xf86.h"
 #include "xf86_OSproc.h"
-#include "xf86PciInfo.h"
 #if GET_ABI_MAJOR(ABI_VIDEODRV_VERSION) < 6
 #include "xf86RAC.h"
 #include "xf86Resources.h"

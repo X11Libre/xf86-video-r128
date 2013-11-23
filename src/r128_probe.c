@@ -43,8 +43,6 @@
 #include "atipcirename.h"
 
 #include "xf86.h"
-#include "xf86PciInfo.h"
-
 
 #if GET_ABI_MAJOR(ABI_VIDEODRV_VERSION) < 6
 #include "xf86Resources.h"
