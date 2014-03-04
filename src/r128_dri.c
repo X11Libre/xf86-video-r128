@@ -308,7 +308,11 @@ static void R128EnterServer(ScreenPtr pScreen)
 #endif
 #ifdef USE_EXA
     if (info->ExaDriver) exaMarkSync(pScreen);
-    info->state_2d.composite_setup = FALSE;
+    /* EXA and DRI are fighting over control of the texture hardware.
+     * That means we need to setup compositing when the server wakes
+     * up if a 3D app is running.
+     */
+    if (info->have3DWindows) info->state_2d.composite_setup = FALSE;
 #endif
 }
 

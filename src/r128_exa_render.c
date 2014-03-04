@@ -458,12 +458,7 @@ R128CCEPrepareComposite(int op, PicturePtr pSrcPicture, PicturePtr pMaskPicture,
 
     if (!info->state_2d.composite_setup) {
         COMPOSITE_SETUP();
-	/* DRI and EXA are fighting over control of the texture hardware.
-	 * That means we need to set up the compositing hardware every time
-	 * while a 3D app is running and once after it closes.
-	 */
-	if (!info->have3DWindows)
-	    info->state_2d.composite_setup = TRUE;
+        info->state_2d.composite_setup = TRUE;
     }
 
     /* We cannot guarantee that this register will stay zero - DRI needs it too. */
