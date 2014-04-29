@@ -2314,6 +2314,7 @@ Bool R128ScreenInit(SCREEN_INIT_ARGS_DECL)
     miSetPixmapDepths ();
 
     noAccel = xf86ReturnOptValBool(info->Options, OPTION_NOACCEL, FALSE);
+    if (noAccel) info->useEXA = FALSE;
 
 #ifdef R128DRI
 				/* Setup DRI after visuals have been
