@@ -226,7 +226,7 @@ R128SetupImageVideo(ScreenPtr pScreen)
 	return NULL;
 
     adapt->type = XvWindowMask | XvInputMask | XvImageMask;
-    adapt->flags = VIDEO_OVERLAID_IMAGES | VIDEO_CLIP_TO_VIEWPORT;
+    adapt->flags = VIDEO_OVERLAID_IMAGES /*| VIDEO_CLIP_TO_VIEWPORT*/;
     adapt->name = "ATI Rage128 Video Overlay";
     adapt->nEncodings = 1;
     adapt->pEncodings = &DummyEncoding;
@@ -849,6 +849,13 @@ R128PutImage(
    int top, left, npixels, nlines;
    BoxRec dstBox;
    CARD32 tmp;
+
+   /* Currently, the video is only visible on the first monitor.
+    * In the future we could try to make this smarter, or just implement
+    * textured video. */
+   xf86CrtcConfigPtr xf86_config = XF86_CRTC_CONFIG_PTR(pScrn);
+   xf86CrtcPtr crtc = xf86_config->crtc[0];
+
 #if X_BYTE_ORDER == X_BIG_ENDIAN
    unsigned char *R128MMIO = info->MMIO;
    CARD32 config_cntl = INREG(R128_CONFIG_CNTL);
@@ -893,10 +900,10 @@ R128PutImage(
 			     clipBoxes, width, height))
 	return Success;
 
-   dstBox.x1 -= pScrn->frameX0;
-   dstBox.x2 -= pScrn->frameX0;
-   dstBox.y1 -= pScrn->frameY0;
-   dstBox.y2 -= pScrn->frameY0;
+   dstBox.x1 -= crtc->x;
+   dstBox.x2 -= crtc->x;
+   dstBox.y1 -= crtc->y;
+   dstBox.y2 -= crtc->y;
 
    switch(id) {
    case FOURCC_YV12:

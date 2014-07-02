@@ -74,6 +74,7 @@
 #endif
 
 #include "fb.h"
+#include "xf86Crtc.h"
 
 #include "compat-api.h"
 #include "atipcirename.h"
@@ -259,16 +260,6 @@ typedef struct {
     int                pixel_bytes;
     DisplayModePtr     mode;
 } R128FBLayout;
-
-typedef enum
-{
-    MT_NONE,
-    MT_CRT,
-    MT_LCD,
-    MT_DFP,
-    MT_CTV,
-    MT_STV
-} R128MonitorType;
 
 #ifdef USE_EXA
 struct r128_2d_state {
@@ -523,10 +514,10 @@ typedef struct {
 
     Bool              isDFP;
     Bool              isPro2;
-    I2CBusPtr         pI2CBus;
-    CARD32            DDCReg;
+    Bool              DDC;
 
     Bool              VGAAccess;
+    R128BIOSConnector BiosConnector[R128_MAX_BIOS_CONNECTOR];
 
     /****** Added for dualhead support *******************/
     BOOL              HasCRTC2;     /* M3/M4 */
@@ -561,6 +552,39 @@ extern Bool        R128DGAInit(ScreenPtr pScreen);
 extern int         R128MinBits(int val);
 
 extern void        R128InitVideo(ScreenPtr pScreen);
+
+extern void        R128InitCommonRegisters(R128SavePtr save, R128InfoPtr info);
+extern void        R128InitFPRegisters(R128SavePtr orig, R128SavePtr save, DisplayModePtr mode, R128InfoPtr info);
+extern Bool        R128InitCrtcBase(xf86CrtcPtr crtc, R128SavePtr save, int x, int y);
+extern Bool        R128InitCrtcRegisters(ScrnInfoPtr pScrn, R128SavePtr save, DisplayModePtr mode, R128InfoPtr info);
+extern void        R128InitPLLRegisters(ScrnInfoPtr pScrn, R128SavePtr save, R128PLLPtr pll, double dot_clock);
+extern Bool        R128InitDDARegisters(ScrnInfoPtr pScrn, R128SavePtr save, R128PLLPtr pll, R128InfoPtr info, DisplayModePtr mode);
+extern Bool        R128InitCrtc2Base(xf86CrtcPtr crtc, R128SavePtr save, int x, int y);
+extern Bool        R128InitCrtc2Registers(ScrnInfoPtr pScrn, R128SavePtr save, DisplayModePtr mode, R128InfoPtr info);
+extern void        R128InitPLL2Registers(ScrnInfoPtr pScrn, R128SavePtr save, R128PLLPtr pll, double dot_clock);
+extern Bool        R128InitDDA2Registers(ScrnInfoPtr pScrn, R128SavePtr save, R128PLLPtr pll, R128InfoPtr info, DisplayModePtr mode);
+extern void        R128RestoreCommonRegisters(ScrnInfoPtr pScrn, R128SavePtr restore);
+extern void        R128RestoreFPRegisters(ScrnInfoPtr pScrn, R128SavePtr restore);
+extern void        R128RestoreCrtcRegisters(ScrnInfoPtr pScrn, R128SavePtr restore);
+extern void        R128RestorePLLRegisters(ScrnInfoPtr pScrn, R128SavePtr restore);
+extern void        R128RestoreDDARegisters(ScrnInfoPtr pScrn, R128SavePtr restore);
+extern void        R128RestoreCrtc2Registers(ScrnInfoPtr pScrn, R128SavePtr restore);
+extern void        R128RestorePLL2Registers(ScrnInfoPtr pScrn, R128SavePtr restore);
+extern void        R128RestoreDDA2Registers(ScrnInfoPtr pScrn, R128SavePtr restore);
+
+extern void        r128_crtc_set_cursor_colors(xf86CrtcPtr crtc, int bg, int fg);
+extern void        r128_crtc_set_cursor_position(xf86CrtcPtr crtc, int x, int y);
+extern void        r128_crtc_show_cursor(xf86CrtcPtr crtc);
+extern void        r128_crtc_hide_cursor(xf86CrtcPtr crtc);
+extern void        r128_crtc_load_cursor_image(xf86CrtcPtr crtc, unsigned char *src);
+
+extern Bool        R128SetupConnectors(ScrnInfoPtr pScrn);
+extern Bool        R128AllocateControllers(ScrnInfoPtr pScrn, int mask);
+extern void        R128Blank(ScrnInfoPtr pScrn);
+extern void        R128Unblank(ScrnInfoPtr pScrn);
+extern void        R128DPMSSetOn(xf86OutputPtr output);
+extern void        R128DPMSSetOff(xf86OutputPtr output);
+extern DisplayModePtr R128ProbeOutputModes(xf86OutputPtr output);
 
 #ifdef R128DRI
 extern Bool        R128DRIScreenInit(ScreenPtr pScreen);

@@ -48,7 +48,6 @@
 #include "xf86Resources.h"
 #endif
 
-#include "compat-api.h"
 #include "r128_probe.h"
 
 #ifndef XSERVER_LIBPCIACCESS

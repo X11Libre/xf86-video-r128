@@ -37,6 +37,15 @@
 #define _R128_PROBE_H_ 1
 
 #include "xf86str.h"
+#include "xf86DDC.h"
+#include "randrstr.h"
+#include "xf86Crtc.h"
+
+#include "compat-api.h"
+
+#ifdef USE_EXA
+#include "exa.h"
+#endif
 
 /* Chip definitions */
 #define PCI_VENDOR_ATI			0x1002
@@ -90,6 +99,73 @@
 
 extern DriverRec R128;
 
+typedef enum
+{
+    MT_UNKNOWN = -1,
+    MT_NONE    = 0,
+    MT_CRT     = 1,
+    MT_LCD     = 2,
+    MT_DFP     = 3,
+    MT_CTV     = 4,
+    MT_STV     = 5
+} R128MonitorType;
+
+typedef enum
+{
+    CONNECTOR_NONE,
+    CONNECTOR_VGA,
+    CONNECTOR_DVI_I,
+    CONNECTOR_DVI_D,
+    CONNECTOR_DVI_A,
+    CONNECTOR_LVDS
+} R128ConnectorType;
+
+typedef enum
+{
+    OUTPUT_NONE,
+    OUTPUT_VGA,
+    OUTPUT_DVI,
+    OUTPUT_LVDS
+} R128OutputType;
+
+typedef struct {
+    CARD32 ddc_reg;
+    CARD32 put_clk_mask;
+    CARD32 put_data_mask;
+    CARD32 get_clk_mask;
+    CARD32 get_data_mask;
+} R128I2CBusRec, *R128I2CBusPtr;
+
+typedef struct _R128CrtcPrivateRec {
+#ifdef HAVE_XAA_H
+    FBLinearPtr rotate_mem_xaa;
+#endif
+#ifdef USE_EXA
+    ExaOffscreenArea *rotate_mem_exa;
+#endif
+    int crtc_id;
+    CARD32 cursor_offset;
+    /* Lookup table values to be set when the CRTC is enabled */
+    CARD8 lut_r[256], lut_g[256], lut_b[256];
+} R128CrtcPrivateRec, *R128CrtcPrivatePtr;
+
+typedef struct {
+    R128ConnectorType ConnectorType;
+    Bool valid;
+} R128BIOSConnector;
+
+typedef struct _R128OutputPrivateRec {
+    int num;
+    R128OutputType type;
+    R128ConnectorType ConnectorType;
+    R128MonitorType MonType;
+    I2CBusPtr pI2CBus;
+    R128I2CBusRec ddc_i2c;
+} R128OutputPrivateRec, *R128OutputPrivatePtr;
+
+#define R128_MAX_CRTC 2
+#define R128_MAX_BIOS_CONNECTOR 2
+
 typedef struct
 {
     Bool IsDRIEnabled;
@@ -100,6 +176,9 @@ typedef struct
       retored before CRTC_EXT, otherwise it could lead to blank screen.*/
     Bool IsSecondaryRestored;
     Bool RestorePrimary;
+
+    xf86CrtcPtr pCrtc[R128_MAX_CRTC];
+    R128CrtcPrivatePtr Controller[R128_MAX_CRTC];
 
     ScrnInfoPtr pSecondaryScrn;    
     ScrnInfoPtr pPrimaryScrn;
