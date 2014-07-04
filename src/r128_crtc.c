@@ -84,6 +84,20 @@ static void r128_crtc_dpms(xf86CrtcPtr crtc, int mode)
         break;
     }
 
+    if (mode != DPMSModeOn) {
+        if (r128_crtc->crtc_id) {
+            OUTREGP(R128_CRTC2_GEN_CNTL, 0, ~R128_CRTC2_EN);
+        } else {
+            OUTREGP(R128_CRTC_GEN_CNTL, 0, ~R128_CRTC_EN);
+        }
+    } else {
+        if (r128_crtc->crtc_id) {
+            OUTREGP(R128_CRTC2_GEN_CNTL, R128_CRTC2_EN, ~R128_CRTC2_EN);
+        } else {
+            OUTREGP(R128_CRTC_GEN_CNTL, R128_CRTC_EN, ~R128_CRTC_EN);
+        }
+    }
+
     if (mode != DPMSModeOff)
         r128_crtc_load_lut(crtc);
 }
