@@ -641,15 +641,10 @@ static Bool R128GetPLLParameters(ScrnInfoPtr pScrn)
     pll->min_pll_freq   = 12500;
     pll->max_pll_freq   = 25000;
 
-    /* need to memory map the io to use INPLL since it
-       has not been done yet at this point in the startup */
-    R128MapMMIO(pScrn);
     x_mpll_ref_fb_div = INPLL(pScrn, R128_X_MPLL_REF_FB_DIV);
     xclk_cntl = INPLL(pScrn, R128_XCLK_CNTL) & 0x7;
     pll->reference_div =
 	INPLL(pScrn,R128_PPLL_REF_DIV) & R128_PPLL_REF_DIV_MASK;
-    /* unmap it again */
-    R128UnmapMMIO(pScrn);
 
     Nx = (x_mpll_ref_fb_div & 0x00FF00) >> 8;
     M =  (x_mpll_ref_fb_div & 0x0000FF);
@@ -959,7 +954,7 @@ static Bool R128PreInitConfig(ScrnInfoPtr pScrn)
 
 				/* Read registers used to determine options */
     from                      = X_PROBED;
-    R128MapMMIO(pScrn);
+    if (!R128MapMMIO(pScrn)) return FALSE;
     R128MMIO                  = info->MMIO;
 
     if (info->FBDev)
@@ -1641,6 +1636,10 @@ Bool R128PreInit(ScrnInfoPtr pScrn, int flags)
     if (info->VGAAccess)
            vgaHWFreeHWRec(pScrn);
 #endif
+
+    if (info->MMIO) R128UnmapMMIO(pScrn);
+    info->MMIO = NULL;
+
     R128FreeRec(pScrn);
     return FALSE;
 }
