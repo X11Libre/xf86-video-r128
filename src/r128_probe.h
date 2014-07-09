@@ -161,6 +161,8 @@ typedef struct _R128OutputPrivateRec {
     R128MonitorType MonType;
     I2CBusPtr pI2CBus;
     R128I2CBusRec ddc_i2c;
+    int PanelXRes;
+    int PanelYRes;
 } R128OutputPrivateRec, *R128OutputPrivatePtr;
 
 #define R128_MAX_CRTC 2

@@ -554,7 +554,10 @@ extern int         R128MinBits(int val);
 extern void        R128InitVideo(ScreenPtr pScreen);
 
 extern void        R128InitCommonRegisters(R128SavePtr save, R128InfoPtr info);
-extern void        R128InitFPRegisters(R128SavePtr orig, R128SavePtr save, DisplayModePtr mode, R128InfoPtr info);
+extern void        R128InitDACRegisters(R128SavePtr orig, R128SavePtr save, xf86OutputPtr output);
+extern void        R128InitRMXRegisters(R128SavePtr orig, R128SavePtr save, xf86OutputPtr output, DisplayModePtr mode);
+extern void        R128InitFPRegisters(R128SavePtr orig, R128SavePtr save, xf86OutputPtr output);
+extern void        R128InitLVDSRegisters(R128SavePtr orig, R128SavePtr save, xf86OutputPtr output);
 extern Bool        R128InitCrtcBase(xf86CrtcPtr crtc, R128SavePtr save, int x, int y);
 extern Bool        R128InitCrtcRegisters(ScrnInfoPtr pScrn, R128SavePtr save, DisplayModePtr mode, R128InfoPtr info);
 extern void        R128InitPLLRegisters(ScrnInfoPtr pScrn, R128SavePtr save, R128PLLPtr pll, double dot_clock);
@@ -564,7 +567,10 @@ extern Bool        R128InitCrtc2Registers(ScrnInfoPtr pScrn, R128SavePtr save, D
 extern void        R128InitPLL2Registers(ScrnInfoPtr pScrn, R128SavePtr save, R128PLLPtr pll, double dot_clock);
 extern Bool        R128InitDDA2Registers(ScrnInfoPtr pScrn, R128SavePtr save, R128PLLPtr pll, R128InfoPtr info, DisplayModePtr mode);
 extern void        R128RestoreCommonRegisters(ScrnInfoPtr pScrn, R128SavePtr restore);
+extern void        R128RestoreDACRegisters(ScrnInfoPtr pScrn, R128SavePtr restore);
+extern void        R128RestoreRMXRegisters(ScrnInfoPtr pScrn, R128SavePtr restore);
 extern void        R128RestoreFPRegisters(ScrnInfoPtr pScrn, R128SavePtr restore);
+extern void        R128RestoreLVDSRegisters(ScrnInfoPtr pScrn, R128SavePtr restore);
 extern void        R128RestoreCrtcRegisters(ScrnInfoPtr pScrn, R128SavePtr restore);
 extern void        R128RestorePLLRegisters(ScrnInfoPtr pScrn, R128SavePtr restore);
 extern void        R128RestoreDDARegisters(ScrnInfoPtr pScrn, R128SavePtr restore);

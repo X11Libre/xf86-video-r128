@@ -133,25 +133,13 @@ static void r128_crtc_mode_prepare(xf86CrtcPtr crtc)
 static void r128_crtc_mode_set(xf86CrtcPtr crtc, DisplayModePtr mode, DisplayModePtr adjusted_mode, int x, int y)
 {
     ScrnInfoPtr pScrn = crtc->scrn;
-    xf86CrtcConfigPtr xf86_config = XF86_CRTC_CONFIG_PTR(pScrn);
     R128CrtcPrivatePtr r128_crtc = crtc->driver_private;
     R128InfoPtr info = R128PTR(pScrn);
-    R128OutputType otype = OUTPUT_NONE;
-
     double dot_clock = adjusted_mode->Clock / 1000.0;
-    int i;
 
     if (r128_crtc->cursor_offset) r128_crtc_hide_cursor(crtc);
     xf86PrintModeline(pScrn->scrnIndex, adjusted_mode);
     R128InitCommonRegisters(&info->ModeReg, info);
-
-    for (i = 0; i < xf86_config->num_output; i++) {
-        xf86OutputPtr output = xf86_config->output[i];
-        R128OutputPrivatePtr r128_output = output->driver_private;
-
-        if (output->crtc == crtc)
-            otype = r128_output->type;
-    }
 
     switch (r128_crtc->crtc_id) {
     case 0:
@@ -178,8 +166,6 @@ static void r128_crtc_mode_set(xf86CrtcPtr crtc, DisplayModePtr mode, DisplayMod
         break;
     }
 
-    if (otype == OUTPUT_DVI || otype == OUTPUT_LVDS)
-        R128InitFPRegisters(&info->SavedReg, &info->ModeReg, adjusted_mode, info);
     R128RestoreCommonRegisters(pScrn, &info->ModeReg);
 
     switch (r128_crtc->crtc_id) {
@@ -195,12 +181,6 @@ static void r128_crtc_mode_set(xf86CrtcPtr crtc, DisplayModePtr mode, DisplayMod
 	break;
     }
 
-    if (otype == OUTPUT_DVI || otype == OUTPUT_LVDS)
-        R128RestoreFPRegisters(pScrn, &info->ModeReg);
-
-    /* XXX: InitFPRegisters looks similar to radeon's InitRMXRegisters so
-     * maybe it should be called from mode_set in the output code.
-     */
     if (r128_crtc->cursor_offset) r128_crtc_show_cursor(crtc);
 }
 

@@ -2376,9 +2376,6 @@ void R128RestoreCrtcRegisters(ScrnInfoPtr pScrn, R128SavePtr restore)
     OUTREGP(R128_CRTC_EXT_CNTL, restore->crtc_ext_cntl,
 	    R128_CRTC_VSYNC_DIS | R128_CRTC_HSYNC_DIS | R128_CRTC_DISPLAY_DIS);
 
-    OUTREGP(R128_DAC_CNTL, restore->dac_cntl,
-	    R128_DAC_RANGE_CNTL | R128_DAC_BLANKING);
-
     OUTREG(R128_CRTC_H_TOTAL_DISP,    restore->crtc_h_total_disp);
     OUTREG(R128_CRTC_H_SYNC_STRT_WID, restore->crtc_h_sync_strt_wid);
     OUTREG(R128_CRTC_V_TOTAL_DISP,    restore->crtc_v_total_disp);
@@ -2389,8 +2386,7 @@ void R128RestoreCrtcRegisters(ScrnInfoPtr pScrn, R128SavePtr restore)
 }
 
 /* Write CRTC2 registers. */
-void R128RestoreCrtc2Registers(ScrnInfoPtr pScrn,
-				       R128SavePtr restore)
+void R128RestoreCrtc2Registers(ScrnInfoPtr pScrn, R128SavePtr restore)
 {
     R128InfoPtr info        = R128PTR(pScrn);
     unsigned char *R128MMIO = info->MMIO;
@@ -2407,26 +2403,48 @@ void R128RestoreCrtc2Registers(ScrnInfoPtr pScrn,
     OUTREG(R128_CRTC2_PITCH,           restore->crtc2_pitch);
 }
 
-/* Write flat panel registers */
-void R128RestoreFPRegisters(ScrnInfoPtr pScrn, R128SavePtr restore)
+/* Write DAC registers */
+void R128RestoreDACRegisters(ScrnInfoPtr pScrn, R128SavePtr restore)
 {
     R128InfoPtr   info      = R128PTR(pScrn);
     unsigned char *R128MMIO = info->MMIO;
-    CARD32        tmp;
 
-    if (info->BIOSDisplay != R128_DUALHEAD)
-        OUTREG(R128_CRTC2_GEN_CNTL,       restore->crtc2_gen_cntl);
+    OUTREGP(R128_DAC_CNTL, restore->dac_cntl,
+	    R128_DAC_RANGE_CNTL | R128_DAC_BLANKING);
+}
+
+/* Write RMX registers */
+void R128RestoreRMXRegisters(ScrnInfoPtr pScrn, R128SavePtr restore)
+{
+    R128InfoPtr   info      = R128PTR(pScrn);
+    unsigned char *R128MMIO = info->MMIO;
+
     OUTREG(R128_FP_HORZ_STRETCH,      restore->fp_horz_stretch);
     OUTREG(R128_FP_VERT_STRETCH,      restore->fp_vert_stretch);
     OUTREG(R128_FP_CRTC_H_TOTAL_DISP, restore->fp_crtc_h_total_disp);
     OUTREG(R128_FP_CRTC_V_TOTAL_DISP, restore->fp_crtc_v_total_disp);
     OUTREG(R128_FP_H_SYNC_STRT_WID,   restore->fp_h_sync_strt_wid);
     OUTREG(R128_FP_V_SYNC_STRT_WID,   restore->fp_v_sync_strt_wid);
-    OUTREG(R128_TMDS_CRC,             restore->tmds_crc);
-    OUTREG(R128_FP_PANEL_CNTL,        restore->fp_panel_cntl);
-    OUTREG(R128_FP_GEN_CNTL, restore->fp_gen_cntl & ~(CARD32)R128_FP_BLANK_DIS);
+}
 
-    if(info->isDFP) return;
+/* Write flat panel registers */
+void R128RestoreFPRegisters(ScrnInfoPtr pScrn, R128SavePtr restore)
+{
+    R128InfoPtr   info      = R128PTR(pScrn);
+    unsigned char *R128MMIO = info->MMIO;
+
+    OUTREG(R128_TMDS_CRC,              restore->tmds_crc);
+    OUTREG(R128_TMDS_TRANSMITTER_CNTL, restore->tmds_transmitter_cntl);
+    OUTREG(R128_FP_PANEL_CNTL,         restore->fp_panel_cntl);
+    OUTREG(R128_FP_GEN_CNTL, restore->fp_gen_cntl & ~(CARD32)R128_FP_BLANK_DIS);
+}
+
+/* Write LVDS registers */
+void R128RestoreLVDSRegisters(ScrnInfoPtr pScrn, R128SavePtr restore)
+{
+    R128InfoPtr   info      = R128PTR(pScrn);
+    unsigned char *R128MMIO = info->MMIO;
+    CARD32        tmp;
 
     tmp = INREG(R128_LVDS_GEN_CNTL);
     if ((tmp & (R128_LVDS_ON | R128_LVDS_BLON)) ==
@@ -2885,7 +2903,10 @@ static void R128Restore(ScrnInfoPtr pScrn)
         R128RestoreDDARegisters(pScrn, restore);
         R128RestoreCrtcRegisters(pScrn, restore);
         R128RestorePLLRegisters(pScrn, restore);
+        R128RestoreDACRegisters(pScrn, restore);
+        R128RestoreRMXRegisters(pScrn, restore);
         R128RestoreFPRegisters(pScrn, restore);
+        R128RestoreLVDSRegisters(pScrn, restore);
     }
 
 #ifdef WITH_VGAHW
@@ -3058,20 +3079,13 @@ Bool R128InitCrtcRegisters(ScrnInfoPtr pScrn, R128SavePtr save,
     if((info->DisplayType == MT_DFP) || 
        (info->DisplayType == MT_LCD))
     {
-        save->crtc_ext_cntl = R128_VGA_ATI_LINEAR | 
-        			  R128_XCRT_CNT_EN;
         save->crtc_gen_cntl &= ~(R128_CRTC_DBL_SCAN_EN | 
                                   R128_CRTC_INTERLACE_EN);
     }
-    else
-        save->crtc_ext_cntl = R128_VGA_ATI_LINEAR | 
+
+    save->crtc_ext_cntl = R128_VGA_ATI_LINEAR |
 			      R128_XCRT_CNT_EN |
 			      R128_CRTC_CRT_ON;
-
-    save->dac_cntl      = (R128_DAC_MASK_ALL
-			   | R128_DAC_VGA_ADR_EN
-			   | (info->dac6bits ? 0 : R128_DAC_8BIT_EN));
-
 
     if(info->isDFP && !info->isPro2)
     {
@@ -3224,36 +3238,50 @@ Bool R128InitCrtc2Registers(ScrnInfoPtr pScrn, R128SavePtr save,
     return TRUE;
 }
 
-/* Define CRTC registers for requested video mode. */
-void R128InitFPRegisters(R128SavePtr orig, R128SavePtr save,
-				DisplayModePtr mode, R128InfoPtr info)
+/* Define DAC registers for the requested video mode. */
+void R128InitDACRegisters(R128SavePtr orig, R128SavePtr save, xf86OutputPtr output)
 {
+    ScrnInfoPtr pScrn = output->scrn;
+    R128InfoPtr info = R128PTR(pScrn);
+    xf86CrtcPtr crtc = output->crtc;
+    R128CrtcPrivatePtr r128_crtc = crtc->driver_private;
+
+    save->dac_cntl = (R128_DAC_MASK_ALL | R128_DAC_VGA_ADR_EN |
+                      (!r128_crtc->crtc_id ? 0 : R128_DAC_CRT_SEL_CRTC2) |
+                      (info->dac6bits      ? 0 : R128_DAC_8BIT_EN));
+}
+
+/* Define RMX registers for the requested video mode. */
+void R128InitRMXRegisters(R128SavePtr orig, R128SavePtr save,
+                          xf86OutputPtr output, DisplayModePtr mode)
+{
+    R128OutputPrivatePtr r128_output = output->driver_private;
+
     int   xres = mode->CrtcHDisplay;
     int   yres = mode->CrtcVDisplay;
     float Hratio, Vratio;
 
-    if (info->BIOSDisplay == R128_BIOS_DISPLAY_CRT) {
-        save->crtc_ext_cntl  |= R128_CRTC_CRT_ON;
-        save->crtc2_gen_cntl  = 0;
-        save->fp_gen_cntl     = orig->fp_gen_cntl;
-        save->fp_gen_cntl    &= ~(R128_FP_FPON |
-            R128_FP_CRTC_USE_SHADOW_VEND |
-            R128_FP_CRTC_HORZ_DIV2_EN |
-            R128_FP_CRTC_HOR_CRT_DIV2_DIS |
-            R128_FP_USE_SHADOW_EN);
-        save->fp_gen_cntl    |= (R128_FP_SEL_CRTC2 |
-                                 R128_FP_CRTC_DONT_SHADOW_VPAR);
-        save->fp_panel_cntl   = orig->fp_panel_cntl & (CARD32)~R128_FP_DIGON;
-        save->lvds_gen_cntl   = orig->lvds_gen_cntl &
-				    (CARD32)~(R128_LVDS_ON | R128_LVDS_BLON);
+    save->fp_crtc_h_total_disp = save->crtc_h_total_disp;
+    save->fp_crtc_v_total_disp = save->crtc_v_total_disp;
+    save->fp_h_sync_strt_wid   = save->crtc_h_sync_strt_wid;
+    save->fp_v_sync_strt_wid   = save->crtc_v_sync_strt_wid;
+
+    if (r128_output->type != OUTPUT_DVI && r128_output->type != OUTPUT_LVDS)
         return;
+
+    if (r128_output->PanelXRes == 0 || r128_output->PanelYRes == 0) {
+        xres = r128_output->PanelXRes;
+        yres = r128_output->PanelYRes;
+
+        Hratio = 1.0;
+        Vratio = 1.0;
+    } else {
+        if (xres > r128_output->PanelXRes) xres = r128_output->PanelXRes;
+        if (yres > r128_output->PanelYRes) yres = r128_output->PanelYRes;
+
+        Hratio = (float)xres/(float)r128_output->PanelXRes;
+        Vratio = (float)yres/(float)r128_output->PanelYRes;
     }
-
-    if (xres > info->PanelXRes) xres = info->PanelXRes;
-    if (yres > info->PanelYRes) yres = info->PanelYRes;
-
-    Hratio = (float)xres/(float)info->PanelXRes;
-    Vratio = (float)yres/(float)info->PanelYRes;
 
     save->fp_horz_stretch =
 	(((((int)(Hratio * R128_HORZ_STRETCH_RATIO_MAX + 0.5))
@@ -3263,7 +3291,7 @@ void R128InitFPRegisters(R128SavePtr orig, R128SavePtr save,
                                  R128_HORZ_STRETCH_RESERVED)));
     save->fp_horz_stretch &= ~R128_HORZ_AUTO_RATIO_FIX_EN;
     save->fp_horz_stretch &= ~R128_AUTO_HORZ_RATIO;
-    if (xres == info->PanelXRes)
+    if (xres == r128_output->PanelXRes)
          save->fp_horz_stretch &= ~(R128_HORZ_STRETCH_BLEND | R128_HORZ_STRETCH_ENABLE);
     else
          save->fp_horz_stretch |=  (R128_HORZ_STRETCH_BLEND | R128_HORZ_STRETCH_ENABLE);
@@ -3274,67 +3302,60 @@ void R128InitFPRegisters(R128SavePtr orig, R128SavePtr save,
 	 (orig->fp_vert_stretch & (R128_VERT_PANEL_SIZE |
 				   R128_VERT_STRETCH_RESERVED)));
     save->fp_vert_stretch &= ~R128_VERT_AUTO_RATIO_EN;
-    if (yres == info->PanelYRes)
+    if (yres == r128_output->PanelYRes)
         save->fp_vert_stretch &= ~(R128_VERT_STRETCH_ENABLE | R128_VERT_STRETCH_BLEND);
     else
         save->fp_vert_stretch |=  (R128_VERT_STRETCH_ENABLE | R128_VERT_STRETCH_BLEND);
+}
 
-    save->fp_gen_cntl = (orig->fp_gen_cntl &
-			 (CARD32)~(R128_FP_SEL_CRTC2 |
-				   R128_FP_CRTC_USE_SHADOW_VEND |
-				   R128_FP_CRTC_HORZ_DIV2_EN |
-				   R128_FP_CRTC_HOR_CRT_DIV2_DIS |
-				   R128_FP_USE_SHADOW_EN));
-
-    save->fp_panel_cntl        = orig->fp_panel_cntl;
-    save->lvds_gen_cntl        = orig->lvds_gen_cntl;
-    save->tmds_crc             = orig->tmds_crc;
-
-    /* Disable CRT output by disabling CRT output and setting the CRT
-       DAC to use CRTC2, which we set to 0's.  In the future, we will
-       want to use the dual CRTC capabilities of the R128 to allow both
-       the flat panel and external CRT to either simultaneously display
-       the same image or display two different images. */
-
-
-    if(!info->isDFP){
-        if (info->BIOSDisplay == R128_BIOS_DISPLAY_FP_CRT) {
-		save->crtc_ext_cntl  |= R128_CRTC_CRT_ON;
-	} else if (info->BIOSDisplay == R128_DUALHEAD) {
-		save->crtc_ext_cntl  |= R128_CRTC_CRT_ON;
-		save->dac_cntl       |= R128_DAC_CRT_SEL_CRTC2;
-		save->dac_cntl       |= R128_DAC_PALETTE2_SNOOP_EN;
-        } else {
-		save->crtc_ext_cntl  &= ~R128_CRTC_CRT_ON;
-		save->dac_cntl       |= R128_DAC_CRT_SEL_CRTC2;
-		save->crtc2_gen_cntl  = 0;
-        }
-    }
+/* Define flat panel registers for the requested video mode. */
+void R128InitFPRegisters(R128SavePtr orig, R128SavePtr save, xf86OutputPtr output)
+{
+    xf86CrtcPtr crtc = output->crtc;
+    R128CrtcPrivatePtr r128_crtc = crtc->driver_private;
 
     /* WARNING: Be careful about turning on the flat panel */
-    if(info->isDFP){
-        save->fp_gen_cntl = orig->fp_gen_cntl;
+    save->fp_gen_cntl            = orig->fp_gen_cntl;
+    save->fp_panel_cntl          = orig->fp_panel_cntl;
+    save->tmds_transmitter_cntl  = orig->tmds_transmitter_cntl;
+    save->tmds_crc               = orig->tmds_crc;
 
-        save->fp_gen_cntl &= ~(R128_FP_CRTC_USE_SHADOW_VEND |
-                               R128_FP_CRTC_USE_SHADOW_ROWCUR |
-                               R128_FP_CRTC_HORZ_DIV2_EN |
-                               R128_FP_CRTC_HOR_CRT_DIV2_DIS |
-                               R128_FP_CRT_SYNC_SEL |
-                               R128_FP_USE_SHADOW_EN);
-
-        save->fp_panel_cntl  |= (R128_FP_DIGON | R128_FP_BLON);
-        save->fp_gen_cntl    |= (R128_FP_FPON | R128_FP_TDMS_EN |
-             R128_FP_CRTC_DONT_SHADOW_VPAR | R128_FP_CRTC_DONT_SHADOW_HEND);
-        save->tmds_transmitter_cntl = (orig->tmds_transmitter_cntl
-            & ~(CARD32)R128_TMDS_PLLRST) | R128_TMDS_PLLEN;
-    }
+    if (r128_crtc->crtc_id)
+        save->fp_gen_cntl       |=   R128_FP_SEL_CRTC2;
     else
-        save->lvds_gen_cntl  |= (R128_LVDS_ON | R128_LVDS_BLON);
+        save->fp_gen_cntl       &=  ~R128_FP_SEL_CRTC2;
 
-    save->fp_crtc_h_total_disp = save->crtc_h_total_disp;
-    save->fp_crtc_v_total_disp = save->crtc_v_total_disp;
-    save->fp_h_sync_strt_wid   = save->crtc_h_sync_strt_wid;
-    save->fp_v_sync_strt_wid   = save->crtc_v_sync_strt_wid;
+    save->fp_gen_cntl           &= ~(R128_FP_CRTC_USE_SHADOW_VEND |
+                                     R128_FP_CRTC_USE_SHADOW_ROWCUR |
+                                     R128_FP_CRTC_HORZ_DIV2_EN |
+                                     R128_FP_CRTC_HOR_CRT_DIV2_DIS |
+                                     R128_FP_CRT_SYNC_SEL |
+                                     R128_FP_USE_SHADOW_EN);
+
+    save->fp_gen_cntl           |=  (R128_FP_FPON |
+                                     R128_FP_TDMS_EN |
+                                     R128_FP_CRTC_DONT_SHADOW_VPAR |
+                                     R128_FP_CRTC_DONT_SHADOW_HEND);
+
+    save->fp_panel_cntl         |=  (R128_FP_DIGON | R128_FP_BLON);
+    save->tmds_transmitter_cntl &=  ~R128_TMDS_PLLRST;
+    save->tmds_transmitter_cntl |=   R128_TMDS_PLLEN;
+}
+
+/* Define LVDS registers for the requested video mode. */
+void R128InitLVDSRegisters(R128SavePtr orig, R128SavePtr save, xf86OutputPtr output)
+{
+    xf86CrtcPtr crtc = output->crtc;
+    R128CrtcPrivatePtr r128_crtc = crtc->driver_private;
+
+    save->lvds_gen_cntl      =  orig->lvds_gen_cntl;
+
+    if (r128_crtc->crtc_id)
+        save->lvds_gen_cntl |=  R128_LVDS_SEL_CRTC2;
+    else
+        save->lvds_gen_cntl &= ~R128_LVDS_SEL_CRTC2;
+
+    save->lvds_gen_cntl     |= (R128_LVDS_ON | R128_LVDS_BLON);
 }
 
 /* Define PLL registers for requested video mode. */

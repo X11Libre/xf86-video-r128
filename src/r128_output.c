@@ -81,6 +81,31 @@ static void r128_mode_prepare(xf86OutputPtr output)
 
 static void r128_mode_set(xf86OutputPtr output, DisplayModePtr mode, DisplayModePtr adjusted_mode)
 {
+    ScrnInfoPtr pScrn = output->scrn;
+    R128InfoPtr info = R128PTR(pScrn);
+    R128OutputPrivatePtr r128_output = output->driver_private;
+    xf86CrtcPtr crtc = output->crtc;
+    R128CrtcPrivatePtr r128_crtc = crtc->driver_private;
+
+    if (r128_crtc->crtc_id == 0)
+        R128InitRMXRegisters(&info->SavedReg, &info->ModeReg, output, adjusted_mode);
+
+    if (r128_output->type == OUTPUT_DVI)
+        R128InitFPRegisters(&info->SavedReg, &info->ModeReg, output);
+    else if (r128_output->type == OUTPUT_LVDS)
+        R128InitLVDSRegisters(&info->SavedReg, &info->ModeReg, output);
+    else if (r128_output->type == OUTPUT_VGA)
+        R128InitDACRegisters(&info->SavedReg, &info->ModeReg, output);
+
+    if (r128_crtc->crtc_id == 0)
+        R128RestoreRMXRegisters(pScrn, &info->ModeReg);
+
+    if (r128_output->type == OUTPUT_DVI)
+        R128RestoreFPRegisters(pScrn, &info->ModeReg);
+    else if (r128_output->type == OUTPUT_LVDS)
+        R128RestoreLVDSRegisters(pScrn, &info->ModeReg);
+    else if (r128_output->type == OUTPUT_VGA)
+        R128RestoreDACRegisters(pScrn, &info->ModeReg);
 }
 
 static void r128_mode_commit(xf86OutputPtr output)
@@ -455,7 +480,10 @@ Bool R128SetupConnectors(ScrnInfoPtr pScrn)
 		}
 		r128_output->ddc_i2c = i2c;
 		R128I2CInit(output, &r128_output->pI2CBus, output->name);
-	    }
+	    } else if (conntype == CONNECTOR_LVDS) {
+                r128_output->PanelXRes = info->PanelXRes;
+                r128_output->PanelYRes = info->PanelYRes;
+            }
 
             R128SetOutputType(pScrn, r128_output);
         }
