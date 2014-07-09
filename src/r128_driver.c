@@ -3083,9 +3083,7 @@ Bool R128InitCrtcRegisters(ScrnInfoPtr pScrn, R128SavePtr save,
                                   R128_CRTC_INTERLACE_EN);
     }
 
-    save->crtc_ext_cntl = R128_VGA_ATI_LINEAR |
-			      R128_XCRT_CNT_EN |
-			      R128_CRTC_CRT_ON;
+    save->crtc_ext_cntl |= R128_VGA_ATI_LINEAR | R128_XCRT_CNT_EN;
 
     if(info->isDFP && !info->isPro2)
     {
@@ -3332,9 +3330,7 @@ void R128InitFPRegisters(R128SavePtr orig, R128SavePtr save, xf86OutputPtr outpu
                                      R128_FP_CRT_SYNC_SEL |
                                      R128_FP_USE_SHADOW_EN);
 
-    save->fp_gen_cntl           |=  (R128_FP_FPON |
-                                     R128_FP_TDMS_EN |
-                                     R128_FP_CRTC_DONT_SHADOW_VPAR |
+    save->fp_gen_cntl           |=  (R128_FP_CRTC_DONT_SHADOW_VPAR |
                                      R128_FP_CRTC_DONT_SHADOW_HEND);
 
     save->fp_panel_cntl         |=  (R128_FP_DIGON | R128_FP_BLON);
@@ -3354,8 +3350,6 @@ void R128InitLVDSRegisters(R128SavePtr orig, R128SavePtr save, xf86OutputPtr out
         save->lvds_gen_cntl |=  R128_LVDS_SEL_CRTC2;
     else
         save->lvds_gen_cntl &= ~R128_LVDS_SEL_CRTC2;
-
-    save->lvds_gen_cntl     |= (R128_LVDS_ON | R128_LVDS_BLON);
 }
 
 /* Define PLL registers for requested video mode. */

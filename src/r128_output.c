@@ -176,15 +176,22 @@ void R128DPMSSetOn(xf86OutputPtr output)
     unsigned char *R128MMIO = info->MMIO;
     R128OutputPrivatePtr r128_output = output->driver_private;
     R128MonitorType MonType = r128_output->MonType;
+    R128SavePtr save = &info->ModeReg;
 
     switch(MonType) {
     case MT_LCD:
         OUTREGP(R128_LVDS_GEN_CNTL, R128_LVDS_BLON, ~R128_LVDS_BLON);
         usleep(info->PanelPwrDly * 1000);
         OUTREGP(R128_LVDS_GEN_CNTL, R128_LVDS_ON, ~R128_LVDS_ON);
+        save->lvds_gen_cntl |=     (R128_LVDS_ON | R128_LVDS_BLON);
         break;
     case MT_DFP:
-        OUTREGP(R128_FP_GEN_CNTL, (R128_FP_FPON | R128_FP_TDMS_EN), ~(R128_FP_FPON | R128_FP_TDMS_EN));
+        OUTREGP(R128_FP_GEN_CNTL,  (R128_FP_FPON | R128_FP_TDMS_EN), ~(R128_FP_FPON | R128_FP_TDMS_EN));
+        save->fp_gen_cntl   |=     (R128_FP_FPON | R128_FP_TDMS_EN);
+        break;
+    case MT_CRT:
+        OUTREGP(R128_CRTC_EXT_CNTL, R128_CRTC_CRT_ON, ~R128_CRTC_CRT_ON);
+        save->crtc_ext_cntl |=      R128_CRTC_CRT_ON;
         break;
     default:
         break;
@@ -198,13 +205,20 @@ void R128DPMSSetOff(xf86OutputPtr output)
     unsigned char *R128MMIO = info->MMIO;
     R128OutputPrivatePtr r128_output = output->driver_private;
     R128MonitorType MonType = r128_output->MonType;
+    R128SavePtr save = &info->ModeReg;
 
     switch(MonType) {
     case MT_LCD:
         OUTREGP(R128_LVDS_GEN_CNTL, 0, ~(R128_LVDS_BLON | R128_LVDS_ON));
+        save->lvds_gen_cntl &=         ~(R128_LVDS_BLON | R128_LVDS_ON);
         break;
     case MT_DFP:
-        OUTREGP(R128_FP_GEN_CNTL, 0, ~(R128_FP_FPON | R128_FP_TDMS_EN));
+        OUTREGP(R128_FP_GEN_CNTL,   0, ~(R128_FP_FPON | R128_FP_TDMS_EN));
+        save->fp_gen_cntl   &=         ~(R128_FP_FPON | R128_FP_TDMS_EN);
+        break;
+    case MT_CRT:
+        OUTREGP(R128_CRTC_EXT_CNTL, 0, ~(R128_CRTC_CRT_ON));
+        save->crtc_ext_cntl &=         ~(R128_CRTC_CRT_ON);
         break;
     default:
         break;
