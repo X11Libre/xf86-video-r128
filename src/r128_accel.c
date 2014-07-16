@@ -1853,12 +1853,8 @@ static void R128MMIOAccelInit(ScrnInfoPtr pScrn, XAAInfoRecPtr a)
 
     if(xf86IsEntityShared(pScrn->entityList[0]))
     {
-        DevUnion* pPriv;
-        R128EntPtr pR128Ent;
-        pPriv = xf86GetEntityPrivate(pScrn->entityList[0],
-                getR128EntityIndex());
-        pR128Ent = pPriv->ptr;
-        
+        R128EntPtr pR128Ent = R128EntPriv(pScrn);
+
         /*if there are more than one devices sharing this entity, we
           have to assign this call back, otherwise the XAA will be
           disabled */

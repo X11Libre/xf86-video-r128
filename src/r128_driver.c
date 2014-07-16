@@ -241,9 +241,7 @@ static Bool R128MapMMIO(ScrnInfoPtr pScrn)
         /* If the primary screen has already mapped the MMIO region,
            use its pointer instead of mapping it a second time. */
         if (info->IsSecondary) {
-            DevUnion* pPriv = xf86GetEntityPrivate(pScrn->entityList[0], 
-                                                   getR128EntityIndex());
-            R128EntPtr pR128Ent = pPriv->ptr;
+            R128EntPtr pR128Ent = R128EntPriv(pScrn);
             R128InfoPtr info0 = R128PTR(pR128Ent->pPrimaryScrn);
             info->MMIO=info0->MMIO;
             if (info->MMIO) return TRUE;
@@ -482,11 +480,7 @@ static Bool R128GetBIOSParameters(ScrnInfoPtr pScrn, xf86Int10InfoPtr pInt10)
 
                  if(info->DisplayType > MT_NONE)
                  {
-                     DevUnion* pPriv;
-                     R128EntPtr pR128Ent;
-                     pPriv = xf86GetEntityPrivate(pScrn->entityList[0], 
-                         getR128EntityIndex());
-                     pR128Ent = pPriv->ptr;
+                     R128EntPtr pR128Ent = R128EntPriv(pScrn);
                      pR128Ent->HasSecondary = TRUE;
 
                  }
@@ -506,11 +500,7 @@ static Bool R128GetBIOSParameters(ScrnInfoPtr pScrn, xf86Int10InfoPtr pInt10)
                      If something on CRT port, treat it as primary*/
                      if(xf86IsEntityShared(pScrn->entityList[0]))
                      {
-                         DevUnion* pPriv;
-                         R128EntPtr pR128Ent;
-                         pPriv = xf86GetEntityPrivate(pScrn->entityList[0], 
-                             getR128EntityIndex());
-                         pR128Ent = pPriv->ptr;
+                         R128EntPtr pR128Ent = R128EntPriv(pScrn);
                          pR128Ent->BypassSecondary = TRUE;
                      }
 
@@ -1427,24 +1417,16 @@ Bool R128PreInit(ScrnInfoPtr pScrn, int flags)
     {
         if(xf86IsPrimInitDone(pScrn->entityList[0]))
         {
-            DevUnion* pPriv;
-            R128EntPtr pR128Ent;
+            R128EntPtr pR128Ent = R128EntPriv(pScrn);
             info->IsSecondary = TRUE;
-            pPriv = xf86GetEntityPrivate(pScrn->entityList[0], 
-                    getR128EntityIndex());
-            pR128Ent = pPriv->ptr;
             if(pR128Ent->BypassSecondary) return FALSE;
             pR128Ent->pSecondaryScrn = pScrn;
         }
         else
         {
-            DevUnion* pPriv;
-            R128EntPtr pR128Ent;
+            R128EntPtr pR128Ent = R128EntPriv(pScrn);
 	    info->IsPrimary = TRUE;
             xf86SetPrimInitDone(pScrn->entityList[0]);
-            pPriv = xf86GetEntityPrivate(pScrn->entityList[0], 
-                    getR128EntityIndex());
-            pR128Ent = pPriv->ptr;
             pR128Ent->pPrimaryScrn = pScrn;
             pR128Ent->IsDRIEnabled = FALSE;
             pR128Ent->BypassSecondary = FALSE;
@@ -1894,11 +1876,7 @@ Bool R128ScreenInit(SCREEN_INIT_ARGS_DECL)
                     R128DRIScreenInit(pScreen);
                 if(xf86IsEntityShared(pScrn->entityList[0]))
                 {
-                    DevUnion* pPriv;
-                    R128EntPtr pR128Ent;
-                    pPriv = xf86GetEntityPrivate(pScrn->entityList[0], 
-                        getR128EntityIndex());
-                    pR128Ent = pPriv->ptr;
+                    R128EntPtr pR128Ent = R128EntPriv(pScrn);
                     pR128Ent->IsDRIEnabled = info->directRenderingEnabled;
                 }
             }
