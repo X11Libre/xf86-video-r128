@@ -186,8 +186,8 @@ void R128DPMSSetOn(xf86OutputPtr output)
         save->lvds_gen_cntl |=     (R128_LVDS_ON | R128_LVDS_BLON);
         break;
     case MT_DFP:
-        OUTREGP(R128_FP_GEN_CNTL,  (R128_FP_FPON | R128_FP_TDMS_EN), ~(R128_FP_FPON | R128_FP_TDMS_EN));
-        save->fp_gen_cntl   |=     (R128_FP_FPON | R128_FP_TDMS_EN);
+        OUTREGP(R128_FP_GEN_CNTL,  (R128_FP_FPON | R128_FP_TMDS_EN), ~(R128_FP_FPON | R128_FP_TMDS_EN));
+        save->fp_gen_cntl   |=     (R128_FP_FPON | R128_FP_TMDS_EN);
         break;
     case MT_CRT:
         OUTREGP(R128_CRTC_EXT_CNTL, R128_CRTC_CRT_ON, ~R128_CRTC_CRT_ON);
@@ -213,8 +213,8 @@ void R128DPMSSetOff(xf86OutputPtr output)
         save->lvds_gen_cntl &=         ~(R128_LVDS_BLON | R128_LVDS_ON);
         break;
     case MT_DFP:
-        OUTREGP(R128_FP_GEN_CNTL,   0, ~(R128_FP_FPON | R128_FP_TDMS_EN));
-        save->fp_gen_cntl   &=         ~(R128_FP_FPON | R128_FP_TDMS_EN);
+        OUTREGP(R128_FP_GEN_CNTL,   0, ~(R128_FP_FPON | R128_FP_TMDS_EN));
+        save->fp_gen_cntl   &=         ~(R128_FP_FPON | R128_FP_TMDS_EN);
         break;
     case MT_CRT:
         OUTREGP(R128_CRTC_EXT_CNTL, 0, ~(R128_CRTC_CRT_ON));

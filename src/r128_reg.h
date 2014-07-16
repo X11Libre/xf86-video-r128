@@ -599,7 +599,7 @@
 #define R128_FP_GEN_CNTL                  0x0284
 #       define R128_FP_FPON                  (1 << 0)
 #       define R128_FP_BLANK_DIS             (1 << 1)
-#       define R128_FP_TDMS_EN               (1 <<  2)
+#       define R128_FP_TMDS_EN               (1 <<  2)
 #       define R128_FP_DETECT_SENSE          (1 <<  8)
 #       define R128_FP_SEL_CRTC2             (1 << 13)
 #       define R128_FP_CRTC_DONT_SHADOW_VPAR (1 << 16)
