@@ -3126,22 +3126,20 @@ Bool R128InitCrtc2Registers(ScrnInfoPtr pScrn, R128SavePtr save,
     int    hsync_wid;
     int    hsync_fudge;
     int    vsync_wid;
-    int    bytpp;
     int    hsync_fudge_default[] = { 0x00, 0x12, 0x09, 0x09, 0x06, 0x05 };
 
     switch (info->CurrentLayout.pixel_code) {
-    case 4:  format = 1; bytpp = 0; break;
-    case 8:  format = 2; bytpp = 1; break;
-    case 15: format = 3; bytpp = 2; break;      /*  555 */
-    case 16: format = 4; bytpp = 2; break;      /*  565 */
-    case 24: format = 5; bytpp = 3; break;      /*  RGB */
-    case 32: format = 6; bytpp = 4; break;      /* xRGB */
+    case 4:  format = 1; break;
+    case 8:  format = 2; break;
+    case 15: format = 3; break;      /*  555 */
+    case 16: format = 4; break;      /*  565 */
+    case 24: format = 5; break;      /*  RGB */
+    case 32: format = 6; break;      /* xRGB */
     default:
 	xf86DrvMsg(pScrn->scrnIndex, X_ERROR,
 		   "Unsupported pixel depth (%d)\n", info->CurrentLayout.bitsPerPixel);
 	return FALSE;
     }
-    R128TRACE(("Format = %d (%d bytes per pixel)\n", format, bytpp));
 
     hsync_fudge = hsync_fudge_default[format-1];
 
