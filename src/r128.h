@@ -296,7 +296,6 @@ typedef struct {
     PCITAG            PciTag;
 #endif
     int               Chipset;
-    Bool              Primary;
 
     Bool              FBDev;
 
@@ -306,27 +305,20 @@ typedef struct {
 
     void              *MMIO;        /* Map of MMIO region                    */
     void              *FB;          /* Map of frame buffer                   */
+    CARD8             *VBIOS;       /* Video BIOS for mode validation on FPs */
+    int               FPBIOSstart;  /* Start of the flat panel info          */
 
     CARD32            MemCntl;
     CARD32            BusCntl;
     unsigned long     FbMapSize;    /* Size of frame buffer, in bytes        */
-    int               Flags;        /* Saved copy of mode flags              */
 
     CARD8             BIOSDisplay;  /* Device the BIOS is set to display to  */
 
     Bool              HasPanelRegs; /* Current chip can connect to a FP      */
-    CARD8             *VBIOS;       /* Video BIOS for mode validation on FPs */
-    int               FPBIOSstart;  /* Start of the flat panel info          */
 
 				/* Computed values for FPs */
     int               PanelXRes;
     int               PanelYRes;
-    int               HOverPlus;
-    int               HSyncWidth;
-    int               HBlank;
-    int               VOverPlus;
-    int               VSyncWidth;
-    int               VBlank;
     int               PanelPwrDly;
 
     R128PLLRec        pll;
@@ -343,7 +335,6 @@ typedef struct {
     XAAInfoRecPtr     accel;
 #endif
     Bool              accelOn;
-
     Bool	      useEXA;
     Bool	      RenderAccel;
 #ifdef USE_EXA
@@ -351,10 +342,6 @@ typedef struct {
     XF86ModReqInfo    exaReq;
     struct r128_2d_state state_2d;
 #endif
-
-    xf86CursorInfoPtr cursor;
-    unsigned long     cursor_start;
-    unsigned long     cursor_end;
 
     /*
      * XAAForceTransBlit is used to change the behavior of the XAA
@@ -405,19 +392,19 @@ typedef struct {
     Bool              directRenderingEnabled;
     DRIInfoPtr        pDRIInfo;
     int               drmFD;
-    drm_context_t        drmCtx;
+    drm_context_t     drmCtx;
     int               numVisualConfigs;
     __GLXvisualConfig *pVisualConfigs;
     R128ConfigPrivPtr pVisualConfigsPriv;
 
-    drm_handle_t         fbHandle;
+    drm_handle_t      fbHandle;
 
     drmSize           registerSize;
-    drm_handle_t         registerHandle;
+    drm_handle_t      registerHandle;
 
     Bool              IsPCI;            /* Current card is a PCI card */
     drmSize           pciSize;
-    drm_handle_t         pciMemHandle;
+    drm_handle_t      pciMemHandle;
     drmAddress        PCI;              /* Map */
 
     Bool              allowPageFlip;    /* Enable 3d page flipping */
@@ -425,7 +412,7 @@ typedef struct {
     int               drmMinor;
 
     drmSize           agpSize;
-    drm_handle_t         agpMemHandle;     /* Handle from drmAgpAlloc */
+    drm_handle_t      agpMemHandle;     /* Handle from drmAgpAlloc */
     unsigned long     agpOffset;
     drmAddress        AGP;              /* Map */
     int               agpMode;
@@ -438,20 +425,20 @@ typedef struct {
 
 				/* CCE ring buffer data */
     unsigned long     ringStart;        /* Offset into AGP space */
-    drm_handle_t         ringHandle;       /* Handle from drmAddMap */
+    drm_handle_t      ringHandle;       /* Handle from drmAddMap */
     drmSize           ringMapSize;      /* Size of map */
     int               ringSize;         /* Size of ring (in MB) */
     drmAddress        ring;             /* Map */
     int               ringSizeLog2QW;
 
     unsigned long     ringReadOffset;   /* Offset into AGP space */
-    drm_handle_t         ringReadPtrHandle; /* Handle from drmAddMap */
+    drm_handle_t      ringReadPtrHandle;/* Handle from drmAddMap */
     drmSize           ringReadMapSize;  /* Size of map */
     drmAddress        ringReadPtr;      /* Map */
 
 				/* CCE vertex/indirect buffer data */
     unsigned long     bufStart;        /* Offset into AGP space */
-    drm_handle_t         bufHandle;       /* Handle from drmAddMap */
+    drm_handle_t      bufHandle;       /* Handle from drmAddMap */
     drmSize           bufMapSize;      /* Size of map */
     int               bufSize;         /* Size of buffers (in MB) */
     drmAddress        buf;             /* Map */
@@ -460,7 +447,7 @@ typedef struct {
 
 				/* CCE AGP Texture data */
     unsigned long     agpTexStart;      /* Offset into AGP space */
-    drm_handle_t         agpTexHandle;     /* Handle from drmAddMap */
+    drm_handle_t      agpTexHandle;     /* Handle from drmAddMap */
     drmSize           agpTexMapSize;    /* Size of map */
     int               agpTexSize;       /* Size of AGP tex space (in MB) */
     drmAddress        agpTex;           /* Map */

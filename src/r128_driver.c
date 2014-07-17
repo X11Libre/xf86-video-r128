@@ -2238,9 +2238,6 @@ Bool R128ScreenInit(SCREEN_INIT_ARGS_DECL)
 	if (R128CursorInit(pScreen)) {
 	    int width, height;
 
-	    xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-		       "Using hardware cursor (scanline %ld)\n",
-		       info->cursor_start / pScrn->displayWidth);
 	    if (xf86QueryLargestOffscreenArea(pScreen, &width, &height,
 					      0, 0, 0)) {
 		xf86DrvMsg(pScrn->scrnIndex, X_INFO,
@@ -2253,7 +2250,6 @@ Bool R128ScreenInit(SCREEN_INIT_ARGS_DECL)
 	    xf86DrvMsg(pScrn->scrnIndex, X_INFO, "Using software cursor\n");
 	}
     } else {
-	info->cursor_start = 0;
 	xf86DrvMsg(pScrn->scrnIndex, X_INFO, "Using software cursor\n");
     }
 
@@ -3064,12 +3060,6 @@ Bool R128InitCrtcRegisters(ScrnInfoPtr pScrn, R128SavePtr save,
             mode->HDisplay = mode->CrtcHDisplay = info->PanelXRes;
         if(info->PanelYRes < mode->CrtcVDisplay)
             mode->VDisplay = mode->CrtcVDisplay = info->PanelYRes;
-        mode->CrtcHTotal = mode->CrtcHDisplay + info->HBlank;
-        mode->CrtcHSyncStart = mode->CrtcHDisplay + info->HOverPlus;
-        mode->CrtcHSyncEnd = mode->CrtcHSyncStart + info->HSyncWidth;
-        mode->CrtcVTotal = mode->CrtcVDisplay + info->VBlank;
-        mode->CrtcVSyncStart = mode->CrtcVDisplay + info->VOverPlus;
-        mode->CrtcVSyncEnd = mode->CrtcVSyncStart + info->VSyncWidth;
     }
 
     save->crtc_h_total_disp = ((((mode->CrtcHTotal / 8) - 1) & 0xffff)
@@ -3833,9 +3823,6 @@ static Bool R128CloseScreen(CLOSE_SCREEN_ARGS_DECL)
 
     if (info->scratch_save)      free(info->scratch_save);
     info->scratch_save           = NULL;
-
-    if (info->cursor)            xf86DestroyCursorInfoRec(info->cursor);
-    info->cursor                 = NULL;
 
     if (info->DGAModes)          free(info->DGAModes);
     info->DGAModes               = NULL;

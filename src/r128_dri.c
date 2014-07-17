@@ -1525,9 +1525,6 @@ static void R128DRITransitionTo3d(ScreenPtr pScreen)
     R128EnablePageFlip(pScreen);
 
     info->have3DWindows = 1;
-
-    if (info->cursor_start)
-        xf86ForceHWCursor(pScreen, TRUE);
 }
 
 static void R128DRITransitionTo2d(ScreenPtr pScreen)
@@ -1550,7 +1547,4 @@ static void R128DRITransitionTo2d(ScreenPtr pScreen)
     }
 
     info->have3DWindows = 0;
-
-    if (info->cursor_start)
-        xf86ForceHWCursor(pScreen, FALSE);
 }
