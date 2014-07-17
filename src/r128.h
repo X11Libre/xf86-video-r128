@@ -520,7 +520,6 @@ typedef struct {
     R128BIOSConnector BiosConnector[R128_MAX_BIOS_CONNECTOR];
 
     /****** Added for dualhead support *******************/
-    BOOL              HasCRTC2;     /* M3/M4 */
     BOOL              IsSecondary;  /* second Screen */
     BOOL	      IsPrimary;    /* primary Screen */
     BOOL              UseCRT;       /* force use CRT port as primary */

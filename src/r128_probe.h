@@ -170,9 +170,8 @@ typedef struct _R128OutputPrivateRec {
 
 typedef struct
 {
-    Bool IsDRIEnabled;
-
     Bool HasSecondary;
+    Bool HasCRTC2;
     Bool BypassSecondary;
     /*These two registers are used to make sure the CRTC2 is
       retored before CRTC_EXT, otherwise it could lead to blank screen.*/

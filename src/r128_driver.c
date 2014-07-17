@@ -469,8 +469,9 @@ static Bool R128GetBIOSParameters(ScrnInfoPtr pScrn, xf86Int10InfoPtr pInt10)
 	xf86DrvMsg(pScrn->scrnIndex, X_WARNING,
 		   "Video BIOS not found!\n");
     }
+    R128EntPtr pR128Ent = R128EntPriv(pScrn);
 
-        if(info->HasCRTC2)
+        if(pR128Ent->HasCRTC2)
         {                    
              if(info->IsSecondary)
              {  
@@ -480,7 +481,6 @@ static Bool R128GetBIOSParameters(ScrnInfoPtr pScrn, xf86Int10InfoPtr pInt10)
 
                  if(info->DisplayType > MT_NONE)
                  {
-                     R128EntPtr pR128Ent = R128EntPriv(pScrn);
                      pR128Ent->HasSecondary = TRUE;
 
                  }
@@ -771,6 +771,7 @@ static Bool R128PreInitWeight(ScrnInfoPtr pScrn)
 static Bool R128PreInitConfig(ScrnInfoPtr pScrn)
 {
     R128InfoPtr   info      = R128PTR(pScrn);
+    R128EntPtr    pR128Ent  = R128EntPriv(pScrn);
     unsigned char *R128MMIO = info->MMIO;
     EntityInfoPtr pEnt      = info->pEnt;
     GDevPtr       dev       = pEnt->device;
@@ -865,7 +866,7 @@ static Bool R128PreInitConfig(ScrnInfoPtr pScrn)
     } else {
         info->isDFP = FALSE;
         info->isPro2 = FALSE;
-        info->HasCRTC2 = FALSE;
+        pR128Ent->HasCRTC2 = FALSE;
 	switch (info->Chipset) {
 	/* R128 Pro and Pro2 can have DFP, we will deal with it.
 	   No support for dual-head/xinerama yet.
@@ -918,7 +919,7 @@ static Bool R128PreInitConfig(ScrnInfoPtr pScrn)
 	case PCI_CHIP_RAGE128ML: 
 			info->HasPanelRegs = TRUE;  
 			/* which chips support dualhead? */
-			info->HasCRTC2 = TRUE;  
+			pR128Ent->HasCRTC2 = TRUE;
 			break;
 	case PCI_CHIP_RAGE128RE:
 	case PCI_CHIP_RAGE128RF:
@@ -1428,7 +1429,6 @@ Bool R128PreInit(ScrnInfoPtr pScrn, int flags)
 	    info->IsPrimary = TRUE;
             xf86SetPrimInitDone(pScrn->entityList[0]);
             pR128Ent->pPrimaryScrn = pScrn;
-            pR128Ent->IsDRIEnabled = FALSE;
             pR128Ent->BypassSecondary = FALSE;
             pR128Ent->HasSecondary = FALSE;
             pR128Ent->RestorePrimary = FALSE;
@@ -1872,13 +1872,7 @@ Bool R128ScreenInit(SCREEN_INIT_ARGS_DECL)
                         "section in your XFConfig file.\n");
                 }
                 else
-                info->directRenderingEnabled =
-                    R128DRIScreenInit(pScreen);
-                if(xf86IsEntityShared(pScrn->entityList[0]))
-                {
-                    R128EntPtr pR128Ent = R128EntPriv(pScrn);
-                    pR128Ent->IsDRIEnabled = info->directRenderingEnabled;
-                }
+                info->directRenderingEnabled = R128DRIScreenInit(pScreen);
             }
 	}
     }
@@ -2854,6 +2848,7 @@ static void R128Save(ScrnInfoPtr pScrn)
 static void R128Restore(ScrnInfoPtr pScrn)
 {
     R128InfoPtr   info      = R128PTR(pScrn);
+    R128EntPtr    pR128Ent  = R128EntPriv(pScrn);
     unsigned char *R128MMIO = info->MMIO;
     R128SavePtr   restore   = &info->SavedReg;
 
@@ -2873,7 +2868,7 @@ static void R128Restore(ScrnInfoPtr pScrn)
         OUTREG(R128_DP_DATATYPE,      restore->dp_datatype);
 
         R128RestoreCommonRegisters(pScrn, restore);
-        if (info->HasCRTC2) {
+        if (pR128Ent->HasCRTC2) {
             R128RestoreDDA2Registers(pScrn, restore);
             R128RestoreCrtc2Registers(pScrn, restore);
             R128RestorePLL2Registers(pScrn, restore);

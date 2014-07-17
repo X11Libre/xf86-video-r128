@@ -400,13 +400,14 @@ void R128SetOutputType(ScrnInfoPtr pScrn, R128OutputPrivatePtr r128_output)
 
 void R128SetupGenericConnectors(ScrnInfoPtr pScrn)
 {
-    R128InfoPtr info = R128PTR(pScrn);
+    R128InfoPtr info    = R128PTR(pScrn);
+    R128EntPtr pR128Ent = R128EntPriv(pScrn);
 
-    if (!info->HasCRTC2 && !info->isDFP) {
+    if (!pR128Ent->HasCRTC2 && !info->isDFP) {
         info->BiosConnector[0].ConnectorType = CONNECTOR_VGA;
         info->BiosConnector[0].valid = TRUE;
         return;
-    } else if (!info->HasCRTC2) {
+    } else if (!pR128Ent->HasCRTC2) {
         info->BiosConnector[0].ConnectorType = CONNECTOR_DVI_D;
 	info->BiosConnector[0].valid = TRUE;
 	return;
@@ -421,7 +422,8 @@ void R128SetupGenericConnectors(ScrnInfoPtr pScrn)
 
 Bool R128SetupConnectors(ScrnInfoPtr pScrn)
 {
-    R128InfoPtr info = R128PTR(pScrn);
+    R128InfoPtr info    = R128PTR(pScrn);
+    R128EntPtr pR128Ent = R128EntPriv(pScrn);
     xf86OutputPtr output;
     int num_vga = 0;
     int num_dvi = 0;
@@ -476,7 +478,7 @@ Bool R128SetupConnectors(ScrnInfoPtr pScrn)
             output->doubleScanAllowed = TRUE;
             output->driver_private = r128_output;
 	    output->possible_clones = 0;
-	    if (conntype == CONNECTOR_LVDS || !info->HasCRTC2)
+	    if (conntype == CONNECTOR_LVDS || !pR128Ent->HasCRTC2)
 	        output->possible_crtcs = 1;
 	    else
 	        output->possible_crtcs = 2;

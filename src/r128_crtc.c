@@ -388,7 +388,6 @@ static const xf86CrtcFuncsRec r128_crtc_funcs = {
 Bool R128AllocateControllers(ScrnInfoPtr pScrn, int mask)
 {
     R128EntPtr pR128Ent = R128EntPriv(pScrn);
-    R128InfoPtr info = R128PTR(pScrn);
 
     if (mask & 1) {
         if (pR128Ent->Controller[0])
@@ -407,7 +406,7 @@ Bool R128AllocateControllers(ScrnInfoPtr pScrn, int mask)
     }
 
     if (mask & 2) {
-        if (!info->HasCRTC2)
+        if (!pR128Ent->HasCRTC2)
             return TRUE;
 
         pR128Ent->pCrtc[1] = xf86CrtcCreate(pScrn, &r128_crtc_funcs);
