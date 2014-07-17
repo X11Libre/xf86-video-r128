@@ -151,105 +151,105 @@ typedef struct {        /* All values in XCLKS    */
 
 typedef struct {
 				/* Common registers */
-    CARD32     ovr_clr;
-    CARD32     ovr_wid_left_right;
-    CARD32     ovr_wid_top_bottom;
-    CARD32     ov0_scale_cntl;
-    CARD32     mpp_tb_config;
-    CARD32     mpp_gp_config;
-    CARD32     subpic_cntl;
-    CARD32     viph_control;
-    CARD32     i2c_cntl_1;
-    CARD32     gen_int_cntl;
-    CARD32     cap0_trig_cntl;
-    CARD32     cap1_trig_cntl;
-    CARD32     bus_cntl;
-    CARD32     config_cntl;
+    uint32_t   ovr_clr;
+    uint32_t   ovr_wid_left_right;
+    uint32_t   ovr_wid_top_bottom;
+    uint32_t   ov0_scale_cntl;
+    uint32_t   mpp_tb_config;
+    uint32_t   mpp_gp_config;
+    uint32_t   subpic_cntl;
+    uint32_t   viph_control;
+    uint32_t   i2c_cntl_1;
+    uint32_t   gen_int_cntl;
+    uint32_t   cap0_trig_cntl;
+    uint32_t   cap1_trig_cntl;
+    uint32_t   bus_cntl;
+    uint32_t   config_cntl;
 
 				/* Other registers to save for VT switches */
-    CARD32     dp_datatype;
-    CARD32     gen_reset_cntl;
-    CARD32     clock_cntl_index;
-    CARD32     amcgpio_en_reg;
-    CARD32     amcgpio_mask;
+    uint32_t   dp_datatype;
+    uint32_t   gen_reset_cntl;
+    uint32_t   clock_cntl_index;
+    uint32_t   amcgpio_en_reg;
+    uint32_t   amcgpio_mask;
 
 				/* CRTC registers */
-    CARD32     crtc_gen_cntl;
-    CARD32     crtc_ext_cntl;
-    CARD32     dac_cntl;
-    CARD32     crtc_h_total_disp;
-    CARD32     crtc_h_sync_strt_wid;
-    CARD32     crtc_v_total_disp;
-    CARD32     crtc_v_sync_strt_wid;
-    CARD32     crtc_offset;
-    CARD32     crtc_offset_cntl;
-    CARD32     crtc_pitch;
+    uint32_t   crtc_gen_cntl;
+    uint32_t   crtc_ext_cntl;
+    uint32_t   dac_cntl;
+    uint32_t   crtc_h_total_disp;
+    uint32_t   crtc_h_sync_strt_wid;
+    uint32_t   crtc_v_total_disp;
+    uint32_t   crtc_v_sync_strt_wid;
+    uint32_t   crtc_offset;
+    uint32_t   crtc_offset_cntl;
+    uint32_t   crtc_pitch;
 
 				/* CRTC2 registers */
-    CARD32     crtc2_gen_cntl;
-    CARD32     crtc2_h_total_disp;
-    CARD32     crtc2_h_sync_strt_wid;
-    CARD32     crtc2_v_total_disp;
-    CARD32     crtc2_v_sync_strt_wid;
-    CARD32     crtc2_offset;
-    CARD32     crtc2_offset_cntl;
-    CARD32     crtc2_pitch;
+    uint32_t   crtc2_gen_cntl;
+    uint32_t   crtc2_h_total_disp;
+    uint32_t   crtc2_h_sync_strt_wid;
+    uint32_t   crtc2_v_total_disp;
+    uint32_t   crtc2_v_sync_strt_wid;
+    uint32_t   crtc2_offset;
+    uint32_t   crtc2_offset_cntl;
+    uint32_t   crtc2_pitch;
 
 				/* Flat panel registers */
-    CARD32     fp_crtc_h_total_disp;
-    CARD32     fp_crtc_v_total_disp;
-    CARD32     fp_gen_cntl;
-    CARD32     fp_h_sync_strt_wid;
-    CARD32     fp_horz_stretch;
-    CARD32     fp_panel_cntl;
-    CARD32     fp_v_sync_strt_wid;
-    CARD32     fp_vert_stretch;
-    CARD32     lvds_gen_cntl;
-    CARD32     tmds_crc;
-    CARD32     tmds_transmitter_cntl;
+    uint32_t   fp_crtc_h_total_disp;
+    uint32_t   fp_crtc_v_total_disp;
+    uint32_t   fp_gen_cntl;
+    uint32_t   fp_h_sync_strt_wid;
+    uint32_t   fp_horz_stretch;
+    uint32_t   fp_panel_cntl;
+    uint32_t   fp_v_sync_strt_wid;
+    uint32_t   fp_vert_stretch;
+    uint32_t   lvds_gen_cntl;
+    uint32_t   tmds_crc;
+    uint32_t   tmds_transmitter_cntl;
 
 				/* Computed values for PLL */
-    CARD32     dot_clock_freq;
-    CARD32     pll_output_freq;
+    uint32_t   dot_clock_freq;
+    uint32_t   pll_output_freq;
     int        feedback_div;
     int        post_div;
 
 				/* PLL registers */
-    CARD32     ppll_ref_div;
-    CARD32     ppll_div_3;
-    CARD32     htotal_cntl;
+    uint32_t   ppll_ref_div;
+    uint32_t   ppll_div_3;
+    uint32_t   htotal_cntl;
 
 				/* Computed values for PLL2 */
-    CARD32     dot_clock_freq_2;
-    CARD32     pll_output_freq_2;
+    uint32_t   dot_clock_freq_2;
+    uint32_t   pll_output_freq_2;
     int        feedback_div_2;
     int        post_div_2;
 
 				/* PLL2 registers */
-    CARD32     p2pll_ref_div;
-    CARD32     p2pll_div_0;
-    CARD32     htotal_cntl2;
+    uint32_t   p2pll_ref_div;
+    uint32_t   p2pll_div_0;
+    uint32_t   htotal_cntl2;
 
 				/* DDA register */
-    CARD32     dda_config;
-    CARD32     dda_on_off;
+    uint32_t   dda_config;
+    uint32_t   dda_on_off;
 
 				/* DDA2 register */
-    CARD32     dda2_config;
-    CARD32     dda2_on_off;
+    uint32_t   dda2_config;
+    uint32_t   dda2_on_off;
 
 				/* Pallet */
     Bool       palette_valid;
-    CARD32     palette[256];
-    CARD32     palette2[256];
+    uint32_t   palette[256];
+    uint32_t   palette2[256];
 } R128SaveRec, *R128SavePtr;
 
 typedef struct {
-    CARD16        reference_freq;
-    CARD16        reference_div;
+    uint16_t      reference_freq;
+    uint16_t      reference_div;
     unsigned      min_pll_freq;
     unsigned      max_pll_freq;
-    CARD16        xclk;
+    uint16_t      xclk;
 } R128PLLRec, *R128PLLPtr;
 
 typedef struct {
@@ -305,14 +305,14 @@ typedef struct {
 
     void              *MMIO;        /* Map of MMIO region                    */
     void              *FB;          /* Map of frame buffer                   */
-    CARD8             *VBIOS;       /* Video BIOS for mode validation on FPs */
+    uint8_t           *VBIOS;       /* Video BIOS for mode validation on FPs */
     int               FPBIOSstart;  /* Start of the flat panel info          */
 
-    CARD32            MemCntl;
-    CARD32            BusCntl;
+    uint32_t          MemCntl;
+    uint32_t          BusCntl;
     unsigned long     FbMapSize;    /* Size of frame buffer, in bytes        */
 
-    CARD8             BIOSDisplay;  /* Device the BIOS is set to display to  */
+    uint8_t           BIOSDisplay;  /* Device the BIOS is set to display to  */
 
     Bool              HasPanelRegs; /* Current chip can connect to a FP      */
 
@@ -356,7 +356,7 @@ typedef struct {
 				/* Computed values for Rage 128 */
     int               pitch;
     int               datatype;
-    CARD32            dp_gui_master_cntl;
+    uint32_t          dp_gui_master_cntl;
 
 				/* Saved values for ScreenToScreenCopy */
     int               xdir;
@@ -477,18 +477,18 @@ typedef struct {
     int               log2TexGran;
 
 				/* Saved scissor values */
-    CARD32            sc_left;
-    CARD32            sc_right;
-    CARD32            sc_top;
-    CARD32            sc_bottom;
+    uint32_t          sc_left;
+    uint32_t          sc_right;
+    uint32_t          sc_top;
+    uint32_t          sc_bottom;
 
-    CARD32            re_top_left;
-    CARD32            re_width_height;
+    uint32_t          re_top_left;
+    uint32_t          re_width_height;
 
-    CARD32            aux_sc_cntl;
+    uint32_t          aux_sc_cntl;
 
     int               irq;
-    CARD32            gen_int_cntl;
+    uint32_t          gen_int_cntl;
 
     Bool              DMAForXv;
 #endif
@@ -643,7 +643,7 @@ extern void	   R128DoPrepareCopy(ScrnInfoPtr pScrn, uint32_t src_pitch_offset,
 
 #define R128_VERBOSE	0
 
-#define RING_LOCALS	CARD32 *__head; int __count;
+#define RING_LOCALS	uint32_t *__head; int __count;
 
 #define R128CCE_REFRESH(pScrn, info)					\
 do {									\
@@ -684,12 +684,12 @@ do {									\
       xf86DrvMsg( pScrn->scrnIndex, X_INFO,				\
 		  "ADVANCE_RING() used: %d+%d=%d/%d\n",			\
 		  info->indirectBuffer->used - info->indirectStart,	\
-		  __count * (int)sizeof(CARD32),			\
+		  __count * (int)sizeof(uint32_t),			\
 		  info->indirectBuffer->used - info->indirectStart +	\
-		  __count * (int)sizeof(CARD32),			\
+		  __count * (int)sizeof(uint32_t),			\
 		  info->indirectBuffer->total - info->indirectStart );	\
    }									\
-   info->indirectBuffer->used += __count * (int)sizeof(CARD32);		\
+   info->indirectBuffer->used += __count * (int)sizeof(uint32_t);		\
 } while (0)
 
 #define OUT_RING( x ) do {						\

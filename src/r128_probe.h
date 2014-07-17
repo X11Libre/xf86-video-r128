@@ -129,11 +129,11 @@ typedef enum
 } R128OutputType;
 
 typedef struct {
-    CARD32 ddc_reg;
-    CARD32 put_clk_mask;
-    CARD32 put_data_mask;
-    CARD32 get_clk_mask;
-    CARD32 get_data_mask;
+    uint32_t ddc_reg;
+    uint32_t put_clk_mask;
+    uint32_t put_data_mask;
+    uint32_t get_clk_mask;
+    uint32_t get_data_mask;
 } R128I2CBusRec, *R128I2CBusPtr;
 
 typedef struct _R128CrtcPrivateRec {
@@ -144,9 +144,9 @@ typedef struct _R128CrtcPrivateRec {
     ExaOffscreenArea *rotate_mem_exa;
 #endif
     int crtc_id;
-    CARD32 cursor_offset;
+    uint32_t cursor_offset;
     /* Lookup table values to be set when the CRTC is enabled */
-    CARD8 lut_r[256], lut_g[256], lut_b[256];
+    uint8_t lut_r[256], lut_g[256], lut_b[256];
 } R128CrtcPrivateRec, *R128CrtcPrivatePtr;
 
 typedef struct {

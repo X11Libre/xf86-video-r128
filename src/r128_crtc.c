@@ -189,7 +189,7 @@ static void r128_crtc_mode_commit(xf86CrtcPtr crtc)
     r128_crtc_dpms(crtc, DPMSModeOn);
 }
 
-static void r128_crtc_gamma_set(xf86CrtcPtr crtc, CARD16 *red, CARD16 *green, CARD16 *blue, int size)
+static void r128_crtc_gamma_set(xf86CrtcPtr crtc, uint16_t *red, uint16_t *green, uint16_t *blue, int size)
 {
     R128CrtcPrivatePtr r128_crtc = crtc->driver_private;
     int i;

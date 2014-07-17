@@ -59,8 +59,8 @@ typedef struct {
    void*         BufferHandle;
    int		 videoOffset;
    RegionRec     clip;
-   CARD32        colorKey;
-   CARD32        videoStatus;
+   uint32_t      colorKey;
+   uint32_t      videoStatus;
    Time          offTime;
    Time          freeTime;
    int           ecp_div;
@@ -405,7 +405,7 @@ R128DMA(
 #define BUFSIZE (R128_BUFFER_SIZE - R128_HOSTDATA_BLIT_OFFSET)
 #define MAXPASSES (MAXHEIGHT/(BUFSIZE/(MAXWIDTH*2))+1)
 
-    unsigned char *fb = (CARD8*)info->FB;
+    unsigned char *fb = (uint8_t*)info->FB;
     unsigned char *buf;
     int err=-1, i, idx, offset, hpass, passes, srcpassbytes, dstpassbytes;
     int sizes[MAXPASSES], list[MAXPASSES];
@@ -572,7 +572,7 @@ R128CopyData420(
 }
 
 
-static CARD32
+static uint32_t
 R128AllocateMemory(
    ScrnInfoPtr pScrn,
    void **mem_struct,
@@ -841,14 +841,14 @@ R128PutImage(
 ){
    R128InfoPtr info = R128PTR(pScrn);
    R128PortPrivPtr pPriv = (R128PortPrivPtr)data;
-   unsigned char *fb = (CARD8*)info->FB;
+   unsigned char *fb = (uint8_t*)info->FB;
    INT32 xa, xb, ya, yb;
    int new_size, offset, s1offset, s2offset, s3offset;
    int srcPitch, srcPitch2, dstPitch;
    int d1line, d2line, d3line, d1offset, d2offset, d3offset;
    int top, left, npixels, nlines;
    BoxRec dstBox;
-   CARD32 tmp;
+   uint32_t tmp;
 
    /* Currently, the video is only visible on the first monitor.
     * In the future we could try to make this smarter, or just implement
@@ -858,7 +858,7 @@ R128PutImage(
 
 #if X_BYTE_ORDER == X_BIG_ENDIAN
    unsigned char *R128MMIO = info->MMIO;
-   CARD32 config_cntl = INREG(R128_CONFIG_CNTL);
+   uint32_t config_cntl = INREG(R128_CONFIG_CNTL);
 
    /* We need to disable byte swapping, or the data gets mangled */
    OUTREG(R128_CONFIG_CNTL, config_cntl &

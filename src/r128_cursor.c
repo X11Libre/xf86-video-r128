@@ -179,18 +179,18 @@ void r128_crtc_load_cursor_image(xf86CrtcPtr crtc, unsigned char *src)
 
     R128InfoPtr   info      = R128PTR(pScrn);
     unsigned char *R128MMIO = info->MMIO;
-    CARD32        *s        = (pointer)src;
-    CARD32        *d        = (pointer)(info->FB + r128_crtc->cursor_offset + pScrn->fbOffset);
-    CARD32        save1     = 0;
-    CARD32        save2     = 0;
+    uint32_t      *s        = (pointer)src;
+    uint32_t      *d        = (pointer)(info->FB + r128_crtc->cursor_offset + pScrn->fbOffset);
+    uint32_t      save1     = 0;
+    uint32_t      save2     = 0;
     int           y;
 
     if (crtc_id == 0) {
 	save1 = INREG(R128_CRTC_GEN_CNTL);
-	OUTREG(R128_CRTC_GEN_CNTL, save1 & (CARD32)~R128_CRTC_CUR_EN);
+	OUTREG(R128_CRTC_GEN_CNTL, save1 & (uint32_t)~R128_CRTC_CUR_EN);
     } else if (crtc_id == 1) {
 	save2 = INREG(R128_CRTC2_GEN_CNTL);
-	OUTREG(R128_CRTC2_GEN_CNTL, save2 & (CARD32)~R128_CRTC2_CUR_EN);
+	OUTREG(R128_CRTC2_GEN_CNTL, save2 & (uint32_t)~R128_CRTC2_CUR_EN);
     }
 
 #if X_BYTE_ORDER == X_BIG_ENDIAN
@@ -255,7 +255,7 @@ Bool R128CursorInit(ScreenPtr pScreen)
     void*		  osArea  = NULL;
 #endif
     xf86CrtcConfigPtr     xf86_config = XF86_CRTC_CONFIG_PTR(pScrn);
-    CARD32                cursor_offset = 0;
+    uint32_t              cursor_offset = 0;
     int                   cpp = info->CurrentLayout.pixel_bytes;
     int                   width;
     int                   width_bytes;

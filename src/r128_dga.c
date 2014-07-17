@@ -332,7 +332,7 @@ R128_FillRect (
 ){
     R128InfoPtr info = R128PTR(pScrn);
 
-    (*info->accel->SetupForSolidFill)(pScrn, color, GXcopy, (CARD32)(~0));
+    (*info->accel->SetupForSolidFill)(pScrn, color, GXcopy, (uint32_t)(~0));
     (*info->accel->SubsequentSolidFillRect)(pScrn, x, y, w, h);
 
     if (pScrn->bitsPerPixel == info->CurrentLayout.bitsPerPixel)
@@ -351,7 +351,7 @@ R128_BlitRect(
     int ydir = (srcy < dsty) ? -1 : 1;
 
     (*info->accel->SetupForScreenToScreenCopy)(
-	pScrn, xdir, ydir, GXcopy, (CARD32)(~0), -1);
+	pScrn, xdir, ydir, GXcopy, (uint32_t)(~0), -1);
     (*info->accel->SubsequentScreenToScreenCopy)(
 	pScrn, srcx, srcy, dstx, dsty, w, h);
 
@@ -375,7 +375,7 @@ R128_BlitTransRect(
     info->XAAForceTransBlit = TRUE;
 
     (*info->accel->SetupForScreenToScreenCopy)(
-	pScrn, xdir, ydir, GXcopy, (CARD32)(~0), color);
+	pScrn, xdir, ydir, GXcopy, (uint32_t)(~0), color);
 
     info->XAAForceTransBlit = FALSE;
 

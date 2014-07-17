@@ -145,9 +145,9 @@ void R128EngineReset(ScrnInfoPtr pScrn)
 {
     R128InfoPtr   info      = R128PTR(pScrn);
     unsigned char *R128MMIO = info->MMIO;
-    CARD32        clock_cntl_index;
-    CARD32        mclk_cntl;
-    CARD32        gen_reset_cntl;
+    uint32_t      clock_cntl_index;
+    uint32_t      mclk_cntl;
+    uint32_t      gen_reset_cntl;
 
     R128EngineFlush(pScrn);
 
@@ -161,7 +161,7 @@ void R128EngineReset(ScrnInfoPtr pScrn)
     OUTREG(R128_GEN_RESET_CNTL, gen_reset_cntl | R128_SOFT_RESET_GUI);
     INREG(R128_GEN_RESET_CNTL);
     OUTREG(R128_GEN_RESET_CNTL,
-	gen_reset_cntl & (CARD32)(~R128_SOFT_RESET_GUI));
+	gen_reset_cntl & (uint32_t)(~R128_SOFT_RESET_GUI));
     INREG(R128_GEN_RESET_CNTL);
 
     OUTPLL(R128_MCLK_CNTL,        mclk_cntl);
@@ -450,7 +450,7 @@ static void R128SetupForDashedLine(ScrnInfoPtr pScrn,
 {
     R128InfoPtr   info      = R128PTR(pScrn);
     unsigned char *R128MMIO = info->MMIO;
-    CARD32        pat       = *(CARD32 *)(pointer)pattern;
+    uint32_t      pat       = *(uint32_t *)(pointer)pattern;
 
 #if X_BYTE_ORDER == X_LITTLE_ENDIAN
 # define PAT_SHIFT(pat,n) pat << n
@@ -847,10 +847,10 @@ static void R128SubsequentColorExpandScanline(ScrnInfoPtr pScrn, int bufno)
 {
     R128InfoPtr     info      = R128PTR(pScrn);
     unsigned char   *R128MMIO = info->MMIO;
-    CARD32          *p        = (pointer)info->scratch_buffer[bufno];
+    uint32_t        *p        = (pointer)info->scratch_buffer[bufno];
     int             i;
     int             left      = info->scanline_words;
-    volatile CARD32 *d;
+    volatile uint32_t *d;
 
     if (info->scanline_direct) return;
     --info->scanline_h;
@@ -977,10 +977,10 @@ static void R128SubsequentImageWriteScanline(ScrnInfoPtr pScrn, int bufno)
 {
     R128InfoPtr     info      = R128PTR(pScrn);
     unsigned char   *R128MMIO = info->MMIO;
-    CARD32          *p        = (pointer)info->scratch_buffer[bufno];
+    uint32_t        *p        = (pointer)info->scratch_buffer[bufno];
     int             i;
     int             left      = info->scanline_words;
-    volatile CARD32 *d;
+    volatile uint32_t *d;
 
     if (info->scanline_direct) return;
     --info->scanline_h;
@@ -1438,7 +1438,7 @@ static void R128CCESetupForDashedLine(ScrnInfoPtr pScrn,
 				   int length, unsigned char *pattern)
 {
     R128InfoPtr   info      = R128PTR(pScrn);
-    CARD32        pat       = *(CARD32 *)(pointer)pattern;
+    uint32_t      pat       = *(uint32_t *)(pointer)pattern;
     RING_LOCALS;
 
     R128CCE_REFRESH( pScrn, info );

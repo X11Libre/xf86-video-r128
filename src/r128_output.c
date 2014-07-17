@@ -234,7 +234,7 @@ static R128MonitorType R128DisplayDDCConnected(xf86OutputPtr output)
 
     R128MonitorType MonType = MT_NONE;
     xf86MonPtr *MonInfo = &output->MonInfo;
-    CARD32 mask1, mask2;
+    uint32_t mask1, mask2;
 
     if (r128_output->type == OUTPUT_LVDS) {
         return MT_LCD;
@@ -346,7 +346,7 @@ static void R128I2CPutBits(I2CBusPtr b, int Clock, int data)
     R128I2CBusPtr pR128I2CBus = b->DriverPrivate.ptr;
 
     val = INREG(pR128I2CBus->ddc_reg)
-              & ~(CARD32)(pR128I2CBus->put_clk_mask | pR128I2CBus->put_data_mask);
+              & ~(uint32_t)(pR128I2CBus->put_clk_mask | pR128I2CBus->put_data_mask);
     val |= (Clock ? 0 : pR128I2CBus->put_clk_mask);
     val |= (data  ? 0 : pR128I2CBus->put_data_mask);
     OUTREG(pR128I2CBus->ddc_reg, val);

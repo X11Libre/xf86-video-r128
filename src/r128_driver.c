@@ -657,8 +657,8 @@ static Bool R128GetPLLParameters(ScrnInfoPtr pScrn)
 	pll->max_pll_freq   = 25000;
 	pll->xclk           = 10300;
     } else {
-	CARD16 bios_header    = R128_BIOS16(0x48);
-	CARD16 pll_info_block = R128_BIOS16(bios_header + 0x30);
+	uint16_t bios_header    = R128_BIOS16(0x48);
+	uint16_t pll_info_block = R128_BIOS16(bios_header + 0x30);
 	R128TRACE(("Header at 0x%04x; PLL Information at 0x%04x\n",
 		   bios_header, pll_info_block));
 
@@ -1634,7 +1634,7 @@ static void R128LoadPalette(ScrnInfoPtr pScrn, int numColors,
     xf86CrtcConfigPtr xf86_config = XF86_CRTC_CONFIG_PTR(pScrn);
     int i, j;
     int c, index;
-    CARD16 lut_r[256], lut_g[256], lut_b[256];
+    uint16_t lut_r[256], lut_g[256], lut_b[256];
 
     for (c = 0; c < xf86_config->num_crtc; c++) {
         xf86CrtcPtr crtc = xf86_config->crtc[c];
@@ -2404,7 +2404,7 @@ void R128RestoreFPRegisters(ScrnInfoPtr pScrn, R128SavePtr restore)
     OUTREG(R128_TMDS_CRC,              restore->tmds_crc);
     OUTREG(R128_TMDS_TRANSMITTER_CNTL, restore->tmds_transmitter_cntl);
     OUTREG(R128_FP_PANEL_CNTL,         restore->fp_panel_cntl);
-    OUTREG(R128_FP_GEN_CNTL, restore->fp_gen_cntl & ~(CARD32)R128_FP_BLANK_DIS);
+    OUTREG(R128_FP_GEN_CNTL, restore->fp_gen_cntl & ~(uint32_t)R128_FP_BLANK_DIS);
 }
 
 /* Write LVDS registers */
@@ -2412,7 +2412,7 @@ void R128RestoreLVDSRegisters(ScrnInfoPtr pScrn, R128SavePtr restore)
 {
     R128InfoPtr   info      = R128PTR(pScrn);
     unsigned char *R128MMIO = info->MMIO;
-    CARD32        tmp;
+    uint32_t      tmp;
 
     tmp = INREG(R128_LVDS_GEN_CNTL);
     if ((tmp & (R128_LVDS_ON | R128_LVDS_BLON)) ==
@@ -2421,7 +2421,7 @@ void R128RestoreLVDSRegisters(ScrnInfoPtr pScrn, R128SavePtr restore)
     } else {
 	if (restore->lvds_gen_cntl & (R128_LVDS_ON | R128_LVDS_BLON)) {
 	    OUTREG(R128_LVDS_GEN_CNTL,
-		   restore->lvds_gen_cntl & (CARD32)~R128_LVDS_BLON);
+		   restore->lvds_gen_cntl & (uint32_t)~R128_LVDS_BLON);
 	    usleep(R128PTR(pScrn)->PanelPwrDly * 1000);
 	    OUTREG(R128_LVDS_GEN_CNTL, restore->lvds_gen_cntl);
 	} else {
@@ -3643,7 +3643,7 @@ ModeStatus R128ValidMode(SCRN_ARG_TYPE arg, DisplayModePtr mode,
 		    if (R128_BIOS16(j+5)) j  = R128_BIOS16(j+5);
 		    else                  j += 9;
 
-		    mode->Clock = (CARD32)R128_BIOS16(j) * 10;
+		    mode->Clock = (uint32_t)R128_BIOS16(j) * 10;
 
 		    mode->HDisplay   = mode->CrtcHDisplay   =
 			((R128_BIOS16(j+10) & 0x01ff)+1)*8;

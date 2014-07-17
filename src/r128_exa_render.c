@@ -40,8 +40,8 @@
 static struct {
     Bool dst_alpha;
     Bool src_alpha;
-    CARD32 sblend;
-    CARD32 dblend;
+    uint32_t sblend;
+    uint32_t dblend;
 } R128BlendOp[] = {
     /* Clear */
     {0, 0, R128_ALPHA_BLEND_ZERO        , R128_ALPHA_BLEND_ZERO},
@@ -582,9 +582,9 @@ R128CCEPrepareComposite(int op, PicturePtr pSrcPicture, PicturePtr pMaskPicture,
     return TRUE;
 }
 
-typedef union { float f; CARD32 i; } fi_type;
+typedef union { float f; uint32_t i; } fi_type;
 
-static inline CARD32
+static inline uint32_t
 R128FloatAsInt(float val)
 {
 	fi_type fi;
