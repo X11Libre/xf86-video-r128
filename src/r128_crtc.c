@@ -233,33 +233,9 @@ static void r128_crtc_unlock(xf86CrtcPtr crtc)
 #endif
 }
 
-#ifdef HAVE_XAA_H
-static FBLinearPtr r128_xf86AllocateOffscreenLinear(ScreenPtr pScreen, int length, int granularity,
-                                                MoveLinearCallbackProcPtr moveCB,
-                                                RemoveLinearCallbackProcPtr removeCB,
-                                                pointer privData)
-{
-    FBLinearPtr linear;
-    int max_size;
-
-    linear = xf86AllocateOffscreenLinear(pScreen, length, granularity, moveCB, removeCB, privData);
-    if (linear != NULL) return linear;
-
-    /* The above allocation did not succeed, so purge unlocked stuff and try again. */
-    xf86QueryLargestOffscreenLinear(pScreen, &max_size, granularity, PRIORITY_EXTREME);
-
-    if (max_size < length) return NULL;
-    xf86PurgeUnlockedOffscreenAreas(pScreen);
-
-    linear = xf86AllocateOffscreenLinear(pScreen, length, granularity, moveCB, removeCB, privData);
-    return linear;
-}
-#endif
-
 static void *r128_crtc_shadow_allocate(xf86CrtcPtr crtc, int width, int height)
 {
     ScrnInfoPtr   pScrn   = crtc->scrn;
-    ScreenPtr     pScreen = xf86ScrnToScreen(pScrn);
     R128InfoPtr   info    = R128PTR(pScrn);
 
     R128CrtcPrivatePtr r128_crtc = crtc->driver_private;
@@ -271,38 +247,7 @@ static void *r128_crtc_shadow_allocate(xf86CrtcPtr crtc, int width, int height)
 
     rotate_pitch = pScrn->displayWidth * cpp;
     size = rotate_pitch * height;
-
-#ifdef USE_EXA
-    if (info->ExaDriver) {
-        assert(r128_crtc->rotate_mem_exa == NULL);
-        r128_crtc->rotate_mem_exa = exaOffscreenAlloc(pScreen, size, align, TRUE, NULL, NULL);
-
-        if (r128_crtc->rotate_mem_exa == NULL) {
-	    xf86DrvMsg(pScrn->scrnIndex, X_ERROR,
-		       "Couldn't allocate shadow memory for rotated CRTC\n");
-	    return NULL;
-	}
-
-        rotate_offset = r128_crtc->rotate_mem_exa->offset;
-    }
-#endif
-#ifdef HAVE_XAA_H
-    if (info->accel) {
-        size = (size + cpp - 1) / cpp;
-        align = (align + cpp - 1) / cpp;
-
-        assert(r128_crtc->rotate_mem_xaa == NULL);
-        r128_crtc->rotate_mem_xaa = r128_xf86AllocateOffscreenLinear(pScreen, size, align, NULL, NULL, NULL);
-
-        if (r128_crtc->rotate_mem_exa == NULL) {
-	    xf86DrvMsg(pScrn->scrnIndex, X_ERROR,
-		       "Couldn't allocate shadow memory for rotated CRTC\n");
-	    return NULL;
-	}
-
-        rotate_offset = r128_crtc->rotate_mem_xaa->offset * cpp;
-    }
-#endif
+    rotate_offset = R128AllocateMemory(pScrn, &(r128_crtc->rotate_mem), size, align, TRUE);
 
     /* If allocations failed or if there was no accel. */
     if (rotate_offset == 0)
@@ -347,19 +292,16 @@ static void r128_crtc_shadow_destroy(xf86CrtcPtr crtc, PixmapPtr rotate_pixmap, 
 
     if (rotate_pixmap) FreeScratchPixmapHeader(rotate_pixmap);
 
-    if (data) {
+    if (data && r128_crtc->rotate_mem != NULL) {
 #ifdef USE_EXA
-        if (info->ExaDriver && r128_crtc->rotate_mem_exa != NULL) {
-            exaOffscreenFree(pScreen, r128_crtc->rotate_mem_exa);
-	    r128_crtc->rotate_mem_exa = NULL;
-        }
+        if (info->ExaDriver)
+            exaOffscreenFree(pScreen, (ExaOffscreenArea *) r128_crtc->rotate_mem);
 #endif
 #ifdef HAVE_XAA_H
-        if (info->accel) {
-            xf86FreeOffscreenLinear(r128_crtc->rotate_mem_xaa);
-            r128_crtc->rotate_mem_xaa = NULL;
-        }
+        if (info->accel)
+            xf86FreeOffscreenLinear((FBLinearPtr) r128_crtc->rotate_mem);
 #endif
+        r128_crtc->rotate_mem = NULL;
     }
 }
 

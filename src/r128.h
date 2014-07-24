@@ -570,6 +570,7 @@ extern void        r128_crtc_show_cursor(xf86CrtcPtr crtc);
 extern void        r128_crtc_hide_cursor(xf86CrtcPtr crtc);
 extern void        r128_crtc_load_cursor_image(xf86CrtcPtr crtc, unsigned char *src);
 
+extern uint32_t    R128AllocateMemory(ScrnInfoPtr pScrn, void **mem_struct, int size, int align, Bool need_accel);
 extern Bool        R128SetupConnectors(ScrnInfoPtr pScrn);
 extern Bool        R128AllocateControllers(ScrnInfoPtr pScrn, int mask);
 extern void        R128Blank(ScrnInfoPtr pScrn);

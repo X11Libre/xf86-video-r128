@@ -137,12 +137,7 @@ typedef struct {
 } R128I2CBusRec, *R128I2CBusPtr;
 
 typedef struct _R128CrtcPrivateRec {
-#ifdef HAVE_XAA_H
-    FBLinearPtr rotate_mem_xaa;
-#endif
-#ifdef USE_EXA
-    ExaOffscreenArea *rotate_mem_exa;
-#endif
+    void *rotate_mem;
     int crtc_id;
     uint32_t cursor_offset;
     /* Lookup table values to be set when the CRTC is enabled */
