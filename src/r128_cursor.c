@@ -62,20 +62,6 @@
 #define CURSOR_WIDTH    64
 #define CURSOR_HEIGHT   64
 
-#if X_BYTE_ORDER == X_BIG_ENDIAN
-#define P_SWAP32( a , b )                \
-       ((char *)a)[0] = ((char *)b)[3];  \
-       ((char *)a)[1] = ((char *)b)[2];  \
-       ((char *)a)[2] = ((char *)b)[1];  \
-       ((char *)a)[3] = ((char *)b)[0]
-
-#define P_SWAP16( a , b )                \
-       ((char *)a)[0] = ((char *)b)[1];  \
-       ((char *)a)[1] = ((char *)b)[0];  \
-       ((char *)a)[2] = ((char *)b)[3];  \
-       ((char *)a)[3] = ((char *)b)[2]
-#endif
-
 void r128_crtc_show_cursor(xf86CrtcPtr crtc)
 {
     ScrnInfoPtr pScrn = crtc->scrn;
@@ -176,14 +162,10 @@ void r128_crtc_load_cursor_image(xf86CrtcPtr crtc, unsigned char *src)
     R128CrtcPrivatePtr r128_crtc = crtc->driver_private;
     int crtc_id = r128_crtc->crtc_id;
 
-
     R128InfoPtr   info      = R128PTR(pScrn);
     unsigned char *R128MMIO = info->MMIO;
-    uint32_t      *s        = (pointer)src;
-    uint32_t      *d        = (pointer)(info->FB + r128_crtc->cursor_offset + pScrn->fbOffset);
     uint32_t      save1     = 0;
     uint32_t      save2     = 0;
-    int           y;
 
     if (crtc_id == 0) {
 	save1 = INREG(R128_CRTC_GEN_CNTL);
@@ -194,48 +176,15 @@ void r128_crtc_load_cursor_image(xf86CrtcPtr crtc, unsigned char *src)
     }
 
 #if X_BYTE_ORDER == X_BIG_ENDIAN
-    switch(info->CurrentLayout.pixel_bytes) {
-    case 4:
-    case 3:
-	for (y = 0; y < 64; y++) {
-	    P_SWAP32(d,s);
-	    d++; s++;
-	    P_SWAP32(d,s);
-	    d++; s++;
-	    P_SWAP32(d,s);
-	    d++; s++;
-	    P_SWAP32(d,s);
-	    d++; s++;
-	}
-	break;
-    case 2:
-	for (y = 0; y < 64; y++) {
-	    P_SWAP16(d,s);
-	    d++; s++;
-	    P_SWAP16(d,s);
-	    d++; s++;
-	    P_SWAP16(d,s);
-	    d++; s++;
-	    P_SWAP16(d,s);
-	    d++; s++;
-	}
-	break;
-    default:
-	for (y = 0; y < 64; y++) {
-	    *d++ = *s++;
-	    *d++ = *s++;
-	    *d++ = *s++;
-	    *d++ = *s++;
-	}
-    }
-#else
-    for (y = 0; y < 64; y++) {
-	*d++ = *s++;
-	*d++ = *s++;
-	*d++ = *s++;
-	*d++ = *s++;
-    }
+    if (info->CurrentLayout.pixel_bytes == 4 || info->CurrentLayout.pixel_bytes == 3)
+        R128CopySwap(info->FB + r128_crtc->cursor_offset + pScrn->fbOffset, src,
+                     CURSOR_WIDTH * CURSOR_HEIGHT / 4, APER_0_BIG_ENDIAN_32BPP_SWAP);
+    else if (info->CurrentLayout.pixel_bytes == 2)
+        R128CopySwap(info->FB + r128_crtc->cursor_offset + pScrn->fbOffset, src,
+                     CURSOR_WIDTH * CURSOR_HEIGHT / 4, APER_0_BIG_ENDIAN_16BPP_SWAP);
+    else
 #endif
+    memcpy(info->FB + r128_crtc->cursor_offset + pScrn->fbOffset, src, CURSOR_WIDTH * CURSOR_HEIGHT / 4);
 
     if (crtc_id == 0)
 	OUTREG(R128_CRTC_GEN_CNTL, save1);
