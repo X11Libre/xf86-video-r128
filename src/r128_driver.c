@@ -2044,7 +2044,9 @@ Bool R128ScreenInit(SCREEN_INIT_ARGS_DECL)
     //pScrn->AdjustFrame(ADJUST_FRAME_ARGS(pScrn, pScrn->frameX0, pScrn->frameY0));
 
 				/* DGA setup */
-    R128DGAInit(pScreen);
+#ifdef XFreeXDGA
+    xf86DiDGAInit(pScreen, info->LinearAddr + pScrn->fbOffset);
+#endif
 
 				/* Backing store setup */
     xf86SetBackingStore(pScreen);
@@ -3628,9 +3630,6 @@ static Bool R128CloseScreen(CLOSE_SCREEN_ARGS_DECL)
 
     if (info->scratch_save)      free(info->scratch_save);
     info->scratch_save           = NULL;
-
-    if (info->DGAModes)          free(info->DGAModes);
-    info->DGAModes               = NULL;
 
     if (info->adaptor) {
         free(info->adaptor->pPortPrivates[0].ptr);

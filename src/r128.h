@@ -343,12 +343,6 @@ typedef struct {
     struct r128_2d_state state_2d;
 #endif
 
-    /*
-     * XAAForceTransBlit is used to change the behavior of the XAA
-     * SetupForScreenToScreenCopy function, to make it DGA-friendly.
-     */
-    Bool              XAAForceTransBlit;
-
     int               fifo_slots;   /* Free slots in the FIFO (64 max)       */
     int               pix24bpp;     /* Depth of pixmap for 24bpp framebuffer */
     Bool              dac6bits;     /* Use 6 bit DAC?                        */
@@ -380,12 +374,6 @@ typedef struct {
     int               scanline_words;
     int               scanline_direct;
     int               scanline_bpp; /* Only used for ImageWrite */
-
-    DGAModePtr        DGAModes;
-    int               numDGAModes;
-    Bool              DGAactive;
-    int               DGAViewportStatus;
-    DGAFunctionRec    DGAFuncs;
 
     R128FBLayout      CurrentLayout;
 #ifdef R128DRI
@@ -525,7 +513,6 @@ extern void        R128WaitForVerticalSync(ScrnInfoPtr pScrn);
 extern Bool        R128AccelInit(ScreenPtr pScreen);
 extern void        R128EngineInit(ScrnInfoPtr pScrn);
 extern Bool        R128CursorInit(ScreenPtr pScreen);
-extern Bool        R128DGAInit(ScreenPtr pScreen);
 
 extern int         R128MinBits(int val);
 extern xf86OutputPtr R128FirstOutput(xf86CrtcPtr crtc);

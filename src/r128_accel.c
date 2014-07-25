@@ -590,7 +590,7 @@ static void R128SetupForScreenToScreenCopy(ScrnInfoPtr pScrn,
 					? R128_DST_Y_TOP_TO_BOTTOM
 					: 0)));
 
-    if ((trans_color != -1) || (info->XAAForceTransBlit == TRUE)) {
+    if (trans_color != -1) {
 				/* Set up for transparency */
 	R128WaitForFifo(pScrn, 3);
 	OUTREG(R128_CLR_CMP_CLR_SRC, trans_color);
@@ -1182,7 +1182,7 @@ static void R128CCESetupForScreenToScreenCopy(ScrnInfoPtr pScrn,
 
     ADVANCE_RING();
 
-    if ((trans_color != -1) || (info->XAAForceTransBlit == TRUE)) {
+    if (trans_color != -1) {
 	BEGIN_RING( 6 );
 
 	OUT_RING_REG( R128_CLR_CMP_CLR_SRC, trans_color );
