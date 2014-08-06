@@ -90,21 +90,21 @@ static void r128_mode_set(xf86OutputPtr output, DisplayModePtr mode, DisplayMode
     if (r128_crtc->crtc_id == 0)
         R128InitRMXRegisters(&info->SavedReg, &info->ModeReg, output, adjusted_mode);
 
-    if (r128_output->type == OUTPUT_DVI)
+    if (r128_output->MonType == MT_DFP)
         R128InitFPRegisters(&info->SavedReg, &info->ModeReg, output);
-    else if (r128_output->type == OUTPUT_LVDS)
+    else if (r128_output->MonType == MT_LCD)
         R128InitLVDSRegisters(&info->SavedReg, &info->ModeReg, output);
-    else if (r128_output->type == OUTPUT_VGA)
+    else if (r128_output->MonType == MT_CRT)
         R128InitDACRegisters(&info->SavedReg, &info->ModeReg, output);
 
     if (r128_crtc->crtc_id == 0)
         R128RestoreRMXRegisters(pScrn, &info->ModeReg);
 
-    if (r128_output->type == OUTPUT_DVI)
+    if (r128_output->MonType == MT_DFP)
         R128RestoreFPRegisters(pScrn, &info->ModeReg);
-    else if (r128_output->type == OUTPUT_LVDS)
+    else if (r128_output->MonType == MT_LCD)
         R128RestoreLVDSRegisters(pScrn, &info->ModeReg);
-    else if (r128_output->type == OUTPUT_VGA)
+    else if (r128_output->MonType == MT_CRT)
         R128RestoreDACRegisters(pScrn, &info->ModeReg);
 }
 
@@ -375,133 +375,91 @@ static Bool R128I2CInit(xf86OutputPtr output, I2CBusPtr *bus_ptr, char *name)
     return TRUE;
 }
 
-void R128SetOutputType(ScrnInfoPtr pScrn, R128OutputPrivatePtr r128_output)
-{
-    R128OutputType output = OUTPUT_NONE;
-
-    switch (r128_output->ConnectorType) {
-    case CONNECTOR_VGA:
-        output = OUTPUT_VGA;
-        break;
-    case CONNECTOR_LVDS:
-        output = OUTPUT_LVDS;
-        break;
-    case CONNECTOR_DVI_D:
-    case CONNECTOR_DVI_I:
-    case CONNECTOR_DVI_A:
-        output = OUTPUT_DVI;
-        break;
-    default:
-        output = OUTPUT_NONE;
-    }
-
-    r128_output->type = output;
-}
-
-void R128SetupGenericConnectors(ScrnInfoPtr pScrn)
+void R128SetupGenericConnectors(ScrnInfoPtr pScrn, R128OutputType *otypes)
 {
     R128InfoPtr info    = R128PTR(pScrn);
     R128EntPtr pR128Ent = R128EntPriv(pScrn);
 
     if (!pR128Ent->HasCRTC2 && !info->isDFP) {
-        info->BiosConnector[0].ConnectorType = CONNECTOR_VGA;
-        info->BiosConnector[0].valid = TRUE;
+        otypes[0] = OUTPUT_VGA;
         return;
     } else if (!pR128Ent->HasCRTC2) {
-        info->BiosConnector[0].ConnectorType = CONNECTOR_DVI_D;
-	info->BiosConnector[0].valid = TRUE;
+        otypes[0] = OUTPUT_DVI;
 	return;
     }
 
-    info->BiosConnector[0].ConnectorType = CONNECTOR_LVDS;
-    info->BiosConnector[0].valid = TRUE;
-
-    info->BiosConnector[1].ConnectorType = CONNECTOR_VGA;
-    info->BiosConnector[1].valid = TRUE;
+    otypes[0] = OUTPUT_LVDS;
+    otypes[1] = OUTPUT_VGA;
 }
 
 Bool R128SetupConnectors(ScrnInfoPtr pScrn)
 {
     R128InfoPtr info    = R128PTR(pScrn);
     R128EntPtr pR128Ent = R128EntPriv(pScrn);
-    xf86OutputPtr output;
+
+    R128OutputType otypes[R128_MAX_BIOS_CONNECTOR];
+    xf86OutputPtr  output;
     int num_vga = 0;
     int num_dvi = 0;
     int i;
 
-    for (i = 0; i < R128_MAX_BIOS_CONNECTOR; i++) {
-        info->BiosConnector[i].valid = FALSE;
-        info->BiosConnector[i].ConnectorType = CONNECTOR_NONE;
-    }
-
     /* XXX: Can we make R128GetConnectorInfoFromBIOS()? */
-    R128SetupGenericConnectors(pScrn);
+    R128SetupGenericConnectors(pScrn, otypes);
 
     for (i = 0; i < R128_MAX_BIOS_CONNECTOR; i++) {
-        if (info->BiosConnector[i].valid) {
-            if ((info->BiosConnector[i].ConnectorType == CONNECTOR_DVI_D) ||
-                (info->BiosConnector[i].ConnectorType == CONNECTOR_DVI_I) ||
-                (info->BiosConnector[i].ConnectorType == CONNECTOR_DVI_A)) {
-                num_dvi++;
-            } else if (info->BiosConnector[i].ConnectorType == CONNECTOR_VGA) {
-                num_vga++;
-            }
-        }
+        if (otypes[i] == OUTPUT_VGA)
+            num_vga++;
+        else if (otypes[i] == OUTPUT_DVI)
+            num_dvi++;
     }
 
     for (i = 0; i < R128_MAX_BIOS_CONNECTOR; i++) {
-        if (info->BiosConnector[i].valid) {
-	    R128I2CBusRec i2c;
-            R128OutputPrivatePtr r128_output;
-            R128ConnectorType conntype = info->BiosConnector[i].ConnectorType;
+        if (otypes[i] == OUTPUT_NONE) continue;
 
-            if (conntype == CONNECTOR_NONE)
-                continue;
+	R128I2CBusRec i2c;
+        R128OutputPrivatePtr r128_output;
 
-            r128_output = xnfcalloc(sizeof(R128OutputPrivateRec), 1);
-            if (!r128_output) return FALSE;
+        r128_output = xnfcalloc(sizeof(R128OutputPrivateRec), 1);
+        if (!r128_output) return FALSE;
 
-            r128_output->MonType = MT_UNKNOWN;
-            r128_output->ConnectorType = conntype;
-            r128_output->num = i;
+        r128_output->MonType = MT_UNKNOWN;
+        r128_output->type = otypes[i];
+        r128_output->num = i;
 
-            if (conntype == CONNECTOR_LVDS) {
-                output = R128OutputCreate(pScrn, "LVDS", 0);
-            } else if (conntype == CONNECTOR_VGA) {
-                output = R128OutputCreate(pScrn, "VGA-%d", --num_vga);
+        if (otypes[i] == OUTPUT_LVDS) {
+            output = R128OutputCreate(pScrn, "LVDS", 0);
+        } else if (otypes[i] == OUTPUT_VGA) {
+            output = R128OutputCreate(pScrn, "VGA-%d", --num_vga);
+        } else {
+            output = R128OutputCreate(pScrn, "DVI-%d", --num_dvi);
+        }
+
+        if (!output) return FALSE;
+        output->interlaceAllowed = TRUE;
+        output->doubleScanAllowed = TRUE;
+        output->driver_private = r128_output;
+	output->possible_clones = 0;
+	if (otypes[i] == OUTPUT_LVDS || !pR128Ent->HasCRTC2)
+	    output->possible_crtcs = 1;
+	else
+	    output->possible_crtcs = 2;
+
+        if (otypes[i] != OUTPUT_LVDS && info->DDC) {
+            i2c.ddc_reg      = R128_GPIO_MONID;
+            i2c.put_clk_mask = R128_GPIO_MONID_EN_3;
+            i2c.get_clk_mask = R128_GPIO_MONID_Y_3;
+            if (otypes[i] == OUTPUT_VGA) {
+                i2c.put_data_mask = R128_GPIO_MONID_EN_1;
+                i2c.get_data_mask = R128_GPIO_MONID_Y_1;
             } else {
-                output = R128OutputCreate(pScrn, "DVI-%d", --num_dvi);
+                i2c.put_data_mask = R128_GPIO_MONID_EN_0;
+                i2c.get_data_mask = R128_GPIO_MONID_Y_0;
             }
-
-            if (!output) return FALSE;
-            output->interlaceAllowed = TRUE;
-            output->doubleScanAllowed = TRUE;
-            output->driver_private = r128_output;
-	    output->possible_clones = 0;
-	    if (conntype == CONNECTOR_LVDS || !pR128Ent->HasCRTC2)
-	        output->possible_crtcs = 1;
-	    else
-	        output->possible_crtcs = 2;
-
-            if (conntype != CONNECTOR_LVDS && info->DDC) {
-		i2c.ddc_reg      = R128_GPIO_MONID;
-		i2c.put_clk_mask = R128_GPIO_MONID_EN_3;
-		i2c.get_clk_mask = R128_GPIO_MONID_Y_3;
-		if (conntype == CONNECTOR_VGA) {
-		    i2c.put_data_mask = R128_GPIO_MONID_EN_1;
-		    i2c.get_data_mask = R128_GPIO_MONID_Y_1;
-		} else {
-		    i2c.put_data_mask = R128_GPIO_MONID_EN_0;
-		    i2c.get_data_mask = R128_GPIO_MONID_Y_0;
-		}
-		r128_output->ddc_i2c = i2c;
-		R128I2CInit(output, &r128_output->pI2CBus, output->name);
-	    } else if (conntype == CONNECTOR_LVDS) {
-                r128_output->PanelXRes = info->PanelXRes;
-                r128_output->PanelYRes = info->PanelYRes;
-            }
-
-            R128SetOutputType(pScrn, r128_output);
+            r128_output->ddc_i2c = i2c;
+            R128I2CInit(output, &r128_output->pI2CBus, output->name);
+        } else if (otypes[i] == OUTPUT_LVDS) {
+            r128_output->PanelXRes = info->PanelXRes;
+            r128_output->PanelYRes = info->PanelYRes;
         }
     }
 

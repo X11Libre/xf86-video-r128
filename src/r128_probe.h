@@ -112,16 +112,6 @@ typedef enum
 
 typedef enum
 {
-    CONNECTOR_NONE,
-    CONNECTOR_VGA,
-    CONNECTOR_DVI_I,
-    CONNECTOR_DVI_D,
-    CONNECTOR_DVI_A,
-    CONNECTOR_LVDS
-} R128ConnectorType;
-
-typedef enum
-{
     OUTPUT_NONE,
     OUTPUT_VGA,
     OUTPUT_DVI,
@@ -144,15 +134,9 @@ typedef struct _R128CrtcPrivateRec {
     uint8_t lut_r[256], lut_g[256], lut_b[256];
 } R128CrtcPrivateRec, *R128CrtcPrivatePtr;
 
-typedef struct {
-    R128ConnectorType ConnectorType;
-    Bool valid;
-} R128BIOSConnector;
-
 typedef struct _R128OutputPrivateRec {
     int num;
     R128OutputType type;
-    R128ConnectorType ConnectorType;
     R128MonitorType MonType;
     I2CBusPtr pI2CBus;
     R128I2CBusRec ddc_i2c;

@@ -3225,7 +3225,7 @@ void R128InitRMXRegisters(R128SavePtr orig, R128SavePtr save,
     save->fp_h_sync_strt_wid   = save->crtc_h_sync_strt_wid;
     save->fp_v_sync_strt_wid   = save->crtc_v_sync_strt_wid;
 
-    if (r128_output->type != OUTPUT_DVI && r128_output->type != OUTPUT_LVDS)
+    if (r128_output->MonType != MT_DFP && r128_output->MonType != MT_LCD)
         return;
 
     if (r128_output->PanelXRes == 0 || r128_output->PanelYRes == 0) {

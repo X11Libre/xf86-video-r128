@@ -504,7 +504,6 @@ typedef struct {
     Bool              DDC;
 
     Bool              VGAAccess;
-    R128BIOSConnector BiosConnector[R128_MAX_BIOS_CONNECTOR];
 
     /****** Added for dualhead support *******************/
     BOOL              IsSecondary;  /* second Screen */
