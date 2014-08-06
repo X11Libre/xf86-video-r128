@@ -136,6 +136,14 @@
 #define R128_ALIGN(x,bytes) (((x) + ((bytes) - 1)) & ~((bytes) - 1))
 #define R128PTR(pScrn) ((R128InfoPtr)(pScrn)->driverPrivate)
 
+#define R128_BIOS8(v)  ((info->VBIOS[(v)]))
+#define R128_BIOS16(v) ((info->VBIOS[(v)])           | \
+			(info->VBIOS[(v) + 1] << 8))
+#define R128_BIOS32(v) ((info->VBIOS[(v)])           | \
+			(info->VBIOS[(v) + 1] << 8)  | \
+			(info->VBIOS[(v) + 2] << 16) | \
+			(info->VBIOS[(v) + 3] << 24))
+
 typedef struct {        /* All values in XCLKS    */
     int  ML;            /* Memory Read Latency    */
     int  MB;            /* Memory Burst Length    */
@@ -311,15 +319,7 @@ typedef struct {
     uint32_t          MemCntl;
     uint32_t          BusCntl;
     unsigned long     FbMapSize;    /* Size of frame buffer, in bytes        */
-
-    uint8_t           BIOSDisplay;  /* Device the BIOS is set to display to  */
-
     Bool              HasPanelRegs; /* Current chip can connect to a FP      */
-
-				/* Computed values for FPs */
-    int               PanelXRes;
-    int               PanelYRes;
-    int               PanelPwrDly;
 
     R128PLLRec        pll;
     R128RAMPtr        ram;
@@ -501,17 +501,10 @@ typedef struct {
 
     Bool              isDFP;
     Bool              isPro2;
+    Bool              SwitchingMode;
     Bool              DDC;
 
     Bool              VGAAccess;
-
-    /****** Added for dualhead support *******************/
-    BOOL              IsSecondary;  /* second Screen */
-    BOOL	      IsPrimary;    /* primary Screen */
-    BOOL              UseCRT;       /* force use CRT port as primary */
-    BOOL              SwitchingMode;
-    R128MonitorType DisplayType;  /* Monitor connected on*/
-
 } R128InfoRec, *R128InfoPtr;
 
 #define R128WaitForFifo(pScrn, entries)                                      \
@@ -535,6 +528,7 @@ extern Bool        R128CursorInit(ScreenPtr pScreen);
 extern Bool        R128DGAInit(ScreenPtr pScreen);
 
 extern int         R128MinBits(int val);
+extern xf86OutputPtr R128FirstOutput(xf86CrtcPtr crtc);
 
 extern void        R128InitVideo(ScreenPtr pScreen);
 
@@ -544,13 +538,13 @@ extern void        R128InitRMXRegisters(R128SavePtr orig, R128SavePtr save, xf86
 extern void        R128InitFPRegisters(R128SavePtr orig, R128SavePtr save, xf86OutputPtr output);
 extern void        R128InitLVDSRegisters(R128SavePtr orig, R128SavePtr save, xf86OutputPtr output);
 extern Bool        R128InitCrtcBase(xf86CrtcPtr crtc, R128SavePtr save, int x, int y);
-extern Bool        R128InitCrtcRegisters(ScrnInfoPtr pScrn, R128SavePtr save, DisplayModePtr mode, R128InfoPtr info);
-extern void        R128InitPLLRegisters(ScrnInfoPtr pScrn, R128SavePtr save, R128PLLPtr pll, double dot_clock);
-extern Bool        R128InitDDARegisters(ScrnInfoPtr pScrn, R128SavePtr save, R128PLLPtr pll, R128InfoPtr info, DisplayModePtr mode);
+extern Bool        R128InitCrtcRegisters(xf86CrtcPtr crtc, R128SavePtr save, DisplayModePtr mode);
+extern void        R128InitPLLRegisters(xf86CrtcPtr crtc, R128SavePtr save, R128PLLPtr pll, double dot_clock);
+extern Bool        R128InitDDARegisters(xf86CrtcPtr crtc, R128SavePtr save, R128PLLPtr pll, DisplayModePtr mode);
 extern Bool        R128InitCrtc2Base(xf86CrtcPtr crtc, R128SavePtr save, int x, int y);
-extern Bool        R128InitCrtc2Registers(ScrnInfoPtr pScrn, R128SavePtr save, DisplayModePtr mode, R128InfoPtr info);
-extern void        R128InitPLL2Registers(ScrnInfoPtr pScrn, R128SavePtr save, R128PLLPtr pll, double dot_clock);
-extern Bool        R128InitDDA2Registers(ScrnInfoPtr pScrn, R128SavePtr save, R128PLLPtr pll, R128InfoPtr info, DisplayModePtr mode);
+extern Bool        R128InitCrtc2Registers(xf86CrtcPtr crtc, R128SavePtr save, DisplayModePtr mode);
+extern void        R128InitPLL2Registers(xf86CrtcPtr crtc, R128SavePtr save, R128PLLPtr pll, double dot_clock);
+extern Bool        R128InitDDA2Registers(xf86CrtcPtr crtc, R128SavePtr save, R128PLLPtr pll, DisplayModePtr mode);
 extern void        R128RestoreCommonRegisters(ScrnInfoPtr pScrn, R128SavePtr restore);
 extern void        R128RestoreDACRegisters(ScrnInfoPtr pScrn, R128SavePtr restore);
 extern void        R128RestoreRMXRegisters(ScrnInfoPtr pScrn, R128SavePtr restore);
@@ -571,11 +565,13 @@ extern void        r128_crtc_load_cursor_image(xf86CrtcPtr crtc, unsigned char *
 
 extern uint32_t    R128AllocateMemory(ScrnInfoPtr pScrn, void **mem_struct, int size, int align, Bool need_accel);
 extern Bool        R128SetupConnectors(ScrnInfoPtr pScrn);
-extern Bool        R128AllocateControllers(ScrnInfoPtr pScrn, int mask);
+extern Bool        R128AllocateControllers(ScrnInfoPtr pScrn);
+extern void        R128GetPanelInfoFromBIOS(xf86OutputPtr output);
 extern void        R128Blank(ScrnInfoPtr pScrn);
 extern void        R128Unblank(ScrnInfoPtr pScrn);
 extern void        R128DPMSSetOn(xf86OutputPtr output);
 extern void        R128DPMSSetOff(xf86OutputPtr output);
+extern ModeStatus     R128DoValidMode(xf86OutputPtr output, DisplayModePtr mode, int flags);
 extern DisplayModePtr R128ProbeOutputModes(xf86OutputPtr output);
 
 #ifdef R128DRI

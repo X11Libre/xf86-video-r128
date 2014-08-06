@@ -143,11 +143,11 @@ static void r128_crtc_mode_set(xf86CrtcPtr crtc, DisplayModePtr mode, DisplayMod
 
     switch (r128_crtc->crtc_id) {
     case 0:
-        R128InitCrtcRegisters(pScrn, &info->ModeReg, adjusted_mode, info);
+        R128InitCrtcRegisters(crtc, &info->ModeReg, adjusted_mode);
 	R128InitCrtcBase(crtc, &info->ModeReg, x, y);
         if (dot_clock) {
-            R128InitPLLRegisters(pScrn, &info->ModeReg, &info->pll, dot_clock);
-            R128InitDDARegisters(pScrn, &info->ModeReg, &info->pll, info, adjusted_mode);
+            R128InitPLLRegisters(crtc, &info->ModeReg, &info->pll, dot_clock);
+            R128InitDDARegisters(crtc, &info->ModeReg, &info->pll, adjusted_mode);
         } else {
             info->ModeReg.ppll_ref_div         = info->SavedReg.ppll_ref_div;
             info->ModeReg.ppll_div_3           = info->SavedReg.ppll_div_3;
@@ -157,11 +157,11 @@ static void r128_crtc_mode_set(xf86CrtcPtr crtc, DisplayModePtr mode, DisplayMod
         }
         break;
     case 1:
-        R128InitCrtc2Registers(pScrn, &info->ModeReg, adjusted_mode, info);
+        R128InitCrtc2Registers(crtc, &info->ModeReg, adjusted_mode);
 	R128InitCrtc2Base(crtc, &info->ModeReg, x, y);
         if (dot_clock) {
-            R128InitPLL2Registers(pScrn, &info->ModeReg, &info->pll, dot_clock);
-            R128InitDDA2Registers(pScrn, &info->ModeReg, &info->pll, info, adjusted_mode);
+            R128InitPLL2Registers(crtc, &info->ModeReg, &info->pll, dot_clock);
+            R128InitDDA2Registers(crtc, &info->ModeReg, &info->pll, adjusted_mode);
         }
         break;
     }
@@ -327,43 +327,39 @@ static const xf86CrtcFuncsRec r128_crtc_funcs = {
     .destroy = NULL,
 };
 
-Bool R128AllocateControllers(ScrnInfoPtr pScrn, int mask)
+Bool R128AllocateControllers(ScrnInfoPtr pScrn)
 {
     R128EntPtr pR128Ent = R128EntPriv(pScrn);
 
-    if (mask & 1) {
-        if (pR128Ent->Controller[0])
-            return TRUE;
+    if (pR128Ent->Controller[0])
+        return TRUE;
 
-        pR128Ent->pCrtc[0] = xf86CrtcCreate(pScrn, &r128_crtc_funcs);
-        if (!pR128Ent->pCrtc[0])
-            return FALSE;
+    pR128Ent->pCrtc[0] = xf86CrtcCreate(pScrn, &r128_crtc_funcs);
+    if (!pR128Ent->pCrtc[0])
+        return FALSE;
 
-        pR128Ent->Controller[0] = xnfcalloc(sizeof(R128CrtcPrivateRec), 1);
-        if (!pR128Ent->Controller[0])
-            return FALSE;
+    pR128Ent->Controller[0] = xnfcalloc(sizeof(R128CrtcPrivateRec), 1);
+    if (!pR128Ent->Controller[0])
+        return FALSE;
 
-        pR128Ent->pCrtc[0]->driver_private = pR128Ent->Controller[0];
-        pR128Ent->Controller[0]->crtc_id = 0;
+    pR128Ent->pCrtc[0]->driver_private = pR128Ent->Controller[0];
+    pR128Ent->Controller[0]->crtc_id = 0;
+
+    if (!pR128Ent->HasCRTC2)
+        return TRUE;
+
+    pR128Ent->pCrtc[1] = xf86CrtcCreate(pScrn, &r128_crtc_funcs);
+    if (!pR128Ent->pCrtc[1])
+        return FALSE;
+
+    pR128Ent->Controller[1] = xnfcalloc(sizeof(R128CrtcPrivateRec), 1);
+    if (!pR128Ent->Controller[1]) {
+        free(pR128Ent->Controller[0]);
+        return FALSE;
     }
 
-    if (mask & 2) {
-        if (!pR128Ent->HasCRTC2)
-            return TRUE;
-
-        pR128Ent->pCrtc[1] = xf86CrtcCreate(pScrn, &r128_crtc_funcs);
-        if (!pR128Ent->pCrtc[1])
-            return FALSE;
-
-        pR128Ent->Controller[1] = xnfcalloc(sizeof(R128CrtcPrivateRec), 1);
-        if (!pR128Ent->Controller[1]) {
-            free(pR128Ent->Controller[0]);
-            return FALSE;
-        }
-
-        pR128Ent->pCrtc[1]->driver_private = pR128Ent->Controller[1];
-        pR128Ent->Controller[1]->crtc_id = 1;
-    }
+    pR128Ent->pCrtc[1]->driver_private = pR128Ent->Controller[1];
+    pR128Ent->Controller[1]->crtc_id = 1;
 
     return TRUE;
 }

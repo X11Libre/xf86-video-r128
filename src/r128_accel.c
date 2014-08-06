@@ -1746,7 +1746,7 @@ static void R128CCEAccelInit(ScrnInfoPtr pScrn, XAAInfoRecPtr a)
 					   | HARDWARE_PATTERN_SCREEN_ORIGIN
 					   | BIT_ORDER_IN_BYTE_LSBFIRST);
 
-    if(!info->IsSecondary && xf86IsEntityShared(pScrn->entityList[0]))
+    if (xf86IsEntityShared(info->pEnt->index))
         a->RestoreAccelState           = R128RestoreCCEAccelState;
 
 }
@@ -1851,15 +1851,13 @@ static void R128MMIOAccelInit(ScrnInfoPtr pScrn, XAAInfoRecPtr a)
 					  | LEFT_EDGE_CLIPPING_NEGATIVE_X
 					  | SCANLINE_PAD_DWORD;
 
-    if(xf86IsEntityShared(pScrn->entityList[0]))
-    {
-        R128EntPtr pR128Ent = R128EntPriv(pScrn);
-
-        /*if there are more than one devices sharing this entity, we
-          have to assign this call back, otherwise the XAA will be
-          disabled */
-        if(pR128Ent->HasSecondary || pR128Ent->BypassSecondary)
-           a->RestoreAccelState           = R128RestoreAccelState;
+    if (xf86IsEntityShared(info->pEnt-index)) {
+        /* If there are more than one devices sharing this entity, we
+         * have to assign this call back, otherwise the XAA will be
+         * disabled.
+	 */
+        if (xf86GetNumEntityInstances(info->pEnt->index) > 1)
+            a->RestoreAccelState           = R128RestoreAccelState;
     }
 
 }

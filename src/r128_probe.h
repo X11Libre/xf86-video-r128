@@ -142,6 +142,7 @@ typedef struct _R128OutputPrivateRec {
     R128I2CBusRec ddc_i2c;
     int PanelXRes;
     int PanelYRes;
+    int PanelPwrDly;
 } R128OutputPrivateRec, *R128OutputPrivatePtr;
 
 #define R128_MAX_CRTC 2
@@ -151,7 +152,6 @@ typedef struct
 {
     Bool HasSecondary;
     Bool HasCRTC2;
-    Bool BypassSecondary;
     /*These two registers are used to make sure the CRTC2 is
       retored before CRTC_EXT, otherwise it could lead to blank screen.*/
     Bool IsSecondaryRestored;
@@ -160,7 +160,7 @@ typedef struct
     xf86CrtcPtr pCrtc[R128_MAX_CRTC];
     R128CrtcPrivatePtr Controller[R128_MAX_CRTC];
 
-    ScrnInfoPtr pSecondaryScrn;    
+    ScrnInfoPtr pSecondaryScrn;
     ScrnInfoPtr pPrimaryScrn;
 } R128EntRec, *R128EntPtr;
 

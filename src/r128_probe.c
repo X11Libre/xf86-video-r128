@@ -288,7 +288,6 @@ r128_get_scrninfo(int entity_num)
                 R128EntPtr pR128Ent;
                 pPriv->ptr = xnfcalloc(sizeof(R128EntRec), 1);
                 pR128Ent = pPriv->ptr;
-                pR128Ent->BypassSecondary = FALSE;
                 pR128Ent->HasSecondary = FALSE;
                 pR128Ent->IsSecondaryRestored = FALSE;
             }

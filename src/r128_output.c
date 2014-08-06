@@ -181,7 +181,7 @@ void R128DPMSSetOn(xf86OutputPtr output)
     switch(MonType) {
     case MT_LCD:
         OUTREGP(R128_LVDS_GEN_CNTL, R128_LVDS_BLON, ~R128_LVDS_BLON);
-        usleep(info->PanelPwrDly * 1000);
+        usleep(r128_output->PanelPwrDly * 1000);
         OUTREGP(R128_LVDS_GEN_CNTL, R128_LVDS_ON, ~R128_LVDS_ON);
         save->lvds_gen_cntl |=     (R128_LVDS_ON | R128_LVDS_BLON);
         break;
@@ -307,7 +307,7 @@ DisplayModePtr R128ProbeOutputModes(xf86OutputPtr output)
     for (mode = modes; mode != NULL; mode = mode->next) {
 	xf86SetModeCrtc(mode, INTERLACE_HALVE_V);
 	if (mode->status == MODE_OK)
-            mode->status = R128ValidMode(XF86_SCRN_ARG(pScrn), mode, TRUE, MODECHECK_FINAL);
+            mode->status = R128DoValidMode(output, mode, MODECHECK_FINAL);
     }
 
     xf86ValidateModesUserConfig(pScrn, modes);
@@ -457,10 +457,10 @@ Bool R128SetupConnectors(ScrnInfoPtr pScrn)
             }
             r128_output->ddc_i2c = i2c;
             R128I2CInit(output, &r128_output->pI2CBus, output->name);
-        } else if (otypes[i] == OUTPUT_LVDS) {
-            r128_output->PanelXRes = info->PanelXRes;
-            r128_output->PanelYRes = info->PanelYRes;
         }
+
+        if (otypes[i] != OUTPUT_VGA)
+            R128GetPanelInfoFromBIOS(output);
     }
 
     return TRUE;

@@ -661,8 +661,12 @@ R128DisplayVideo422(
     short drw_w, short drw_h
 ){
     R128InfoPtr info = R128PTR(pScrn);
+    R128EntPtr pR128Ent = R128EntPriv(pScrn);
+    xf86OutputPtr output = R128FirstOutput(pR128Ent->pCrtc[0]);
+    R128OutputPrivatePtr r128_output = output->driver_private;
     unsigned char *R128MMIO = info->MMIO;
     R128PortPrivPtr pPriv = info->adaptor->pPortPrivates[0].ptr;
+
     int v_inc, h_inc, step_by, tmp, v_inc_shift;
     int p1_h_accum_init, p23_h_accum_init;
     int p1_v_accum_init;
@@ -678,7 +682,7 @@ R128DisplayVideo422(
 
     rmx_active = INREG(R128_FP_VERT_STRETCH) & R128_VERT_STRETCH_ENABLE;
     if (rmx_active) {
-        v_inc = ((src_h * pScrn->currentMode->CrtcVDisplay / info->PanelYRes) << v_inc_shift) / drw_h;
+        v_inc = ((src_h * pScrn->currentMode->CrtcVDisplay / r128_output->PanelYRes) << v_inc_shift) / drw_h;
     } else {
         v_inc = (src_h << v_inc_shift) / drw_h;
     }
@@ -747,6 +751,9 @@ R128DisplayVideo420(
     short drw_w, short drw_h
 ){
     R128InfoPtr info = R128PTR(pScrn);
+    R128EntPtr pR128Ent = R128EntPriv(pScrn);
+    xf86OutputPtr output = R128FirstOutput(pR128Ent->pCrtc[0]);
+    R128OutputPrivatePtr r128_output = output->driver_private;
     unsigned char *R128MMIO = info->MMIO;
     R128PortPrivPtr pPriv = info->adaptor->pPortPrivates[0].ptr;
     int v_inc, h_inc, step_by, tmp, leftUV, v_inc_shift;
@@ -762,7 +769,7 @@ R128DisplayVideo420(
 
     rmx_active = INREG(R128_FP_VERT_STRETCH) & R128_VERT_STRETCH_ENABLE;
     if (rmx_active) {
-        v_inc = ((src_h * pScrn->currentMode->CrtcVDisplay / info->PanelYRes) << v_inc_shift) / drw_h;
+        v_inc = ((src_h * pScrn->currentMode->CrtcVDisplay / r128_output->PanelYRes) << v_inc_shift) / drw_h;
     } else {
         v_inc = (src_h << v_inc_shift) / drw_h;
     }
