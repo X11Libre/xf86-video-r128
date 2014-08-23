@@ -670,7 +670,7 @@ R128DisplayVideo422(
     int v_inc, h_inc, step_by, tmp, v_inc_shift;
     int p1_h_accum_init, p23_h_accum_init;
     int p1_v_accum_init;
-    Bool rmx_active;
+    Bool rmx_active = FALSE;
 
     R128ECP(pScrn, pPriv);
 
@@ -680,7 +680,8 @@ R128DisplayVideo422(
     if (pScrn->currentMode->Flags & V_DBLSCAN)
         v_inc_shift--;
 
-    rmx_active = INREG(R128_FP_VERT_STRETCH) & R128_VERT_STRETCH_ENABLE;
+    if (r128_output->PanelYRes > 0)
+        rmx_active = INREG(R128_FP_VERT_STRETCH) & R128_VERT_STRETCH_ENABLE;
     if (rmx_active) {
         v_inc = ((src_h * pScrn->currentMode->CrtcVDisplay / r128_output->PanelYRes) << v_inc_shift) / drw_h;
     } else {
@@ -759,7 +760,7 @@ R128DisplayVideo420(
     int v_inc, h_inc, step_by, tmp, leftUV, v_inc_shift;
     int p1_h_accum_init, p23_h_accum_init;
     int p1_v_accum_init, p23_v_accum_init;
-    Bool rmx_active;
+    Bool rmx_active = FALSE;
 
     v_inc_shift = 20;
     if (pScrn->currentMode->Flags & V_INTERLACE)
@@ -767,7 +768,8 @@ R128DisplayVideo420(
     if (pScrn->currentMode->Flags & V_DBLSCAN)
         v_inc_shift--;
 
-    rmx_active = INREG(R128_FP_VERT_STRETCH) & R128_VERT_STRETCH_ENABLE;
+    if (r128_output->PanelYRes > 0)
+        rmx_active = INREG(R128_FP_VERT_STRETCH) & R128_VERT_STRETCH_ENABLE;
     if (rmx_active) {
         v_inc = ((src_h * pScrn->currentMode->CrtcVDisplay / r128_output->PanelYRes) << v_inc_shift) / drw_h;
     } else {

@@ -87,7 +87,7 @@ static void r128_mode_set(xf86OutputPtr output, DisplayModePtr mode, DisplayMode
     xf86CrtcPtr crtc = output->crtc;
     R128CrtcPrivatePtr r128_crtc = crtc->driver_private;
 
-    if (r128_crtc->crtc_id == 0)
+    if (r128_crtc->crtc_id == 0 && !info->isPro2)
         R128InitRMXRegisters(&info->SavedReg, &info->ModeReg, output, adjusted_mode);
 
     if (r128_output->MonType == MT_DFP)
@@ -97,7 +97,7 @@ static void r128_mode_set(xf86OutputPtr output, DisplayModePtr mode, DisplayMode
     else if (r128_output->MonType == MT_CRT)
         R128InitDACRegisters(&info->SavedReg, &info->ModeReg, output);
 
-    if (r128_crtc->crtc_id == 0)
+    if (r128_crtc->crtc_id == 0 && !info->isPro2)
         R128RestoreRMXRegisters(pScrn, &info->ModeReg);
 
     if (r128_output->MonType == MT_DFP)
@@ -305,6 +305,13 @@ DisplayModePtr R128ProbeOutputModes(xf86OutputPtr output)
         modes = xf86GetDefaultModes();
 
     for (mode = modes; mode != NULL; mode = mode->next) {
+        if (r128_output->type == OUTPUT_DVI) {
+            if (mode->type & (M_T_DRIVER | M_T_PREFERRED)) {
+                r128_output->PanelXRes = mode->HDisplay;
+                r128_output->PanelYRes = mode->VDisplay;
+            }
+        }
+
 	xf86SetModeCrtc(mode, INTERLACE_HALVE_V);
 	if (mode->status == MODE_OK)
             mode->status = R128DoValidMode(output, mode, MODECHECK_FINAL);
@@ -459,7 +466,7 @@ Bool R128SetupConnectors(ScrnInfoPtr pScrn)
             R128I2CInit(output, &r128_output->pI2CBus, output->name);
         }
 
-        if (otypes[i] != OUTPUT_VGA)
+        if (otypes[i] == OUTPUT_LVDS)
             R128GetPanelInfoFromBIOS(output);
     }
 

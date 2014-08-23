@@ -479,6 +479,10 @@ void R128GetPanelInfoFromBIOS(xf86OutputPtr output)
     int FPHeader = 0;
     int i;
 
+    r128_output->PanelPwrDly = 200;
+    xf86GetOptValInteger(info->Options, OPTION_PANEL_WIDTH,  &(r128_output->PanelXRes));
+    xf86GetOptValInteger(info->Options, OPTION_PANEL_HEIGHT, &(r128_output->PanelYRes));
+
     if (!info->VBIOS) return;
     info->FPBIOSstart = 0;
 
@@ -511,8 +515,6 @@ void R128GetPanelInfoFromBIOS(xf86OutputPtr output)
     }
 
     if (!info->FPBIOSstart) return;
-    xf86GetOptValInteger(info->Options, OPTION_PANEL_WIDTH,  &(r128_output->PanelXRes));
-    xf86GetOptValInteger(info->Options, OPTION_PANEL_HEIGHT, &(r128_output->PanelYRes));
 
     if (!r128_output->PanelXRes)
         r128_output->PanelXRes = R128_BIOS16(info->FPBIOSstart + 25);
@@ -2850,13 +2852,6 @@ Bool R128InitCrtcRegisters(xf86CrtcPtr crtc, R128SavePtr save, DisplayModePtr mo
 
     save->crtc_ext_cntl |= R128_VGA_ATI_LINEAR | R128_XCRT_CNT_EN;
 
-    if (info->isDFP && !info->isPro2) {
-        if (r128_output->PanelXRes < mode->CrtcHDisplay)
-            mode->HDisplay = mode->CrtcHDisplay = r128_output->PanelXRes;
-        if (r128_output->PanelYRes < mode->CrtcVDisplay)
-            mode->VDisplay = mode->CrtcVDisplay = r128_output->PanelYRes;
-    }
-
     save->crtc_h_total_disp = ((((mode->CrtcHTotal / 8) - 1) & 0xffff)
 			      | (((mode->CrtcHDisplay / 8) - 1) << 16));
 
@@ -3240,7 +3235,7 @@ Bool R128InitDDARegisters(xf86CrtcPtr crtc, R128SavePtr save,
     VclkFreq = R128Div(pll->reference_freq * save->feedback_div,
 		       pll->reference_div * save->post_div);
 
-    if (info->isDFP && !info->isPro2) {
+    if (info->isDFP && !info->isPro2 && r128_output->PanelXRes > 0) {
         if (r128_output->PanelXRes != mode->CrtcHDisplay)
             VclkFreq = (VclkFreq * mode->CrtcHDisplay) / r128_output->PanelXRes;
     }
@@ -3313,7 +3308,7 @@ Bool R128InitDDA2Registers(xf86CrtcPtr crtc, R128SavePtr save,
     VclkFreq = R128Div(pll->reference_freq * save->feedback_div_2,
 		       pll->reference_div * save->post_div_2);
 
-    if (info->isDFP && !info->isPro2) {
+    if (info->isDFP && !info->isPro2 && r128_output->PanelXRes > 0) {
         if (r128_output->PanelXRes != mode->CrtcHDisplay)
             VclkFreq = (VclkFreq * mode->CrtcHDisplay) / r128_output->PanelXRes;
     }
@@ -3418,15 +3413,7 @@ ModeStatus R128DoValidMode(xf86OutputPtr output, DisplayModePtr mode, int flags)
     if (r128_output->MonType == MT_CRT)
         return MODE_OK;
 
-    if (info->isDFP) {
-        if (r128_output->PanelXRes < mode->CrtcHDisplay ||
-            r128_output->PanelYRes < mode->CrtcVDisplay)
-            return MODE_NOMODE;
-        else
-            return MODE_OK;
-    }
-
-    if (r128_output->MonType == MT_LCD) {
+    if (r128_output->MonType == MT_DFP || r128_output->MonType == MT_LCD) {
 	if (mode->Flags & V_INTERLACE) return MODE_NO_INTERLACE;
 	if (mode->Flags & V_DBLSCAN)   return MODE_NO_DBLESCAN;
     }
