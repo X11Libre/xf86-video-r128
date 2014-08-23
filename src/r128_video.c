@@ -574,16 +574,16 @@ R128CopyData420(
 
 uint32_t
 R128AllocateMemory(
-   ScrnInfoPtr pScrn,
-   void **mem_struct,
-   int size,
-   int align,
-   Bool need_accel
+    ScrnInfoPtr pScrn,
+    void **mem_struct,
+    int size,
+    int align,
+    Bool need_accel
 ){
-   R128InfoPtr info = R128PTR(pScrn);
-   ScreenPtr pScreen = xf86ScrnToScreen(pScrn);
-   Bool do_linear = !need_accel;
-   uint32_t offset = 0;
+    R128InfoPtr info = R128PTR(pScrn);
+    ScreenPtr pScreen = xf86ScrnToScreen(pScrn);
+    Bool do_linear = !need_accel;
+    uint32_t offset = 0;
 
 #ifdef HAVE_XAA_H
     if (!info->accel && need_accel)
@@ -608,7 +608,7 @@ R128AllocateMemory(
         offset = area->offset;
     }
 #endif
-   if (!info->useEXA && do_linear) {
+    if (!info->useEXA && do_linear) {
         FBLinearPtr linear = *mem_struct;
         int cpp = info->CurrentLayout.pixel_bytes;
 
@@ -643,9 +643,9 @@ R128AllocateMemory(
         }
 
         offset = linear->offset * cpp;
-   }
+    }
 
-   return offset;
+    return offset;
 }
 
 static void

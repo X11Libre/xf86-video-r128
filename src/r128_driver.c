@@ -507,7 +507,7 @@ void R128GetPanelInfoFromBIOS(xf86OutputPtr output)
     if (!FPHeader) return;
 
     /* Assume that only one panel is attached and supported */
-    for (i = FPHeader+20; i < FPHeader+84; i += 2) {
+    for (i = FPHeader + 20; i < FPHeader + 84; i += 2) {
         if (R128_BIOS16(i) != 0) {
             info->FPBIOSstart = R128_BIOS16(i);
             break;
@@ -3409,6 +3409,7 @@ ModeStatus R128DoValidMode(xf86OutputPtr output, DisplayModePtr mode, int flags)
     ScrnInfoPtr pScrn = output->scrn;
     R128InfoPtr info  = R128PTR(pScrn);
     R128OutputPrivatePtr r128_output = output->driver_private;
+    int i, j;
 
     if (r128_output->MonType == MT_CRT)
         return MODE_OK;
@@ -3419,9 +3420,8 @@ ModeStatus R128DoValidMode(xf86OutputPtr output, DisplayModePtr mode, int flags)
     }
 
     if (r128_output->MonType == MT_LCD && info->VBIOS) {
-	int i;
 	for (i = info->FPBIOSstart + 64; R128_BIOS16(i) != 0; i += 2) {
-	    int j = R128_BIOS16(i);
+	    j = R128_BIOS16(i);
 
 	    if (mode->CrtcHDisplay == R128_BIOS16(j) &&
 		mode->CrtcVDisplay == R128_BIOS16(j + 2)) {
@@ -3432,8 +3432,8 @@ ModeStatus R128DoValidMode(xf86OutputPtr output, DisplayModePtr mode, int flags)
 			       (float)mode->Clock / 1000);
 
 		    /* Assume we are using expanded mode */
-		    if (R128_BIOS16(j+5)) j  = R128_BIOS16(j+5);
-		    else                  j += 9;
+		    if (R128_BIOS16(j + 5)) j  = R128_BIOS16(j + 5);
+		    else                    j += 9;
 
 		    mode->Clock = (uint32_t)R128_BIOS16(j) * 10;
 
