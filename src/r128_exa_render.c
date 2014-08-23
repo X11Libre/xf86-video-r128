@@ -157,8 +157,10 @@ R128GetDatatypePict2(uint32_t format, uint32_t *type)
 static Bool
 R128CheckCompositeTexture(PicturePtr pPict, PicturePtr pDstPict, int op)
 {
+#if R128_DEBUG
     ScreenPtr     pScreen   = pDstPict->pDrawable->pScreen;
     ScrnInfoPtr   pScrn     = xf86ScreenToScrn(pScreen);
+#endif
 
     unsigned int repeatType = pPict->repeat ? pPict->repeatType : RepeatNone;
     uint32_t tmp1;
@@ -198,8 +200,10 @@ R128CheckCompositeTexture(PicturePtr pPict, PicturePtr pDstPict, int op)
 static Bool
 R128CCECheckComposite(int op, PicturePtr pSrcPicture, PicturePtr pMaskPicture, PicturePtr pDstPicture)
 {
+#if R128_DEBUG
     ScreenPtr     pScreen   = pDstPicture->pDrawable->pScreen;
     ScrnInfoPtr   pScrn     = xf86ScreenToScrn(pScreen);
+#endif
 
     PixmapPtr pSrcPixmap, pDstPixmap;
     uint32_t tmp1;

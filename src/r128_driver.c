@@ -3109,7 +3109,9 @@ void R128InitLVDSRegisters(R128SavePtr orig, R128SavePtr save, xf86OutputPtr out
 void R128InitPLLRegisters(xf86CrtcPtr crtc, R128SavePtr save,
 				R128PLLPtr pll, double dot_clock)
 {
+#if R128_DEBUG
     ScrnInfoPtr pScrn  = crtc->scrn;
+#endif
     unsigned long freq = dot_clock * 100;
     struct {
 	int divider;
@@ -3162,7 +3164,9 @@ void R128InitPLLRegisters(xf86CrtcPtr crtc, R128SavePtr save,
 void R128InitPLL2Registers(xf86CrtcPtr crtc, R128SavePtr save,
 				   R128PLLPtr pll, double dot_clock)
 {
+#if R128_DEBUG
     ScrnInfoPtr pScrn  = crtc->scrn;
+#endif
     unsigned long freq = dot_clock * 100;
     struct {
 	int divider;
