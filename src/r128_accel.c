@@ -1851,7 +1851,7 @@ static void R128MMIOAccelInit(ScrnInfoPtr pScrn, XAAInfoRecPtr a)
 					  | LEFT_EDGE_CLIPPING_NEGATIVE_X
 					  | SCANLINE_PAD_DWORD;
 
-    if (xf86IsEntityShared(info->pEnt-index)) {
+    if (xf86IsEntityShared(info->pEnt->index)) {
         /* If there are more than one devices sharing this entity, we
          * have to assign this call back, otherwise the XAA will be
          * disabled.
