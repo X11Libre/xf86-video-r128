@@ -35,6 +35,7 @@
 
 #include "xf86.h"
 #include "xf86Modes.h"
+#include "X11/extensions/dpmsconst.h"
 
 #include "r128.h"
 #include "r128_probe.h"
