@@ -225,6 +225,7 @@ typedef struct {
 				/* PLL registers */
     uint32_t   ppll_ref_div;
     uint32_t   ppll_div_3;
+    uint32_t   ppll_div_0;
     uint32_t   htotal_cntl;
 
 				/* Computed values for PLL2 */

@@ -2332,6 +2332,15 @@ void R128RestorePLLRegisters(ScrnInfoPtr pScrn, R128SavePtr restore)
     R128PLLWriteUpdate(pScrn);
     R128PLLWaitForReadUpdateComplete(pScrn);
 
+    OUTPLLP(pScrn, R128_PPLL_DIV_0,
+	    restore->ppll_div_0, ~R128_PPLL_FB0_DIV_MASK);
+/*    R128PLLWriteUpdate(pScrn);*/
+    OUTPLLP(pScrn, R128_PPLL_DIV_0,
+	    restore->ppll_div_0, ~R128_PPLL_POST0_DIV_MASK);
+
+    R128PLLWriteUpdate(pScrn);
+    R128PLLWaitForReadUpdateComplete(pScrn);
+
     OUTPLL(R128_HTOTAL_CNTL, restore->htotal_cntl);
 /*    R128PLLWriteUpdate(pScrn);*/
 
@@ -2527,6 +2536,7 @@ static void R128SavePLLRegisters(ScrnInfoPtr pScrn, R128SavePtr save)
 {
     save->ppll_ref_div         = INPLL(pScrn, R128_PPLL_REF_DIV);
     save->ppll_div_3           = INPLL(pScrn, R128_PPLL_DIV_3);
+    save->ppll_div_0           = INPLL(pScrn, R128_PPLL_DIV_0);
     save->htotal_cntl          = INPLL(pScrn, R128_HTOTAL_CNTL);
 
     R128TRACE(("Read: 0x%08x 0x%08x 0x%08x\n",
