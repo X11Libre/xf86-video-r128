@@ -390,14 +390,34 @@ void R128SetupGenericConnectors(ScrnInfoPtr pScrn, R128OutputType *otypes)
 
     if (!pR128Ent->HasCRTC2 && !info->isDFP) {
         otypes[0] = OUTPUT_VGA;
+        otypes[1] = OUTPUT_NONE;
         return;
     } else if (!pR128Ent->HasCRTC2) {
         otypes[0] = OUTPUT_DVI;
+        otypes[1] = OUTPUT_NONE;
 	return;
     }
 
     otypes[0] = OUTPUT_LVDS;
     otypes[1] = OUTPUT_VGA;
+}
+
+void R128GetConnectorInfoFromBIOS(ScrnInfoPtr pScrn, R128OutputType *otypes)
+{
+    R128InfoPtr info = R128PTR(pScrn);
+    uint16_t bios_header;
+    int offset;
+
+    /* XXX: Currently, this function only finds VGA ports misidentified as DVI. */
+    if (!info->VBIOS || otypes[0] != OUTPUT_DVI) return;
+
+    bios_header = R128_BIOS16(0x48);
+    offset = R128_BIOS16(bios_header + 0x60);
+
+    if (offset) {
+        otypes[0] = OUTPUT_VGA;
+        xf86DrvMsg(pScrn->scrnIndex, X_INFO, "Found CRT table, assuming VGA connector\n");
+    }
 }
 
 Bool R128SetupConnectors(ScrnInfoPtr pScrn)
@@ -411,8 +431,8 @@ Bool R128SetupConnectors(ScrnInfoPtr pScrn)
     int num_dvi = 0;
     int i;
 
-    /* XXX: Can we make R128GetConnectorInfoFromBIOS()? */
     R128SetupGenericConnectors(pScrn, otypes);
+    R128GetConnectorInfoFromBIOS(pScrn, otypes);
 
     for (i = 0; i < R128_MAX_BIOS_CONNECTOR; i++) {
         if (otypes[i] == OUTPUT_VGA)
