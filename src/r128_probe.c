@@ -234,6 +234,7 @@ r128_get_scrninfo(int entity_num)
 {
     ScrnInfoPtr   pScrn = NULL;
     EntityInfoPtr pEnt;
+    DevUnion*     pPriv;
 
     pScrn = xf86ConfigPciEntity(pScrn, 0, entity_num, R128PciChipsets,
                                 NULL,
@@ -261,6 +262,20 @@ r128_get_scrninfo(int entity_num)
 
     pEnt = xf86GetEntityInfo(entity_num);
 
+    /* Allocate private entity used for convenience with one or two heads. */
+    if (gR128EntityIndex < 0) {
+        gR128EntityIndex = xf86AllocateEntityPrivateIndex();
+        pPriv = xf86GetEntityPrivate(pScrn->entityList[0], gR128EntityIndex);
+
+        if (!pPriv->ptr) {
+            R128EntPtr pR128Ent;
+            pPriv->ptr = xnfcalloc(sizeof(R128EntRec), 1);
+            pR128Ent = pPriv->ptr;
+            pR128Ent->HasSecondary = FALSE;
+            pR128Ent->IsSecondaryRestored = FALSE;
+        }
+    }
+
     /* mobility cards support Dual-Head, mark the entity as sharable*/
     if (pEnt->chipset == PCI_CHIP_RAGE128LE ||
         pEnt->chipset == PCI_CHIP_RAGE128LF ||
@@ -268,7 +283,6 @@ r128_get_scrninfo(int entity_num)
         pEnt->chipset == PCI_CHIP_RAGE128ML)
     {
         static int instance = 0;
-        DevUnion* pPriv;
 
         xf86SetEntitySharable(entity_num);
 
@@ -276,22 +290,6 @@ r128_get_scrninfo(int entity_num)
                                        pScrn->entityList[0],
                                        instance);
 
-        if (gR128EntityIndex < 0)
-        {
-            gR128EntityIndex = xf86AllocateEntityPrivateIndex();
-
-            pPriv = xf86GetEntityPrivate(pScrn->entityList[0],
-                                         gR128EntityIndex);
-
-            if (!pPriv->ptr)
-            {
-                R128EntPtr pR128Ent;
-                pPriv->ptr = xnfcalloc(sizeof(R128EntRec), 1);
-                pR128Ent = pPriv->ptr;
-                pR128Ent->HasSecondary = FALSE;
-                pR128Ent->IsSecondaryRestored = FALSE;
-            }
-        }
         instance++;
     }
 
