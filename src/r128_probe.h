@@ -97,7 +97,7 @@
 #define PCI_CHIP_RAGE128TT		0x5454
 #define PCI_CHIP_RAGE128TU		0x5455
 
-extern DriverRec R128;
+extern _X_EXPORT DriverRec R128;
 
 typedef enum
 {
