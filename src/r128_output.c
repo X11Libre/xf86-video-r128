@@ -230,6 +230,7 @@ static R128MonitorType R128DisplayDDCConnected(xf86OutputPtr output)
 {
     ScrnInfoPtr pScrn = output->scrn;
     R128InfoPtr info = R128PTR(pScrn);
+    R128EntPtr pR128Ent = R128EntPriv(pScrn);
     unsigned char *R128MMIO = info->MMIO;
     R128OutputPrivatePtr r128_output = output->driver_private;
 
@@ -240,8 +241,8 @@ static R128MonitorType R128DisplayDDCConnected(xf86OutputPtr output)
     if (r128_output->type == OUTPUT_LVDS) {
         return MT_LCD;
     } else if (r128_output->type == OUTPUT_VGA) {
-        mask1 = R128_GPIO_MONID_MASK_1 | (info->isPro2 ? R128_GPIO_MONID_MASK_2 : R128_GPIO_MONID_MASK_3);
-        mask2 = R128_GPIO_MONID_A_1    | (info->isPro2 ? R128_GPIO_MONID_A_2    : R128_GPIO_MONID_A_3);
+        mask1 = R128_GPIO_MONID_MASK_1 | (pR128Ent->HasCRTC2 ? R128_GPIO_MONID_MASK_3 : R128_GPIO_MONID_MASK_2);
+        mask2 = R128_GPIO_MONID_A_1    | (pR128Ent->HasCRTC2 ? R128_GPIO_MONID_A_3    : R128_GPIO_MONID_A_2);
     } else {
         mask1 = R128_GPIO_MONID_MASK_0 | R128_GPIO_MONID_MASK_3;
         mask2 = R128_GPIO_MONID_A_0    | R128_GPIO_MONID_A_3;
@@ -477,7 +478,7 @@ Bool R128SetupConnectors(ScrnInfoPtr pScrn)
 
         if (otypes[i] != OUTPUT_LVDS && info->DDC) {
             i2c.ddc_reg      = R128_GPIO_MONID;
-            if (otypes[i] == OUTPUT_VGA && info->isPro2) {
+            if (otypes[i] == OUTPUT_VGA && !pR128Ent->HasCRTC2) {
                 i2c.put_clk_mask = R128_GPIO_MONID_EN_2;
                 i2c.get_clk_mask = R128_GPIO_MONID_Y_2;
             } else {
