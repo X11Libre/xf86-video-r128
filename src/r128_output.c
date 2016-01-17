@@ -234,7 +234,7 @@ static R128MonitorType R128DisplayDDCConnected(xf86OutputPtr output)
     unsigned char *R128MMIO = info->MMIO;
     R128OutputPrivatePtr r128_output = output->driver_private;
 
-    R128MonitorType MonType = MT_NONE;
+    R128MonitorType MonType = MT_CRT;
     xf86MonPtr *MonInfo = &output->MonInfo;
     uint32_t mask1, mask2;
 
@@ -269,9 +269,6 @@ static R128MonitorType R128DisplayDDCConnected(xf86OutputPtr output)
             else
                 MonType = MT_CRT;
 	}
-    } else if (xf86I2CProbeAddress(r128_output->pI2CBus, 0x0060)) {
-        /* Just in case. */
-        MonType = MT_CRT;
     }
 
     return MonType;
