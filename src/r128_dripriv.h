@@ -37,17 +37,7 @@
 #ifndef _R128_DRIPRIV_H_
 #define _R128_DRIPRIV_H_
 
-#include "GL/glxint.h"
-
 #define R128_MAX_DRAWABLES 256
-
-extern void GlxSetVisualConfigs(int nconfigs, __GLXvisualConfig *configs,
-				void **configprivs);
-
-typedef struct {
-    /* Nothing here yet */
-    int dummy;
-} R128ConfigPrivRec, *R128ConfigPrivPtr;
 
 typedef struct {
     /* Nothing here yet */

@@ -1672,9 +1672,7 @@ Bool R128ScreenInit(SCREEN_INIT_ARGS_DECL)
 #ifdef R128DRI
 				/* Setup DRI after visuals have been
 				   established, but before fbScreenInit is
-				   called.  fbScreenInit will eventually
-				   call the driver's InitGLXVisuals call
-				   back. */
+				   called. */
     {
 	/* FIXME: When we move to dynamic allocation of back and depth
 	   buffers, we will want to revisit the following check for 3

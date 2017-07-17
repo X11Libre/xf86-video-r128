@@ -70,7 +70,6 @@
 #define _XF86DRI_SERVER_
 #include "r128_dripriv.h"
 #include "dri.h"
-#include "GL/glxint.h"
 #endif
 
 #include "fb.h"
@@ -382,9 +381,6 @@ typedef struct {
     DRIInfoPtr        pDRIInfo;
     int               drmFD;
     drm_context_t     drmCtx;
-    int               numVisualConfigs;
-    __GLXvisualConfig *pVisualConfigs;
-    R128ConfigPrivPtr pVisualConfigsPriv;
 
     drm_handle_t      fbHandle;
 
