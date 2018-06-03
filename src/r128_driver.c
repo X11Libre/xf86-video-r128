@@ -643,8 +643,6 @@ static Bool R128GetPLLParameters(ScrnInfoPtr pScrn)
 /* This is called by R128PreInit to set up the default visual. */
 static Bool R128PreInitVisual(ScrnInfoPtr pScrn)
 {
-    R128InfoPtr info          = R128PTR(pScrn);
-
     if (!xf86SetDepthBpp(pScrn, 0, 0, 0, (Support24bppFb
 					  | Support32bppFb
 					  | SupportConvert32to24
@@ -665,23 +663,6 @@ static Bool R128PreInitVisual(ScrnInfoPtr pScrn)
     }
 
     xf86PrintDepthBpp(pScrn);
-
-    info->fifo_slots  = 0;
-    info->pix24bpp    = xf86GetBppFromDepth(pScrn, pScrn->depth);
-    info->CurrentLayout.bitsPerPixel = pScrn->bitsPerPixel;
-    info->CurrentLayout.depth        = pScrn->depth;
-    info->CurrentLayout.pixel_bytes  = pScrn->bitsPerPixel / 8;
-    info->CurrentLayout.pixel_code   = (pScrn->bitsPerPixel != 16
-				       ? pScrn->bitsPerPixel
-				       : pScrn->depth);
-
-    xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-	       "Pixel depth = %d bits stored in %d byte%s (%d bpp pixmaps)\n",
-	       pScrn->depth,
-	       info->CurrentLayout.pixel_bytes,
-	       info->CurrentLayout.pixel_bytes > 1 ? "s" : "",
-	       info->pix24bpp);
-
 
     if (!xf86SetDefaultVisual(pScrn, -1)) return FALSE;
 
@@ -1309,6 +1290,22 @@ Bool R128PreInit(ScrnInfoPtr pScrn, int flags)
     if (!R128PreInitGamma(pScrn)) {
         goto fail;
     }
+
+    info->fifo_slots  = 0;
+    info->pix24bpp    = xf86GetBppFromDepth(pScrn, pScrn->depth);
+    info->CurrentLayout.bitsPerPixel = pScrn->bitsPerPixel;
+    info->CurrentLayout.depth        = pScrn->depth;
+    info->CurrentLayout.pixel_bytes  = pScrn->bitsPerPixel / 8;
+    info->CurrentLayout.pixel_code   = (pScrn->bitsPerPixel != 16
+                                       ? pScrn->bitsPerPixel
+                                       : pScrn->depth);
+
+    xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+           "Pixel depth = %d bits stored in %d byte%s (%d bpp pixmaps)\n",
+           pScrn->depth,
+           info->CurrentLayout.pixel_bytes,
+           info->CurrentLayout.pixel_bytes > 1 ? "s" : "",
+           info->pix24bpp);
 
 				/* We can't do this until we have a
 				   pScrn->display. */
