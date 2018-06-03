@@ -1246,6 +1246,8 @@ Bool R128PreInit(ScrnInfoPtr pScrn, int flags)
 
     R128TRACE(("R128PreInit\n"));
 
+    pScrn->monitor = pScrn->confScreen->monitor;
+
     if (pScrn->numEntities != 1) return FALSE;
 
     if (!R128GetRec(pScrn)) return FALSE;
@@ -1280,7 +1282,6 @@ Bool R128PreInit(ScrnInfoPtr pScrn, int flags)
 
     pScrn->racMemFlags  = RAC_FB | RAC_COLORMAP | RAC_VIEWPORT | RAC_CURSOR;
 #endif
-    pScrn->monitor      = pScrn->confScreen->monitor;
 
     /* Allocate an xf86CrtcConfig */
     xf86CrtcConfigInit(pScrn, &R128CRTCResizeFuncs);
