@@ -1248,6 +1248,14 @@ Bool R128PreInit(ScrnInfoPtr pScrn, int flags)
 
     pScrn->monitor = pScrn->confScreen->monitor;
 
+    if (!R128PreInitVisual(pScrn)) {
+        return FALSE;
+    }
+
+    if (!R128PreInitGamma(pScrn)) {
+        return FALSE;
+    }
+
     if (pScrn->numEntities != 1) return FALSE;
 
     if (!R128GetRec(pScrn)) return FALSE;
@@ -1285,12 +1293,6 @@ Bool R128PreInit(ScrnInfoPtr pScrn, int flags)
 
     /* Allocate an xf86CrtcConfig */
     xf86CrtcConfigInit(pScrn, &R128CRTCResizeFuncs);
-
-    if (!R128PreInitVisual(pScrn))    goto fail;
-
-    if (!R128PreInitGamma(pScrn)) {
-        goto fail;
-    }
 
     info->fifo_slots  = 0;
     info->pix24bpp    = xf86GetBppFromDepth(pScrn, pScrn->depth);
