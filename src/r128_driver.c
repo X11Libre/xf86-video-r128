@@ -1306,6 +1306,10 @@ Bool R128PreInit(ScrnInfoPtr pScrn, int flags)
 
     if (!R128PreInitVisual(pScrn))    goto fail;
 
+    if (!R128PreInitGamma(pScrn)) {
+        goto fail;
+    }
+
 				/* We can't do this until we have a
 				   pScrn->display. */
     xf86CollectOptions(pScrn, NULL);
@@ -1401,8 +1405,6 @@ Bool R128PreInit(ScrnInfoPtr pScrn, int flags)
 
     /* Get ScreenInit function */
     if (!xf86LoadSubModule(pScrn, "fb")) return FALSE;
-
-    if (!R128PreInitGamma(pScrn))              goto fail;
 
     if (!R128PreInitCursor(pScrn))             goto fail;
 
