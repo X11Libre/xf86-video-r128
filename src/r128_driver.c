@@ -1278,9 +1278,6 @@ Bool R128PreInit(ScrnInfoPtr pScrn, int flags)
     pScrn->racMemFlags  = RAC_FB | RAC_COLORMAP | RAC_VIEWPORT | RAC_CURSOR;
 #endif
 
-    /* Allocate an xf86CrtcConfig */
-    xf86CrtcConfigInit(pScrn, &R128CRTCResizeFuncs);
-
     info->fifo_slots  = 0;
     info->pix24bpp    = xf86GetBppFromDepth(pScrn, pScrn->depth);
     info->CurrentLayout.bitsPerPixel = pScrn->bitsPerPixel;
@@ -1359,6 +1356,9 @@ Bool R128PreInit(ScrnInfoPtr pScrn, int flags)
 	xf86DrvMsg(pScrn->scrnIndex, X_CONFIG,
 		   "Using framebuffer device\n");
     }
+
+    /* Allocate an xf86CrtcConfig */
+    xf86CrtcConfigInit(pScrn, &R128CRTCResizeFuncs);
 
     if (info->FBDev) {
 	/* check for linux framebuffer device */
