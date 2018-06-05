@@ -1226,11 +1226,47 @@ static const xf86CrtcConfigFuncsRec R128CRTCResizeFuncs = {
     R128CRTCResize
 };
 
+static Bool R128LegacyMS(ScrnInfoPtr pScrn)
+{
+    R128InfoPtr      info = R128PTR(pScrn);
+    xf86Int10InfoPtr pInt10 = NULL;
+    Bool ret = FALSE;
+
+    if (info->FBDev) {
+        /* check for linux framebuffer device */
+        if (!xf86LoadSubModule(pScrn, "fbdevhw")) goto exit;
+        if (!fbdevHWInit(pScrn, info->PciInfo, NULL)) goto exit;
+        pScrn->SwitchMode    = fbdevHWSwitchModeWeak();
+        pScrn->AdjustFrame   = fbdevHWAdjustFrameWeak();
+        pScrn->ValidMode     = fbdevHWValidModeWeak();
+    } else {
+        if (!R128PreInitInt10(pScrn, &pInt10)) goto exit;
+    }
+
+    if (!R128PreInitConfig(pScrn)) goto freeInt10;
+
+    xf86CrtcSetSizeRange(pScrn, 320, 200, 4096, 4096);
+
+    /* Don't fail on this one */
+    info->DDC = R128PreInitDDC(pScrn, pInt10);
+
+    if (!R128PreInitControllers(pScrn, pInt10)) goto freeInt10;
+
+    ret = TRUE;
+freeInt10:
+    /* Free int10 info */
+    if (pInt10) {
+        xf86FreeInt10(pInt10);
+    }
+
+exit:
+    return ret;
+}
+
 /* R128PreInit is called once at server startup. */
 Bool R128PreInit(ScrnInfoPtr pScrn, int flags)
 {
     R128InfoPtr      info;
-    xf86Int10InfoPtr pInt10 = NULL;
 
     R128TRACE(("R128PreInit\n"));
 
@@ -1360,26 +1396,7 @@ Bool R128PreInit(ScrnInfoPtr pScrn, int flags)
     /* Allocate an xf86CrtcConfig */
     xf86CrtcConfigInit(pScrn, &R128CRTCResizeFuncs);
 
-    if (info->FBDev) {
-	/* check for linux framebuffer device */
-	if (!xf86LoadSubModule(pScrn, "fbdevhw")) return FALSE;
-	if (!fbdevHWInit(pScrn, info->PciInfo, NULL)) return FALSE;
-	pScrn->SwitchMode    = fbdevHWSwitchModeWeak();
-	pScrn->AdjustFrame   = fbdevHWAdjustFrameWeak();
-	pScrn->ValidMode     = fbdevHWValidModeWeak();
-    }
-
-    if (!info->FBDev)
-	if (!R128PreInitInt10(pScrn, &pInt10))  goto fail;
-
-    if (!R128PreInitConfig(pScrn))              goto fail;
-
-    xf86CrtcSetSizeRange(pScrn, 320, 200, 4096, 4096);
-
-    /* Don't fail on this one */
-    info->DDC = R128PreInitDDC(pScrn, pInt10);
-
-    if (!R128PreInitControllers(pScrn, pInt10)) goto fail;
+    R128LegacyMS(pScrn);
 
     if (!xf86InitialConfiguration(pScrn, TRUE)) {
         xf86DrvMsg(pScrn->scrnIndex, X_ERROR, "No valid modes.\n");
@@ -1417,10 +1434,6 @@ Bool R128PreInit(ScrnInfoPtr pScrn, int flags)
 	info->VBIOS = NULL;
     }
 
-				/* Free int10 info */
-    if (pInt10)
-	xf86FreeInt10(pInt10);
-
     if (info->MMIO) R128UnmapMMIO(pScrn);
     info->MMIO = NULL;
 
@@ -1434,10 +1447,6 @@ Bool R128PreInit(ScrnInfoPtr pScrn, int flags)
 	free(info->VBIOS);
 	info->VBIOS = NULL;
     }
-
-				/* Free int10 info */
-    if (pInt10)
-	xf86FreeInt10(pInt10);
 
 #ifdef WITH_VGAHW
     if (info->VGAAccess)
