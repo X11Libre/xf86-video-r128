@@ -1213,20 +1213,6 @@ static Bool R128PreInitControllers(ScrnInfoPtr pScrn, xf86Int10InfoPtr pInt10)
     return !!found;
 }
 
-static void
-R128ProbeDDC(ScrnInfoPtr pScrn, int indx)
-{
-    vbeInfoPtr pVbe;
-
-#if !defined(__powerpc__) && !defined(__alpha__) && !defined(__sparc__)
-    if (xf86LoadSubModule(pScrn, "vbe")) {
-	pVbe = VBEInit(NULL,indx);
-	ConfiguredMonitor = vbeDoEDID(pVbe, NULL);
-	vbeFree(pVbe);
-    }
-#endif
-}
-
 static Bool R128CRTCResize(ScrnInfoPtr pScrn, int width, int height)
 {
     pScrn->virtualX = width;
@@ -1245,6 +1231,10 @@ Bool R128PreInit(ScrnInfoPtr pScrn, int flags)
     xf86Int10InfoPtr pInt10 = NULL;
 
     R128TRACE(("R128PreInit\n"));
+
+    if (flags & PROBE_DETECT) {
+        return TRUE;
+    }
 
     pScrn->monitor = pScrn->confScreen->monitor;
 
@@ -1266,11 +1256,6 @@ Bool R128PreInit(ScrnInfoPtr pScrn, int flags)
 
     info->pEnt          = xf86GetEntityInfo(pScrn->entityList[0]);
     if (info->pEnt->location.type != BUS_PCI) goto fail;
-
-    if (flags & PROBE_DETECT) {
-	R128ProbeDDC(pScrn, info->pEnt->index);
-	return TRUE;
-    }
 
     info->PciInfo       = xf86GetPciInfoForEntity(info->pEnt->index);
 
