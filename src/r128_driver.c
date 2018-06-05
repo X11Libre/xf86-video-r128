@@ -680,29 +680,31 @@ static Bool R128PreInitVisual(ScrnInfoPtr pScrn)
 static Bool R128PreInitWeight(ScrnInfoPtr pScrn)
 {
     R128InfoPtr info          = R128PTR(pScrn);
+    rgb defaultWeight = { 0, 0, 0 };
 
-				/* Save flag for 6 bit DAC to use for
-				   setting CRTC registers.  Otherwise use
-				   an 8 bit DAC, even if xf86SetWeight sets
-				   pScrn->rgbBits to some value other than
-				   8. */
+    /* Save flag for 6 bit DAC to use for
+       setting CRTC registers.  Otherwise use
+       an 8 bit DAC, even if xf86SetWeight sets
+       pScrn->rgbBits to some value other than
+       8. */
+    pScrn->rgbBits = 8;
     info->dac6bits = FALSE;
-    if (pScrn->depth > 8) {
-	rgb defaultWeight = { 0, 0, 0 };
-	if (!xf86SetWeight(pScrn, defaultWeight, defaultWeight)) return FALSE;
-    } else {
-	pScrn->rgbBits = 8;
-	if (xf86ReturnOptValBool(info->Options, OPTION_DAC_6BIT, FALSE)) {
-	    pScrn->rgbBits = 6;
-	    info->dac6bits = TRUE;
-	}
+    if (pScrn->depth <= 8) {
+        if (xf86ReturnOptValBool(info->Options, OPTION_DAC_6BIT, FALSE)) {
+            pScrn->rgbBits = 6;
+            info->dac6bits = TRUE;
+        }
     }
+
+    if (pScrn->depth > 8) {
+        if (!xf86SetWeight(pScrn, defaultWeight, defaultWeight)) return FALSE;
+    }
+
     xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-	       "Using %d bits per RGB (%d bit DAC)\n",
-	       pScrn->rgbBits, info->dac6bits ? 6 : 8);
+               "Using %d bits per RGB (%d bit DAC)\n",
+               pScrn->rgbBits, info->dac6bits ? 6 : 8);
 
     return TRUE;
-
 }
 
 /* This is called by R128PreInit to handle config file overrides for things
