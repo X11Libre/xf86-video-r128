@@ -47,6 +47,117 @@
 #include "r128_probe.h"
 #include "r128_reg.h"
 
+
+/* Define CRTC registers for requested video mode. */
+Bool R128InitCrtcRegisters(xf86CrtcPtr crtc, R128SavePtr save, DisplayModePtr mode)
+{
+    ScrnInfoPtr pScrn = crtc->scrn;
+    R128InfoPtr info  = R128PTR(pScrn);
+    xf86OutputPtr output = R128FirstOutput(crtc);
+    R128OutputPrivatePtr r128_output = output->driver_private;
+
+    int    format;
+    int    hsync_start;
+    int    hsync_wid;
+    int    hsync_fudge;
+    int    vsync_wid;
+    int    hsync_fudge_default[] = { 0x00, 0x12, 0x09, 0x09, 0x06, 0x05 };
+    int    hsync_fudge_fp[]      = { 0x12, 0x11, 0x09, 0x09, 0x05, 0x05 };
+//   int    hsync_fudge_fp_crt[]  = { 0x12, 0x10, 0x08, 0x08, 0x04, 0x04 };
+
+    switch (info->CurrentLayout.pixel_code) {
+    case 4:  format = 1; break;
+    case 8:  format = 2; break;
+    case 15: format = 3; break;      /*  555 */
+    case 16: format = 4; break;      /*  565 */
+    case 24: format = 5; break;      /*  RGB */
+    case 32: format = 6; break;      /* xRGB */
+    default:
+    xf86DrvMsg(pScrn->scrnIndex, X_ERROR,
+           "Unsupported pixel depth (%d)\n",
+           info->CurrentLayout.bitsPerPixel);
+    return FALSE;
+    }
+
+    if (r128_output->MonType == MT_LCD || r128_output->MonType == MT_DFP)
+    hsync_fudge = hsync_fudge_fp[format-1];
+    else
+        hsync_fudge = hsync_fudge_default[format-1];
+
+    save->crtc_gen_cntl = (R128_CRTC_EXT_DISP_EN
+              | R128_CRTC_EN
+              | (format << 8)
+              | ((mode->Flags & V_DBLSCAN)
+                 ? R128_CRTC_DBL_SCAN_EN
+                 : 0)
+              | ((mode->Flags & V_INTERLACE)
+                 ? R128_CRTC_INTERLACE_EN
+                 : 0)
+              | ((mode->Flags & V_CSYNC)
+                 ? R128_CRTC_CSYNC_EN
+                 : 0));
+
+    if (r128_output->MonType == MT_LCD || r128_output->MonType == MT_DFP)
+        save->crtc_gen_cntl &= ~(R128_CRTC_DBL_SCAN_EN | R128_CRTC_INTERLACE_EN);
+
+    save->crtc_ext_cntl |= R128_VGA_ATI_LINEAR | R128_XCRT_CNT_EN;
+
+    save->crtc_h_total_disp = ((((mode->CrtcHTotal / 8) - 1) & 0xffff)
+                  | (((mode->CrtcHDisplay / 8) - 1) << 16));
+
+    hsync_wid = (mode->CrtcHSyncEnd - mode->CrtcHSyncStart) / 8;
+    if (!hsync_wid)       hsync_wid = 1;
+    if (hsync_wid > 0x3f) hsync_wid = 0x3f;
+
+    hsync_start = mode->CrtcHSyncStart - 8 + hsync_fudge;
+
+    save->crtc_h_sync_strt_wid = ((hsync_start & 0xfff)
+                 | (hsync_wid << 16)
+                 | ((mode->Flags & V_NHSYNC)
+                    ? R128_CRTC_H_SYNC_POL
+                    : 0));
+
+#if 1
+                /* This works for double scan mode. */
+    save->crtc_v_total_disp = (((mode->CrtcVTotal - 1) & 0xffff)
+                  | ((mode->CrtcVDisplay - 1) << 16));
+#else
+                /* This is what cce/nbmode.c example code
+                   does -- is this correct? */
+    save->crtc_v_total_disp = (((mode->CrtcVTotal - 1) & 0xffff)
+                  | ((mode->CrtcVDisplay
+                  * ((mode->Flags & V_DBLSCAN) ? 2 : 1) - 1)
+                 << 16));
+#endif
+
+    vsync_wid = mode->CrtcVSyncEnd - mode->CrtcVSyncStart;
+    if (!vsync_wid)       vsync_wid = 1;
+    if (vsync_wid > 0x1f) vsync_wid = 0x1f;
+
+    save->crtc_v_sync_strt_wid = (((mode->CrtcVSyncStart - 1) & 0xfff)
+                 | (vsync_wid << 16)
+                 | ((mode->Flags & V_NVSYNC)
+                    ? R128_CRTC_V_SYNC_POL
+                    : 0));
+    save->crtc_pitch       = info->CurrentLayout.displayWidth / 8;
+
+    R128TRACE(("Pitch = %d bytes (virtualX = %d, displayWidth = %d)\n",
+           save->crtc_pitch, pScrn->virtualX, info->CurrentLayout.displayWidth));
+
+#if X_BYTE_ORDER == X_BIG_ENDIAN
+    /* Change the endianness of the aperture */
+    switch (info->CurrentLayout.pixel_code) {
+    case 15:
+    case 16: save->config_cntl |= APER_0_BIG_ENDIAN_16BPP_SWAP; break;
+    case 32: save->config_cntl |= APER_0_BIG_ENDIAN_32BPP_SWAP; break;
+    default: break;
+    }
+#endif
+
+    return TRUE;
+}
+
+
 static void r128_crtc_load_lut(xf86CrtcPtr crtc);
 
 static void r128_crtc_dpms(xf86CrtcPtr crtc, int mode)
