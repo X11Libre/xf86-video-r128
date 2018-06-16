@@ -295,6 +295,61 @@ static Bool R128InitCrtc2Base(xf86CrtcPtr crtc, R128SavePtr save, int x, int y)
     return TRUE;
 }
 
+/* Define PLL registers for requested video mode. */
+static void R128InitPLLRegisters(xf86CrtcPtr crtc, R128SavePtr save,
+                R128PLLPtr pll, double dot_clock)
+{
+#if R128_DEBUG
+    ScrnInfoPtr pScrn  = crtc->scrn;
+#endif
+    unsigned long freq = dot_clock * 100;
+    struct {
+    int divider;
+    int bitvalue;
+    } *post_div,
+      post_divs[]   = {
+                /* From RAGE 128 VR/RAGE 128 GL Register
+                   Reference Manual (Technical Reference
+                   Manual P/N RRG-G04100-C Rev. 0.04), page
+                   3-17 (PLL_DIV_[3:0]).  */
+    {  1, 0 },              /* VCLK_SRC                 */
+    {  2, 1 },              /* VCLK_SRC/2               */
+    {  4, 2 },              /* VCLK_SRC/4               */
+    {  8, 3 },              /* VCLK_SRC/8               */
+
+    {  3, 4 },              /* VCLK_SRC/3               */
+                /* bitvalue = 5 is reserved */
+    {  6, 6 },              /* VCLK_SRC/6               */
+    { 12, 7 },              /* VCLK_SRC/12              */
+    {  0, 0 }
+    };
+
+    if (freq > pll->max_pll_freq)      freq = pll->max_pll_freq;
+    if (freq * 12 < pll->min_pll_freq) freq = pll->min_pll_freq / 12;
+
+    for (post_div = &post_divs[0]; post_div->divider; ++post_div) {
+    save->pll_output_freq = post_div->divider * freq;
+    if (save->pll_output_freq >= pll->min_pll_freq
+        && save->pll_output_freq <= pll->max_pll_freq) break;
+    }
+
+    save->dot_clock_freq = freq;
+    save->feedback_div   = R128Div(pll->reference_div * save->pll_output_freq,
+                   pll->reference_freq);
+    save->post_div       = post_div->divider;
+
+    R128TRACE(("dc=%d, of=%d, fd=%d, pd=%d\n",
+           save->dot_clock_freq,
+           save->pll_output_freq,
+           save->feedback_div,
+           save->post_div));
+
+    save->ppll_ref_div   = pll->reference_div;
+    save->ppll_div_3     = (save->feedback_div | (post_div->bitvalue << 16));
+    save->htotal_cntl    = 0;
+
+}
+
 
 static void r128_crtc_load_lut(xf86CrtcPtr crtc);
 
