@@ -2744,34 +2744,6 @@ void R128InitCommonRegisters(R128SavePtr save, R128InfoPtr info)
 	save->bus_cntl |= R128_BUS_RD_DISCARD_EN | R128_BUS_RD_ABORT_EN;
 }
 
-Bool R128InitCrtc2Base(xf86CrtcPtr crtc, R128SavePtr save, int x, int y)
-{
-    ScrnInfoPtr pScrn = crtc->scrn;
-    R128InfoPtr info  = R128PTR(pScrn);
-    int offset = y * info->CurrentLayout.displayWidth + x;
-    int Base = pScrn->fbOffset;
-
-    switch (info->CurrentLayout.pixel_code) {
-    case 15:
-    case 16: offset *= 2; break;
-    case 24: offset *= 3; break;
-    case 32: offset *= 4; break;
-    }
-    Base += offset;
-
-    if (crtc->rotatedData != NULL)
-        Base = pScrn->fbOffset + (char *)crtc->rotatedData - (char *)info->FB;
-
-    Base &= ~7;                 /* 3 lower bits are always 0 */
-    if (info->CurrentLayout.pixel_code == 24)
-	Base += 8 * (Base % 3); /* Must be multiple of 8 and 3 */
-
-    save->crtc2_offset = Base;
-    save->crtc2_offset_cntl = 0;
-
-    return TRUE;
-}
-
 /* Define DAC registers for the requested video mode. */
 void R128InitDACRegisters(R128SavePtr orig, R128SavePtr save, xf86OutputPtr output)
 {

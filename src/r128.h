@@ -523,7 +523,6 @@ extern void        R128InitFPRegisters(R128SavePtr orig, R128SavePtr save, xf86O
 extern void        R128InitLVDSRegisters(R128SavePtr orig, R128SavePtr save, xf86OutputPtr output);
 extern void        R128InitPLLRegisters(xf86CrtcPtr crtc, R128SavePtr save, R128PLLPtr pll, double dot_clock);
 extern Bool        R128InitDDARegisters(xf86CrtcPtr crtc, R128SavePtr save, R128PLLPtr pll, DisplayModePtr mode);
-extern Bool        R128InitCrtc2Base(xf86CrtcPtr crtc, R128SavePtr save, int x, int y);
 extern void        R128InitPLL2Registers(xf86CrtcPtr crtc, R128SavePtr save, R128PLLPtr pll, double dot_clock);
 extern Bool        R128InitDDA2Registers(xf86CrtcPtr crtc, R128SavePtr save, R128PLLPtr pll, DisplayModePtr mode);
 extern void        R128RestoreCommonRegisters(ScrnInfoPtr pScrn, R128SavePtr restore);
