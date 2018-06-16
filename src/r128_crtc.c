@@ -239,6 +239,34 @@ Bool R128InitCrtc2Registers(xf86CrtcPtr crtc, R128SavePtr save, DisplayModePtr m
     return TRUE;
 }
 
+static Bool R128InitCrtcBase(xf86CrtcPtr crtc, R128SavePtr save, int x, int y)
+{
+    ScrnInfoPtr pScrn = crtc->scrn;
+    R128InfoPtr info  = R128PTR(pScrn);
+    int offset = y * info->CurrentLayout.displayWidth + x;
+    int Base = pScrn->fbOffset;
+
+    switch (info->CurrentLayout.pixel_code) {
+    case 15:
+    case 16: offset *= 2; break;
+    case 24: offset *= 3; break;
+    case 32: offset *= 4; break;
+    }
+    Base += offset;
+
+    if (crtc->rotatedData != NULL)
+        Base = pScrn->fbOffset + (char *)crtc->rotatedData - (char *)info->FB;
+
+    Base &= ~7;                 /* 3 lower bits are always 0 */
+    if (info->CurrentLayout.pixel_code == 24)
+    Base += 8 * (Base % 3); /* Must be multiple of 8 and 3 */
+
+    save->crtc_offset = Base;
+    save->crtc_offset_cntl = 0;
+
+    return TRUE;
+}
+
 
 static void r128_crtc_load_lut(xf86CrtcPtr crtc);
 
