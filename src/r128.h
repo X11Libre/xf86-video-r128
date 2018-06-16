@@ -498,6 +498,12 @@ do {                                                                         \
     info->fifo_slots -= entries;                                             \
 } while (0)
 
+/* Compute n/d with rounding. */
+static inline int R128Div(int n, int d)
+{
+    return (n + (d / 2)) / d;
+}
+
 extern R128EntPtr R128EntPriv(ScrnInfoPtr pScrn);
 extern void        R128WaitForFifoFunction(ScrnInfoPtr pScrn, int entries);
 extern void        R128WaitForIdle(ScrnInfoPtr pScrn);

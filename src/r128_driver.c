@@ -397,12 +397,6 @@ int R128MinBits(int val)
     return bits;
 }
 
-/* Compute n/d with rounding. */
-static int R128Div(int n, int d)
-{
-    return (n + (d / 2)) / d;
-}
-
 /* Finds the first output using a given crtc. */
 xf86OutputPtr R128FirstOutput(xf86CrtcPtr crtc)
 {
