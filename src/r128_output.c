@@ -49,6 +49,19 @@
 
 static void R128ConnectorFindMonitor(ScrnInfoPtr pScrn, xf86OutputPtr output);
 
+/* Define DAC registers for the requested video mode. */
+void R128InitDACRegisters(R128SavePtr orig, R128SavePtr save, xf86OutputPtr output)
+{
+    ScrnInfoPtr pScrn = output->scrn;
+    R128InfoPtr info = R128PTR(pScrn);
+    xf86CrtcPtr crtc = output->crtc;
+    R128CrtcPrivatePtr r128_crtc = crtc->driver_private;
+
+    save->dac_cntl = (R128_DAC_MASK_ALL | R128_DAC_VGA_ADR_EN |
+                      (!r128_crtc->crtc_id ? 0 : R128_DAC_CRT_SEL_CRTC2) |
+                      (info->dac6bits      ? 0 : R128_DAC_8BIT_EN));
+}
+
 static void r128_dpms(xf86OutputPtr output, int mode)
 {
     switch(mode) {

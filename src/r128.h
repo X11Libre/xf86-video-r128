@@ -523,7 +523,6 @@ extern xf86OutputPtr R128FirstOutput(xf86CrtcPtr crtc);
 extern void        R128InitVideo(ScreenPtr pScreen);
 
 extern void        R128InitCommonRegisters(R128SavePtr save, R128InfoPtr info);
-extern void        R128InitDACRegisters(R128SavePtr orig, R128SavePtr save, xf86OutputPtr output);
 extern void        R128InitRMXRegisters(R128SavePtr orig, R128SavePtr save, xf86OutputPtr output, DisplayModePtr mode);
 extern void        R128InitFPRegisters(R128SavePtr orig, R128SavePtr save, xf86OutputPtr output);
 extern void        R128InitLVDSRegisters(R128SavePtr orig, R128SavePtr save, xf86OutputPtr output);

@@ -2700,19 +2700,6 @@ void R128InitCommonRegisters(R128SavePtr save, R128InfoPtr info)
 	save->bus_cntl |= R128_BUS_RD_DISCARD_EN | R128_BUS_RD_ABORT_EN;
 }
 
-/* Define DAC registers for the requested video mode. */
-void R128InitDACRegisters(R128SavePtr orig, R128SavePtr save, xf86OutputPtr output)
-{
-    ScrnInfoPtr pScrn = output->scrn;
-    R128InfoPtr info = R128PTR(pScrn);
-    xf86CrtcPtr crtc = output->crtc;
-    R128CrtcPrivatePtr r128_crtc = crtc->driver_private;
-
-    save->dac_cntl = (R128_DAC_MASK_ALL | R128_DAC_VGA_ADR_EN |
-                      (!r128_crtc->crtc_id ? 0 : R128_DAC_CRT_SEL_CRTC2) |
-                      (info->dac6bits      ? 0 : R128_DAC_8BIT_EN));
-}
-
 /* Define RMX registers for the requested video mode. */
 void R128InitRMXRegisters(R128SavePtr orig, R128SavePtr save,
                           xf86OutputPtr output, DisplayModePtr mode)
