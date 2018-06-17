@@ -259,6 +259,24 @@ void R128RestoreCrtcRegisters(ScrnInfoPtr pScrn, R128SavePtr restore)
     OUTREG(R128_CRTC_PITCH,           restore->crtc_pitch);
 }
 
+/* Write CRTC2 registers. */
+void R128RestoreCrtc2Registers(ScrnInfoPtr pScrn, R128SavePtr restore)
+{
+    R128InfoPtr info        = R128PTR(pScrn);
+    unsigned char *R128MMIO = info->MMIO;
+
+    OUTREGP(R128_CRTC2_GEN_CNTL, restore->crtc2_gen_cntl,
+        R128_CRTC2_DISP_DIS);
+
+    OUTREG(R128_CRTC2_H_TOTAL_DISP,    restore->crtc2_h_total_disp);
+    OUTREG(R128_CRTC2_H_SYNC_STRT_WID, restore->crtc2_h_sync_strt_wid);
+    OUTREG(R128_CRTC2_V_TOTAL_DISP,    restore->crtc2_v_total_disp);
+    OUTREG(R128_CRTC2_V_SYNC_STRT_WID, restore->crtc2_v_sync_strt_wid);
+    OUTREG(R128_CRTC2_OFFSET,          restore->crtc2_offset);
+    OUTREG(R128_CRTC2_OFFSET_CNTL,     restore->crtc2_offset_cntl);
+    OUTREG(R128_CRTC2_PITCH,           restore->crtc2_pitch);
+}
+
 static Bool R128InitCrtcBase(xf86CrtcPtr crtc, R128SavePtr save, int x, int y)
 {
     ScrnInfoPtr pScrn = crtc->scrn;
