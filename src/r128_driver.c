@@ -2144,16 +2144,6 @@ void R128RestoreCommonRegisters(ScrnInfoPtr pScrn, R128SavePtr restore)
     OUTREG(R128_CONFIG_CNTL,          restore->config_cntl);
 }
 
-/* Write DAC registers */
-void R128RestoreDACRegisters(ScrnInfoPtr pScrn, R128SavePtr restore)
-{
-    R128InfoPtr   info      = R128PTR(pScrn);
-    unsigned char *R128MMIO = info->MMIO;
-
-    OUTREGP(R128_DAC_CNTL, restore->dac_cntl,
-	    R128_DAC_RANGE_CNTL | R128_DAC_BLANKING);
-}
-
 /* Write RMX registers */
 void R128RestoreRMXRegisters(ScrnInfoPtr pScrn, R128SavePtr restore)
 {

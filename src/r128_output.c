@@ -62,6 +62,16 @@ void R128InitDACRegisters(R128SavePtr orig, R128SavePtr save, xf86OutputPtr outp
                       (info->dac6bits      ? 0 : R128_DAC_8BIT_EN));
 }
 
+/* Write DAC registers */
+void R128RestoreDACRegisters(ScrnInfoPtr pScrn, R128SavePtr restore)
+{
+    R128InfoPtr   info      = R128PTR(pScrn);
+    unsigned char *R128MMIO = info->MMIO;
+
+    OUTREGP(R128_DAC_CNTL, restore->dac_cntl,
+        R128_DAC_RANGE_CNTL | R128_DAC_BLANKING);
+}
+
 static void r128_dpms(xf86OutputPtr output, int mode)
 {
     switch(mode) {
