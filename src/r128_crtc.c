@@ -460,6 +460,23 @@ static void R128PLLWriteUpdate(ScrnInfoPtr pScrn)
 
 }
 
+static void R128PLL2WaitForReadUpdateComplete(ScrnInfoPtr pScrn)
+{
+    while (INPLL(pScrn, R128_P2PLL_REF_DIV) & R128_P2PLL_ATOMIC_UPDATE_R);
+}
+
+static void R128PLL2WriteUpdate(ScrnInfoPtr pScrn)
+{
+    R128InfoPtr  info       = R128PTR(pScrn);
+    unsigned char *R128MMIO = info->MMIO;
+
+    while (INPLL(pScrn, R128_P2PLL_REF_DIV) & R128_P2PLL_ATOMIC_UPDATE_R);
+
+    OUTPLLP(pScrn, R128_P2PLL_REF_DIV,
+        R128_P2PLL_ATOMIC_UPDATE_W,
+        ~(R128_P2PLL_ATOMIC_UPDATE_W));
+}
+
 /* Write PLL registers. */
 void R128RestorePLLRegisters(ScrnInfoPtr pScrn, R128SavePtr restore)
 {
@@ -532,6 +549,74 @@ void R128RestorePLLRegisters(ScrnInfoPtr pScrn, R128SavePtr restore)
 
 }
 
+/* Write PLL2 registers. */
+void R128RestorePLL2Registers(ScrnInfoPtr pScrn, R128SavePtr restore)
+{
+    R128InfoPtr info        = R128PTR(pScrn);
+    unsigned char *R128MMIO = info->MMIO;
+
+    OUTPLLP(pScrn, R128_V2CLK_VCLKTV_CNTL,
+        R128_V2CLK_SRC_SEL_CPUCLK,
+        ~R128_V2CLK_SRC_SEL_MASK);
+
+    OUTPLLP(pScrn,
+        R128_P2PLL_CNTL,
+        R128_P2PLL_RESET
+        | R128_P2PLL_ATOMIC_UPDATE_EN
+        | R128_P2PLL_VGA_ATOMIC_UPDATE_EN,
+        ~(R128_P2PLL_RESET
+          | R128_P2PLL_ATOMIC_UPDATE_EN
+          | R128_P2PLL_VGA_ATOMIC_UPDATE_EN));
+
+#if 1
+    OUTREGP(R128_CLOCK_CNTL_INDEX, 0, R128_PLL2_DIV_SEL_MASK);
+#endif
+
+        /*R128PLL2WaitForReadUpdateComplete(pScrn);*/
+
+    OUTPLLP(pScrn, R128_P2PLL_REF_DIV, restore->p2pll_ref_div, ~R128_P2PLL_REF_DIV_MASK);
+
+/*        R128PLL2WriteUpdate(pScrn);
+    R128PLL2WaitForReadUpdateComplete(pScrn);*/
+
+    OUTPLLP(pScrn, R128_P2PLL_DIV_0,
+            restore->p2pll_div_0, ~R128_P2PLL_FB0_DIV_MASK);
+
+/*    R128PLL2WriteUpdate(pScrn);
+    R128PLL2WaitForReadUpdateComplete(pScrn);*/
+
+    OUTPLLP(pScrn, R128_P2PLL_DIV_0,
+            restore->p2pll_div_0, ~R128_P2PLL_POST0_DIV_MASK);
+
+    R128PLL2WriteUpdate(pScrn);
+    R128PLL2WaitForReadUpdateComplete(pScrn);
+
+    OUTPLL(R128_HTOTAL2_CNTL, restore->htotal_cntl2);
+
+/*        R128PLL2WriteUpdate(pScrn);*/
+
+    OUTPLLP(pScrn, R128_P2PLL_CNTL, 0, ~(R128_P2PLL_RESET
+                    | R128_P2PLL_SLEEP
+                    | R128_P2PLL_ATOMIC_UPDATE_EN
+                    | R128_P2PLL_VGA_ATOMIC_UPDATE_EN));
+
+    R128TRACE(("Wrote: 0x%08x 0x%08x 0x%08x (0x%08x)\n",
+           restore->p2pll_ref_div,
+           restore->p2pll_div_0,
+           restore->htotal_cntl2,
+           INPLL(pScrn, R128_P2PLL_CNTL)));
+    R128TRACE(("Wrote: rd=%d, fd=%d, pd=%d\n",
+           restore->p2pll_ref_div & R128_P2PLL_REF_DIV_MASK,
+           restore->p2pll_div_0 & R128_P2PLL_FB0_DIV_MASK,
+           (restore->p2pll_div_0 & R128_P2PLL_POST0_DIV_MASK) >>16));
+
+    usleep(5000); /* Let the clock to lock */
+
+    OUTPLLP(pScrn, R128_V2CLK_VCLKTV_CNTL,
+        R128_V2CLK_SRC_SEL_P2PLLCLK,
+        ~R128_V2CLK_SRC_SEL_MASK);
+
+}
 
 static void r128_crtc_load_lut(xf86CrtcPtr crtc);
 
