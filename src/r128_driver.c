@@ -109,10 +109,6 @@
 #endif
 
 
-#ifndef MAX
-#define MAX(a,b) ((a)>(b)?(a):(b))
-#endif
-
 #define USE_CRT_ONLY	0
 
 				/* Forward definitions for driver functions */
@@ -2616,82 +2612,6 @@ void R128InitLVDSRegisters(R128SavePtr orig, R128SavePtr save, xf86OutputPtr out
         save->lvds_gen_cntl |=  R128_LVDS_SEL_CRTC2;
     else
         save->lvds_gen_cntl &= ~R128_LVDS_SEL_CRTC2;
-}
-
-/* Define DDA2 registers for requested video mode. */
-Bool R128InitDDA2Registers(xf86CrtcPtr crtc, R128SavePtr save,
-				 R128PLLPtr pll, DisplayModePtr mode)
-{
-    ScrnInfoPtr pScrn = crtc->scrn;
-    R128InfoPtr info  = R128PTR(pScrn);
-    xf86OutputPtr output = R128FirstOutput(crtc);
-    R128OutputPrivatePtr r128_output = output->driver_private;
-
-    int         DisplayFifoWidth = 128;
-    int         DisplayFifoDepth = 32;
-    int         XclkFreq;
-    int         VclkFreq;
-    int         XclksPerTransfer;
-    int         XclksPerTransferPrecise;
-    int         UseablePrecision;
-    int         Roff;
-    int         Ron;
-
-    XclkFreq = pll->xclk;
-
-    VclkFreq = R128Div(pll->reference_freq * save->feedback_div_2,
-		       pll->reference_div * save->post_div_2);
-
-    if (info->isDFP && !info->isPro2 && r128_output->PanelXRes > 0) {
-        if (r128_output->PanelXRes != mode->CrtcHDisplay)
-            VclkFreq = (VclkFreq * mode->CrtcHDisplay) / r128_output->PanelXRes;
-    }
-
-    XclksPerTransfer = R128Div(XclkFreq * DisplayFifoWidth,
-			       VclkFreq * (info->CurrentLayout.pixel_bytes * 8));
-
-    UseablePrecision = R128MinBits(XclksPerTransfer) + 1;
-
-    XclksPerTransferPrecise = R128Div((XclkFreq * DisplayFifoWidth)
-				      << (11 - UseablePrecision),
-				      VclkFreq * (info->CurrentLayout.pixel_bytes * 8));
-
-    Roff  = XclksPerTransferPrecise * (DisplayFifoDepth - 4);
-
-    Ron   = (4 * info->ram->MB
-	     + 3 * MAX(info->ram->Trcd - 2, 0)
-	     + 2 * info->ram->Trp
-	     + info->ram->Twr
-	     + info->ram->CL
-	     + info->ram->Tr2w
-	     + XclksPerTransfer) << (11 - UseablePrecision);
-
-
-    if (Ron + info->ram->Rloop >= Roff) {
-	xf86DrvMsg(pScrn->scrnIndex, X_ERROR,
-		   "(Ron = %d) + (Rloop = %d) >= (Roff = %d)\n",
-		   Ron, info->ram->Rloop, Roff);
-	return FALSE;
-    }
-
-    save->dda2_config = (XclksPerTransferPrecise
-			| (UseablePrecision << 16)
-			| (info->ram->Rloop << 20));
-
-    /*save->dda2_on_off = (Ron << 16) | Roff;*/
-    /* shift most be 18 otherwise there's corruption on crtc2 */
-    save->dda2_on_off = (Ron << 18) | Roff;
-
-    R128TRACE(("XclkFreq = %d; VclkFreq = %d; per = %d, %d (useable = %d)\n",
-	       XclkFreq,
-	       VclkFreq,
-	       XclksPerTransfer,
-	       XclksPerTransferPrecise,
-	       UseablePrecision));
-    R128TRACE(("Roff = %d, Ron = %d, Rloop = %d\n",
-	       Roff, Ron, info->ram->Rloop));
-
-    return TRUE;
 }
 
 #if 0
