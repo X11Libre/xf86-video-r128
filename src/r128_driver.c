@@ -1242,6 +1242,10 @@ static Bool R128LegacyMS(ScrnInfoPtr pScrn)
 
     if (!R128PreInitControllers(pScrn, pInt10)) goto freeInt10;
 
+#ifdef R128DRI
+    if (!R128PreInitDRI(pScrn)) goto freeInt10;
+#endif
+
     ret = TRUE;
 freeInt10:
     /* Free int10 info */
@@ -1401,10 +1405,6 @@ Bool R128PreInit(ScrnInfoPtr pScrn, int flags)
     if (!xf86LoadSubModule(pScrn, "fb")) return FALSE;
 
     if (!R128PreInitCursor(pScrn))             goto fail;
-
-#ifdef R128DRI
-    if (!R128PreInitDRI(pScrn))                goto fail;
-#endif
 
     info->CurrentLayout.displayWidth = pScrn->displayWidth;
 
