@@ -1604,7 +1604,7 @@ Bool R128ScreenInit(SCREEN_INIT_ARGS_DECL)
     char *optstr;
 
     DEBUG(xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-                        "R128ScreenInit %x %d\n",
+                        "R128ScreenInit %lx %lx\n",
                         pScrn->memPhysBase, pScrn->fbOffset));
     info->useEXA = FALSE;
 #ifdef USE_EXA

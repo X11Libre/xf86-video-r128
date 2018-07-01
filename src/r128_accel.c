@@ -184,8 +184,8 @@ void R128WaitForFifoFunction(ScrnInfoPtr pScrn, int entries)
 	}
 
     DEBUG(xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-                   "FIFO timed out: %d entries, "
-                    "stat=0x%08x, probe=0x%08x\n",
+                    "FIFO timed out: %lu entries, "
+                    "stat = 0x%08lx, probe = 0x%08lx\n",
                     INREG(R128_GUI_STAT) & R128_GUI_FIFOCNT_MASK,
                     INREG(R128_GUI_STAT),
                     INREG(R128_GUI_PROBE)));
@@ -221,8 +221,8 @@ void R128WaitForIdle(ScrnInfoPtr pScrn)
 	}
 
     DEBUG(xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-                        "Idle timed out: %d entries, "
-                        "stat=0x%08x, probe=0x%08x\n",
+                        "Idle timed out: %lu entries, "
+                        "stat = 0x%08lx, probe = 0x%08lx\n",
                         INREG(R128_GUI_STAT) & R128_GUI_FIFOCNT_MASK,
                         INREG(R128_GUI_STAT),
                         INREG(R128_GUI_PROBE)));
