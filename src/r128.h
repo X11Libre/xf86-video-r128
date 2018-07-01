@@ -120,13 +120,14 @@
 #if R128_DEBUG
 #include "r128_version.h"
 
-#define R128TRACE(x)                                          \
-    do {                                                      \
-	ErrorF("(**) %s(%d): ", R128_NAME, pScrn->scrnIndex); \
-	ErrorF x;                                             \
-    } while (0);
+#endif
+
+#if R128_DEBUG
+#define DEBUG(x) x
+
 #else
-#define R128TRACE(x)
+#define DEBUG(x)
+
 #endif
 
 

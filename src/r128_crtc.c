@@ -146,8 +146,11 @@ Bool R128InitCrtcRegisters(xf86CrtcPtr crtc, R128SavePtr save, DisplayModePtr mo
                     : 0));
     save->crtc_pitch       = info->CurrentLayout.displayWidth / 8;
 
-    R128TRACE(("Pitch = %d bytes (virtualX = %d, displayWidth = %d)\n",
-           save->crtc_pitch, pScrn->virtualX, info->CurrentLayout.displayWidth));
+    DEBUG(xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                        "Pitch = %d bytes (virtualX = %d, "
+                        "displayWidth = %d)\n",
+                        save->crtc_pitch, pScrn->virtualX,
+                        info->CurrentLayout.displayWidth));
 
 #if X_BYTE_ORDER == X_BIG_ENDIAN
     /* Change the endianness of the aperture */
@@ -238,9 +241,11 @@ Bool R128InitCrtc2Registers(xf86CrtcPtr crtc, R128SavePtr save, DisplayModePtr m
                     : 0));
     save->crtc2_pitch       = info->CurrentLayout.displayWidth / 8;
 
-    R128TRACE(("Pitch = %d bytes (virtualX = %d, displayWidth = %d)\n",
-         save->crtc2_pitch, pScrn->virtualX,
-         info->CurrentLayout.displayWidth));
+    DEBUG(xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                        "Pitch = %d bytes (virtualX = %d, "
+                        "displayWidth = %d)\n",
+                        save->crtc2_pitch, pScrn->virtualX,
+                        info->CurrentLayout.displayWidth));
     return TRUE;
 }
 
@@ -381,11 +386,12 @@ static void R128InitPLLRegisters(xf86CrtcPtr crtc, R128SavePtr save,
                    pll->reference_freq);
     save->post_div       = post_div->divider;
 
-    R128TRACE(("dc=%d, of=%d, fd=%d, pd=%d\n",
-           save->dot_clock_freq,
-           save->pll_output_freq,
-           save->feedback_div,
-           save->post_div));
+    DEBUG(xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                        "dc=%d, of=%d, fd=%d, pd=%d\n",
+                        save->dot_clock_freq,
+                        save->pll_output_freq,
+                        save->feedback_div,
+                        save->post_div));
 
     save->ppll_ref_div   = pll->reference_div;
     save->ppll_div_3     = (save->feedback_div | (post_div->bitvalue << 16));
@@ -437,11 +443,12 @@ void R128InitPLL2Registers(xf86CrtcPtr crtc, R128SavePtr save,
                      pll->reference_freq);
     save->post_div_2       = post_div->divider;
 
-    R128TRACE(("dc=%d, of=%d, fd=%d, pd=%d\n",
-           save->dot_clock_freq_2,
-           save->pll_output_freq_2,
-           save->feedback_div_2,
-           save->post_div_2));
+    DEBUG(xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                        "dc=%d, of=%d, fd=%d, pd=%d\n",
+                        save->dot_clock_freq_2,
+                        save->pll_output_freq_2,
+                        save->feedback_div_2,
+                        save->post_div_2));
 
     save->p2pll_ref_div   = pll->reference_div;
     save->p2pll_div_0    = (save->feedback_div_2 | (post_div->bitvalue<<16));
@@ -536,15 +543,18 @@ void R128RestorePLLRegisters(ScrnInfoPtr pScrn, R128SavePtr restore)
                     | R128_PPLL_ATOMIC_UPDATE_EN
                     | R128_PPLL_VGA_ATOMIC_UPDATE_EN));
 
-    R128TRACE(("Wrote: 0x%08x 0x%08x 0x%08x (0x%08x)\n",
-           restore->ppll_ref_div,
-           restore->ppll_div_3,
-           restore->htotal_cntl,
-           INPLL(pScrn, R128_PPLL_CNTL)));
-    R128TRACE(("Wrote: rd=%d, fd=%d, pd=%d\n",
-           restore->ppll_ref_div & R128_PPLL_REF_DIV_MASK,
-           restore->ppll_div_3 & R128_PPLL_FB3_DIV_MASK,
-           (restore->ppll_div_3 & R128_PPLL_POST3_DIV_MASK) >> 16));
+    DEBUG(xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                        "Wrote: 0x%08x 0x%08x 0x%08x (0x%08x)\n",
+                        restore->ppll_ref_div,
+                        restore->ppll_div_3,
+                        restore->htotal_cntl,
+                        INPLL(pScrn, R128_PPLL_CNTL)));
+    DEBUG(xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                        "Wrote: rd=%d, fd=%d, pd=%d\n",
+                        restore->ppll_ref_div & R128_PPLL_REF_DIV_MASK,
+                        restore->ppll_div_3 & R128_PPLL_FB3_DIV_MASK,
+                        (restore->ppll_div_3 &
+                                R128_PPLL_POST3_DIV_MASK) >> 16));
 
     usleep(5000); /* let the clock lock */
 
@@ -605,15 +615,18 @@ void R128RestorePLL2Registers(ScrnInfoPtr pScrn, R128SavePtr restore)
                     | R128_P2PLL_ATOMIC_UPDATE_EN
                     | R128_P2PLL_VGA_ATOMIC_UPDATE_EN));
 
-    R128TRACE(("Wrote: 0x%08x 0x%08x 0x%08x (0x%08x)\n",
-           restore->p2pll_ref_div,
-           restore->p2pll_div_0,
-           restore->htotal_cntl2,
-           INPLL(pScrn, R128_P2PLL_CNTL)));
-    R128TRACE(("Wrote: rd=%d, fd=%d, pd=%d\n",
-           restore->p2pll_ref_div & R128_P2PLL_REF_DIV_MASK,
-           restore->p2pll_div_0 & R128_P2PLL_FB0_DIV_MASK,
-           (restore->p2pll_div_0 & R128_P2PLL_POST0_DIV_MASK) >>16));
+    DEBUG(xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                        "Wrote: 0x%08x 0x%08x 0x%08x (0x%08x)\n",
+                        restore->p2pll_ref_div,
+                        restore->p2pll_div_0,
+                        restore->htotal_cntl2,
+                        INPLL(pScrn, R128_P2PLL_CNTL)));
+    DEBUG(xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                        "Wrote: rd=%d, fd=%d, pd=%d\n",
+                        restore->p2pll_ref_div & R128_P2PLL_REF_DIV_MASK,
+                        restore->p2pll_div_0 & R128_P2PLL_FB0_DIV_MASK,
+                        (restore->p2pll_div_0 &
+                                R128_P2PLL_POST0_DIV_MASK) >>16));
 
     usleep(5000); /* Let the clock to lock */
 
@@ -684,14 +697,17 @@ Bool R128InitDDARegisters(xf86CrtcPtr crtc, R128SavePtr save,
 
     save->dda_on_off = (Ron << 16) | Roff;
 
-    R128TRACE(("XclkFreq = %d; VclkFreq = %d; per = %d, %d (useable = %d)\n",
-           XclkFreq,
-           VclkFreq,
-           XclksPerTransfer,
-           XclksPerTransferPrecise,
-           UseablePrecision));
-    R128TRACE(("Roff = %d, Ron = %d, Rloop = %d\n",
-           Roff, Ron, info->ram->Rloop));
+    DEBUG(xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                        "XclkFreq = %d; VclkFreq = %d; "
+                        "per = %d, %d (useable = %d)\n",
+                        XclkFreq,
+                        VclkFreq,
+                        XclksPerTransfer,
+                        XclksPerTransferPrecise,
+                        UseablePrecision));
+    DEBUG(xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                        "Roff = %d, Ron = %d, Rloop = %d\n",
+                        Roff, Ron, info->ram->Rloop));
 
     return TRUE;
 }
@@ -760,14 +776,17 @@ Bool R128InitDDA2Registers(xf86CrtcPtr crtc, R128SavePtr save,
     /* shift most be 18 otherwise there's corruption on crtc2 */
     save->dda2_on_off = (Ron << 18) | Roff;
 
-    R128TRACE(("XclkFreq = %d; VclkFreq = %d; per = %d, %d (useable = %d)\n",
-           XclkFreq,
-           VclkFreq,
-           XclksPerTransfer,
-           XclksPerTransferPrecise,
-           UseablePrecision));
-    R128TRACE(("Roff = %d, Ron = %d, Rloop = %d\n",
-           Roff, Ron, info->ram->Rloop));
+    DEBUG(xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                        "XclkFreq = %d; VclkFreq = %d; "
+                        "per = %d, %d (useable = %d)\n",
+                        XclkFreq,
+                        VclkFreq,
+                        XclksPerTransfer,
+                        XclksPerTransferPrecise,
+                        UseablePrecision));
+    DEBUG(xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                        "Roff = %d, Ron = %d, Rloop = %d\n",
+                        Roff, Ron, info->ram->Rloop));
 
     return TRUE;
 }

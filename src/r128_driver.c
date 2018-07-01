@@ -608,8 +608,9 @@ static Bool R128GetPLLParameters(ScrnInfoPtr pScrn)
     } else {
 	uint16_t bios_header    = R128_BIOS16(0x48);
 	uint16_t pll_info_block = R128_BIOS16(bios_header + 0x30);
-	R128TRACE(("Header at 0x%04x; PLL Information at 0x%04x\n",
-		   bios_header, pll_info_block));
+    DEBUG(xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                        "Header at 0x%04x; PLL Information at 0x%04x\n",
+                        bios_header, pll_info_block));
 
 	pll->reference_freq = R128_BIOS16(pll_info_block + 0x0e);
 	pll->reference_div  = R128_BIOS16(pll_info_block + 0x10);
@@ -1262,7 +1263,8 @@ Bool R128PreInit(ScrnInfoPtr pScrn, int flags)
 {
     R128InfoPtr      info;
 
-    R128TRACE(("R128PreInit\n"));
+    DEBUG(xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                        "R128PreInit\n"));
 
     if (flags & PROBE_DETECT) {
         return TRUE;
@@ -1601,7 +1603,9 @@ Bool R128ScreenInit(SCREEN_INIT_ARGS_DECL)
 #endif
     char *optstr;
 
-    R128TRACE(("R128ScreenInit %x %d\n", pScrn->memPhysBase, pScrn->fbOffset));
+    DEBUG(xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                        "R128ScreenInit %x %d\n",
+                        pScrn->memPhysBase, pScrn->fbOffset));
     info->useEXA = FALSE;
 #ifdef USE_EXA
 #ifndef HAVE_XAA_H
@@ -2298,14 +2302,17 @@ static void R128SavePLLRegisters(ScrnInfoPtr pScrn, R128SavePtr save)
     save->ppll_div_0           = INPLL(pScrn, R128_PPLL_DIV_0);
     save->htotal_cntl          = INPLL(pScrn, R128_HTOTAL_CNTL);
 
-    R128TRACE(("Read: 0x%08x 0x%08x 0x%08x\n",
-	       save->ppll_ref_div,
-	       save->ppll_div_3,
-	       save->htotal_cntl));
-    R128TRACE(("Read: rd=%d, fd=%d, pd=%d\n",
-	       save->ppll_ref_div & R128_PPLL_REF_DIV_MASK,
-	       save->ppll_div_3 & R128_PPLL_FB3_DIV_MASK,
-	       (save->ppll_div_3 & R128_PPLL_POST3_DIV_MASK) >> 16));
+    DEBUG(xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                        "Read: 0x%08x 0x%08x 0x%08x\n",
+                        save->ppll_ref_div,
+                        save->ppll_div_3,
+                        save->htotal_cntl));
+    DEBUG(xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                        "Read: rd=%d, fd=%d, pd=%d\n",
+                        save->ppll_ref_div & R128_PPLL_REF_DIV_MASK,
+                        save->ppll_div_3 & R128_PPLL_FB3_DIV_MASK,
+                        (save->ppll_div_3 &
+                                R128_PPLL_POST3_DIV_MASK) >> 16));
 }
 
 /* Read PLL2 registers. */
@@ -2315,14 +2322,17 @@ static void R128SavePLL2Registers(ScrnInfoPtr pScrn, R128SavePtr save)
     save->p2pll_div_0          = INPLL(pScrn, R128_P2PLL_DIV_0);
     save->htotal_cntl2         = INPLL(pScrn, R128_HTOTAL2_CNTL);
 
-    R128TRACE(("Read: 0x%08x 0x%08x 0x%08x\n",
-	       save->p2pll_ref_div,
-	       save->p2pll_div_0,
-	       save->htotal_cntl2));
-    R128TRACE(("Read: rd=%d, fd=%d, pd=%d\n",
-	       save->p2pll_ref_div & R128_P2PLL_REF_DIV_MASK,
-	       save->p2pll_div_0 & R128_P2PLL_FB0_DIV_MASK,
-	       (save->p2pll_div_0 & R128_P2PLL_POST0_DIV_MASK) >> 16));
+    DEBUG(xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                        "Read: 0x%08x 0x%08x 0x%08x\n",
+                        save->p2pll_ref_div,
+                        save->p2pll_div_0,
+                        save->htotal_cntl2));
+    DEBUG(xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                        "Read: rd=%d, fd=%d, pd=%d\n",
+                        save->p2pll_ref_div & R128_P2PLL_REF_DIV_MASK,
+                        save->p2pll_div_0 & R128_P2PLL_FB0_DIV_MASK,
+                        (save->p2pll_div_0 &
+                                R128_P2PLL_POST0_DIV_MASK) >> 16));
 }
 
 /* Read DDA registers. */
@@ -2367,7 +2377,8 @@ static void R128SaveMode(ScrnInfoPtr pScrn, R128SavePtr save)
     R128InfoPtr   info      = R128PTR(pScrn);
     R128EntPtr    pR128Ent  = R128EntPriv(pScrn);
 
-    R128TRACE(("R128SaveMode(%p)\n", save));
+    DEBUG(xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                        "R128SaveMode(%p)\n", save));
 
     R128SaveCommonRegisters(pScrn, save);
     R128SaveCrtcRegisters(pScrn, save);
@@ -2383,7 +2394,8 @@ static void R128SaveMode(ScrnInfoPtr pScrn, R128SavePtr save)
     }
     R128SavePalette(pScrn, save);
 
-    R128TRACE(("R128SaveMode returns %p\n", save));
+    DEBUG(xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                        "R128SaveMode returns %p\n", save));
 }
 
 /* Save everything needed to restore the original VC state. */
@@ -2393,7 +2405,8 @@ static void R128Save(ScrnInfoPtr pScrn)
     unsigned char *R128MMIO = info->MMIO;
     R128SavePtr   save      = &info->SavedReg;
 
-    R128TRACE(("R128Save\n"));
+    DEBUG(xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                        "R128Save\n"));
     if (info->FBDev) {
 	fbdevHWSave(pScrn);
 	return;
@@ -2436,7 +2449,8 @@ static void R128Restore(ScrnInfoPtr pScrn)
     unsigned char *R128MMIO = info->MMIO;
     R128SavePtr   restore   = &info->SavedReg;
 
-    R128TRACE(("R128Restore\n"));
+    DEBUG(xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                        "R128Restore\n"));
     if (info->FBDev) {
 	fbdevHWRestore(pScrn);
 	return;
@@ -2773,7 +2787,8 @@ Bool R128EnterVT(VT_FUNC_ARGS_DECL)
     SCRN_INFO_PTR(arg);
     R128InfoPtr info  = R128PTR(pScrn);
 
-    R128TRACE(("R128EnterVT\n"));
+    DEBUG(xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                        "R128EnterVT\n"));
 
     pScrn->vtSema = TRUE;
     if (info->FBDev) {
@@ -2813,7 +2828,8 @@ void R128LeaveVT(VT_FUNC_ARGS_DECL)
     R128InfoPtr info  = R128PTR(pScrn);
     R128SavePtr save  = &info->ModeReg;
 
-    R128TRACE(("R128LeaveVT\n"));
+    DEBUG(xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                        "R128LeaveVT\n"));
 #ifdef R128DRI
     if (info->directRenderingEnabled) {
 	DRILock(pScrn->pScreen, 0);
@@ -2841,7 +2857,8 @@ static Bool R128CloseScreen(CLOSE_SCREEN_ARGS_DECL)
     ScrnInfoPtr pScrn = xf86ScreenToScrn(pScreen);
     R128InfoPtr info  = R128PTR(pScrn);
 
-    R128TRACE(("R128CloseScreen\n"));
+    DEBUG(xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                        "R128CloseScreen\n"));
 
 #ifdef R128DRI
 				/* Disable direct rendering */
@@ -2890,7 +2907,8 @@ void R128FreeScreen(FREE_SCREEN_ARGS_DECL)
     SCRN_INFO_PTR(arg);
     R128InfoPtr   info      = R128PTR(pScrn);
 
-    R128TRACE(("R128FreeScreen\n"));
+    DEBUG(xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                        "R128FreeScreen\n"));
     if (info == NULL)
 	return;
 #ifdef WITH_VGAHW

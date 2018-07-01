@@ -92,12 +92,14 @@ static Bool R128GetOffsetPitch(PixmapPtr pPix, int bpp, uint32_t *pitch_offset,
     R128InfoPtr   info      = R128PTR(pScrn);
 
     if (pitch > 16320 || pitch % info->ExaDriver->pixmapPitchAlign != 0) {
-        R128TRACE(("Bad pitch 0x%08x\n", pitch));
+        DEBUG(xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                            "Bad pitch 0x%08x\n", pitch));
 	return FALSE;
     }
 
     if (offset % info->ExaDriver->pixmapOffsetAlign != 0) {
-        R128TRACE(("Bad offset 0x%08x\n", offset));
+        DEBUG(xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                            "Bad offset 0x%08x\n", offset));
 	return FALSE;
     }
 
@@ -182,11 +184,13 @@ R128PrepareSolid(PixmapPtr pPixmap, int alu, Pixel planemask, Pixel fg)
     uint32_t datatype, dst_pitch_offset;
 
     if (!R128GetDatatypeBpp(bpp, &datatype)) {
-        R128TRACE(("R128GetDatatypeBpp failed\n"));
+        DEBUG(xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                            "R128GetDatatypeBpp failed\n"));
 	return FALSE;
     }
     if (!R128GetPixmapOffsetPitch(pPixmap, &dst_pitch_offset)) {
-        R128TRACE(("R128GetPixmapOffsetPitch failed\n"));
+        DEBUG(xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                            "R128GetPixmapOffsetPitch failed\n"));
 	return FALSE;
     }
     if (info->state_2d.in_use) return FALSE;
@@ -281,15 +285,19 @@ R128PrepareCopy(PixmapPtr pSrcPixmap, PixmapPtr pDstPixmap, int xdir, int ydir, 
     uint32_t datatype, src_pitch_offset, dst_pitch_offset;
 
     if (!R128GetDatatypeBpp(bpp, &datatype)) {
-        R128TRACE(("R128GetDatatypeBpp failed\n"));
+        DEBUG(xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                            "R128GetDatatypeBpp failed\n"));
 	return FALSE;
     }
     if (!R128GetPixmapOffsetPitch(pSrcPixmap, &src_pitch_offset)) {
-        R128TRACE(("R128GetPixmapOffsetPitch source failed\n"));
+        DEBUG(xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                            "R128GetPixmapOffsetPitch source "
+                            "failed\n"));
 	return FALSE;
     }
     if (!R128GetPixmapOffsetPitch(pDstPixmap, &dst_pitch_offset)) {
-        R128TRACE(("R128GetPixmapOffsetPitch dest failed\n"));
+        DEBUG(xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                            "R128GetPixmapOffsetPitch dest failed\n"));
 	return FALSE;
     }
     if (info->state_2d.in_use) return FALSE;

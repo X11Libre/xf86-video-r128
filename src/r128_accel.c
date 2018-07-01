@@ -182,10 +182,13 @@ void R128WaitForFifoFunction(ScrnInfoPtr pScrn, int entries)
 	    info->fifo_slots = INREG(R128_GUI_STAT) & R128_GUI_FIFOCNT_MASK;
 	    if (info->fifo_slots >= entries) return;
 	}
-	R128TRACE(("FIFO timed out: %d entries, stat=0x%08x, probe=0x%08x\n",
-		   INREG(R128_GUI_STAT) & R128_GUI_FIFOCNT_MASK,
-		   INREG(R128_GUI_STAT),
-		   INREG(R128_GUI_PROBE)));
+
+    DEBUG(xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                   "FIFO timed out: %d entries, "
+                    "stat=0x%08x, probe=0x%08x\n",
+                    INREG(R128_GUI_STAT) & R128_GUI_FIFOCNT_MASK,
+                    INREG(R128_GUI_STAT),
+                    INREG(R128_GUI_PROBE)));
 	xf86DrvMsg(pScrn->scrnIndex, X_ERROR,
 		   "FIFO timed out, resetting engine...\n");
 	R128EngineReset(pScrn);
@@ -216,10 +219,13 @@ void R128WaitForIdle(ScrnInfoPtr pScrn)
 		return;
 	    }
 	}
-	R128TRACE(("Idle timed out: %d entries, stat=0x%08x, probe=0x%08x\n",
-		   INREG(R128_GUI_STAT) & R128_GUI_FIFOCNT_MASK,
-		   INREG(R128_GUI_STAT),
-		   INREG(R128_GUI_PROBE)));
+
+    DEBUG(xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                        "Idle timed out: %d entries, "
+                        "stat=0x%08x, probe=0x%08x\n",
+                        INREG(R128_GUI_STAT) & R128_GUI_FIFOCNT_MASK,
+                        INREG(R128_GUI_STAT),
+                        INREG(R128_GUI_PROBE)));
 	xf86DrvMsg(pScrn->scrnIndex, X_ERROR,
 		   "Idle timed out, resetting engine...\n");
 #ifdef R128DRI
@@ -526,10 +532,13 @@ static void R128SubsequentSolidFillTrap(ScrnInfoPtr pScrn, int y, int h,
     int           origdxL   = dxL;
     int           origdxR   = dxR;
 
-    R128TRACE(("Trap %d %d; L %d %d %d %d; R %d %d %d %d\n",
-	       y, h,
-	       left, dxL, dyL, eL,
-	       right, dxR, dyR, eR));
+    DEBUG(xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                        "Trap %d %d; "
+                        "L %d %d %d %d; "
+                        "R %d %d %d %d\n",
+                        y, h,
+                        left, dxL, dyL, eL,
+                        right, dxR, dyR, eR));
 
     if (dxL < 0)    dxL = -dxL; else flags |= (1 << 0) /* | (1 << 8) */;
     if (dxR < 0)    dxR = -dxR; else flags |= (1 << 6);
@@ -680,7 +689,9 @@ static void R128SetupForColor8x8PatternFill(ScrnInfoPtr pScrn,
     R128InfoPtr   info      = R128PTR(pScrn);
     unsigned char *R128MMIO = info->MMIO;
 
-    R128TRACE(("Color8x8 %d %d %d\n", trans_color, patx, paty));
+    DEBUG(xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                        "Color8x8 %d %d %d\n",
+                        trans_color, patx, paty));
 
     R128WaitForFifo(pScrn, 2);
     OUTREG(R128_DP_GUI_MASTER_CNTL, (info->dp_gui_master_cntl
@@ -708,7 +719,9 @@ static void R128SubsequentColor8x8PatternFillRect( ScrnInfoPtr pScrn,
     R128InfoPtr   info      = R128PTR(pScrn);
     unsigned char *R128MMIO = info->MMIO;
 
-    R128TRACE(("Color8x8 %d,%d %d,%d %d %d\n", patx, paty, x, y, w, h));
+    DEBUG(xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                        "Color8x8 %d,%d %d,%d %d %d\n",
+                        patx, paty, x, y, w, h));
     R128WaitForFifo(pScrn, 3);
     OUTREG(R128_SRC_Y_X, (paty << 16) | patx);
     OUTREG(R128_DST_Y_X, (y << 16) | x);
@@ -1017,7 +1030,10 @@ void R128EngineInit(ScrnInfoPtr pScrn)
     R128InfoPtr   info      = R128PTR(pScrn);
     unsigned char *R128MMIO = info->MMIO;
 
-    R128TRACE(("EngineInit (%d/%d)\n", info->CurrentLayout.pixel_code, info->CurrentLayout.bitsPerPixel));
+    DEBUG(xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                        "EngineInit (%d/%d)\n",
+                        info->CurrentLayout.pixel_code,
+                        info->CurrentLayout.bitsPerPixel));
 
     OUTREG(R128_SCALE_3D_CNTL, 0);
     R128EngineReset(pScrn);
@@ -1029,13 +1045,16 @@ void R128EngineInit(ScrnInfoPtr pScrn)
     case 24: info->datatype = 5; break;
     case 32: info->datatype = 6; break;
     default:
-	R128TRACE(("Unknown depth/bpp = %d/%d (code = %d)\n",
-		   info->CurrentLayout.depth, info->CurrentLayout.bitsPerPixel,
-		   info->CurrentLayout.pixel_code));
+    DEBUG(xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                        "Unknown depth/bpp = %d/%d (code = %d)\n",
+                        info->CurrentLayout.depth,
+                        info->CurrentLayout.bitsPerPixel,
+                        info->CurrentLayout.pixel_code));
     }
     info->pitch = (info->CurrentLayout.displayWidth / 8) * (info->CurrentLayout.pixel_bytes == 3 ? 3 : 1);
 
-    R128TRACE(("Pitch for acceleration = %d\n", info->pitch));
+    DEBUG(xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                        "Pitch for acceleration = %d\n", info->pitch));
 
     R128WaitForFifo(pScrn, 2);
     OUTREG(R128_DEFAULT_OFFSET, pScrn->fbOffset);
