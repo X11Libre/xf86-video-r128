@@ -1264,7 +1264,7 @@ Bool R128PreInit(ScrnInfoPtr pScrn, int flags)
     R128InfoPtr      info;
 
     DEBUG(xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-                        "R128PreInit\n"));
+                        "%s\n", __func__));
 
     if (flags & PROBE_DETECT) {
         return TRUE;
@@ -1604,7 +1604,8 @@ Bool R128ScreenInit(SCREEN_INIT_ARGS_DECL)
     char *optstr;
 
     DEBUG(xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-                        "R128ScreenInit %lx %lx\n",
+                        "%s %lx %lx\n",
+                        __func__,
                         pScrn->memPhysBase, pScrn->fbOffset));
     info->useEXA = FALSE;
 #ifdef USE_EXA
@@ -2378,7 +2379,7 @@ static void R128SaveMode(ScrnInfoPtr pScrn, R128SavePtr save)
     R128EntPtr    pR128Ent  = R128EntPriv(pScrn);
 
     DEBUG(xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-                        "R128SaveMode(%p)\n", save));
+                        "%s(%p)\n", __func__, save));
 
     R128SaveCommonRegisters(pScrn, save);
     R128SaveCrtcRegisters(pScrn, save);
@@ -2395,7 +2396,7 @@ static void R128SaveMode(ScrnInfoPtr pScrn, R128SavePtr save)
     R128SavePalette(pScrn, save);
 
     DEBUG(xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-                        "R128SaveMode returns %p\n", save));
+                        "%s returns %p\n", __func__, save));
 }
 
 /* Save everything needed to restore the original VC state. */
@@ -2406,7 +2407,7 @@ static void R128Save(ScrnInfoPtr pScrn)
     R128SavePtr   save      = &info->SavedReg;
 
     DEBUG(xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-                        "R128Save\n"));
+                        "%s\n", __func__));
     if (info->FBDev) {
 	fbdevHWSave(pScrn);
 	return;
@@ -2450,7 +2451,7 @@ static void R128Restore(ScrnInfoPtr pScrn)
     R128SavePtr   restore   = &info->SavedReg;
 
     DEBUG(xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-                        "R128Restore\n"));
+                        "%s\n", __func__));
     if (info->FBDev) {
 	fbdevHWRestore(pScrn);
 	return;
@@ -2788,7 +2789,7 @@ Bool R128EnterVT(VT_FUNC_ARGS_DECL)
     R128InfoPtr info  = R128PTR(pScrn);
 
     DEBUG(xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-                        "R128EnterVT\n"));
+                        "%s\n", __func__));
 
     pScrn->vtSema = TRUE;
     if (info->FBDev) {
@@ -2829,7 +2830,7 @@ void R128LeaveVT(VT_FUNC_ARGS_DECL)
     R128SavePtr save  = &info->ModeReg;
 
     DEBUG(xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-                        "R128LeaveVT\n"));
+                        "%s\n", __func__));
 #ifdef R128DRI
     if (info->directRenderingEnabled) {
 	DRILock(pScrn->pScreen, 0);
@@ -2858,7 +2859,7 @@ static Bool R128CloseScreen(CLOSE_SCREEN_ARGS_DECL)
     R128InfoPtr info  = R128PTR(pScrn);
 
     DEBUG(xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-                        "R128CloseScreen\n"));
+                        "%s\n", __func__));
 
 #ifdef R128DRI
 				/* Disable direct rendering */
@@ -2908,7 +2909,7 @@ void R128FreeScreen(FREE_SCREEN_ARGS_DECL)
     R128InfoPtr   info      = R128PTR(pScrn);
 
     DEBUG(xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-                        "R128FreeScreen\n"));
+                        "%s\n", __func__));
     if (info == NULL)
 	return;
 #ifdef WITH_VGAHW
