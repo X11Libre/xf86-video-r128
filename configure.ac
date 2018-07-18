@@ -84,14 +84,26 @@ sdkdir=`$PKG_CONFIG --variable=sdkdir xorg-server`
 # Checks for libraries.
 
 if test "$DRI" != no; then
-	AC_CHECK_FILE([${sdkdir}/dri.h],
-                      [have_dri_h="yes"], [have_dri_h="no"])
-	AC_CHECK_FILE([${sdkdir}/sarea.h],
-                      [have_sarea_h="yes"], [have_sarea_h="no"])
-	AC_CHECK_FILE([${sdkdir}/dristruct.h],
-                      [have_dristruct_h="yes"], [have_dristruct_h="no"])
-	AC_CHECK_FILE([${sdkdir}/damage.h],
-                      [have_damage_h="yes"], [have_damage_h="no"])
+	if test -f "${sdkdir}/dri.h"; then
+		have_dri_h="yes"
+	else
+		have_dri_h="no"
+	fi
+	if test -f "${sdkdir}/sarea.h"; then
+		have_sarea_h="yes"
+	else
+		have_sarea_h="no"
+	fi
+	if test -f "${sdkdir}/dristruct.h"; then
+		have_dristruct_h="yes"
+	else
+		have_dristruct_h="no"
+	fi
+	if test -f "${sdkdir}/damage.h"; then
+		have_damage_h="yes"
+	else
+		have_damage_h="no"
+	fi
 fi
 
 AC_MSG_CHECKING([whether to include DRI support])
