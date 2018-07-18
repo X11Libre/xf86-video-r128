@@ -484,7 +484,7 @@ R128EXAInit(ScreenPtr pScreen)
     }
 
     xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-	       "Initalizing 2D acceleration engine...\n");
+	       "Initializing 2D acceleration engine...\n");
 
     R128EngineInit(pScrn);
 
