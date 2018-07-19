@@ -34,8 +34,17 @@
 
 /* The following is based on the kdrive ATI driver. */
 
-#include <stdio.h>
-#include <string.h>
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#include "xf86.h"
+#include "exa.h"
+
+#include "r128.h"
+#include "r128_reg.h"
+#include "r128_rop.h"
+
 
 static struct {
     Bool dst_alpha;
@@ -203,7 +212,7 @@ R128CheckCompositeTexture(PicturePtr pPict, PicturePtr pDstPict, int op)
     return TRUE;
 }
 
-static Bool
+Bool
 R128CCECheckComposite(int op, PicturePtr pSrcPicture, PicturePtr pMaskPicture, PicturePtr pDstPicture)
 {
 #if R128_DEBUG
@@ -405,7 +414,7 @@ do {							\
     ADVANCE_RING();					\
 } while(0)
 
-static Bool
+Bool
 R128CCEPrepareComposite(int op, PicturePtr pSrcPicture, PicturePtr pMaskPicture,
     PicturePtr pDstPicture, PixmapPtr pSrc, PixmapPtr pMask, PixmapPtr pDst)
 {
@@ -650,7 +659,7 @@ do {								       			\
     OUT_RING(R128FloatAsInt((((float)(_srcY)) + 0.5) / (info->state_2d.heights[0])));	\
 } while (0)
 
-static void
+void
 R128CCEComposite(PixmapPtr pDst, int srcX, int srcY, int maskX, int maskY, int dstX, int dstY, int w, int h)
 {
     ScreenPtr     pScreen   = pDst->drawable.pScreen;
@@ -733,4 +742,3 @@ R128CCEComposite(PixmapPtr pDst, int srcX, int srcY, int maskX, int maskY, int d
     ADVANCE_RING();
 }
 
-#define R128CCEDoneComposite R128Done

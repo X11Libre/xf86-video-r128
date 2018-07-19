@@ -606,6 +606,30 @@ extern Bool	   R128GetDatatypeBpp(int bpp, uint32_t *type);
 extern Bool	   R128GetPixmapOffsetPitch(PixmapPtr pPix, uint32_t *pitch_offset);
 extern void	   R128DoPrepareCopy(ScrnInfoPtr pScrn, uint32_t src_pitch_offset,
 				    uint32_t dst_pitch_offset, uint32_t datatype, int alu, Pixel planemask);
+extern void R128Done(PixmapPtr pPixmap);
+
+#ifdef R128DRI
+extern void EmitCCE2DState(ScrnInfoPtr pScrn);
+#endif
+
+#ifdef RENDER
+extern Bool R128CCECheckComposite(int op,
+                                    PicturePtr pSrcPicture,
+                                    PicturePtr pMaskPicture,
+                                    PicturePtr pDstPicture);
+extern Bool R128CCEPrepareComposite(int op,                                    PicturePtr pSrcPicture,
+                                    PicturePtr pMaskPicture,
+                                    PicturePtr pDstPicture,
+                                    PixmapPtr pSrc,
+                                    PixmapPtr pMask,
+                                    PixmapPtr pDst);
+extern void R128CCEComposite(PixmapPtr pDst,
+                                int srcX, int srcY,
+                                int maskX, int maskY,
+                                int dstX, int dstY,
+                                int w, int h);
+#define R128CCEDoneComposite R128Done
+#endif
 #endif
 
 
