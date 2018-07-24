@@ -1565,24 +1565,41 @@ Bool R128VerboseInitEXA(ScreenPtr pScreen)
 }
 #endif
 
-void R128VerboseInitAccel(Bool noAccel, ScreenPtr pScreen)
+void
+R128AccelInit(Bool noAccel, ScreenPtr pScreen)
 {
     ScrnInfoPtr pScrn  = xf86ScreenToScrn(pScreen);
     R128InfoPtr info   = R128PTR(pScrn);
 
+    /* Initially, assume that acceleration is off. */
+    info->accelOn = FALSE;
+
     if (!noAccel) {
-	if (R128AccelInit(pScreen)) {
-	    xf86DrvMsg(pScrn->scrnIndex, X_INFO, "Acceleration enabled\n");
-	    info->accelOn = TRUE;
-	} else {
-	    xf86DrvMsg(pScrn->scrnIndex, X_ERROR,
-		       "Acceleration initialization failed\n");
-	    xf86DrvMsg(pScrn->scrnIndex, X_INFO, "Acceleration disabled\n");
-	    info->accelOn = FALSE;
-	}
-    } else {
-	xf86DrvMsg(pScrn->scrnIndex, X_INFO, "Acceleration disabled\n");
-	info->accelOn = FALSE;
+        if (info->useEXA) {
+#ifdef USE_EXA
+            if (R128EXAAccelInit(pScreen)) {
+                info->accelOn = TRUE;
+                xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                            "EXA acceleration enabled.\n");
+            }
+#endif
+        }
+
+        if ((!info->useEXA) ||
+            ((info->useEXA) && (!info->accelOn))) {
+#ifdef HAVE_XAA_H
+            if (R128XAAAccelInit(pScreen)) {
+                info->accelOn = TRUE;
+                xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                            "XAA acceleration enabled.\n");
+            }
+#endif
+        }
+
+        if (!info->accelOn) {
+            xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                        "Acceleration disabled.\n");
+        }
     }
 }
 
@@ -1826,7 +1843,7 @@ Bool R128ScreenInit(SCREEN_INIT_ARGS_DECL)
 				width, height);
 	        }
 
-		R128VerboseInitAccel(noAccel, pScreen);
+                R128AccelInit(noAccel, pScreen);
 	    }
 	}
 #ifdef USE_EXA
@@ -1834,7 +1851,7 @@ Bool R128ScreenInit(SCREEN_INIT_ARGS_DECL)
 	    xf86DrvMsg(pScrn->scrnIndex, X_INFO,
 		       "Filling in EXA memory info\n");
 
-	    R128VerboseInitAccel(noAccel, pScreen);
+            R128AccelInit(noAccel, pScreen);
 	    info->ExaDriver->offScreenBase = pScrn->virtualY * width_bytes;
 
 	    xf86DrvMsg(pScrn->scrnIndex, X_INFO,
@@ -1999,7 +2016,7 @@ Bool R128ScreenInit(SCREEN_INIT_ARGS_DECL)
 				width, height);
 	        }
 
-		R128VerboseInitAccel(noAccel, pScreen);
+                R128AccelInit(noAccel, pScreen);
 	    }
 	}
 #ifdef USE_EXA
@@ -2007,7 +2024,7 @@ Bool R128ScreenInit(SCREEN_INIT_ARGS_DECL)
 	    xf86DrvMsg(pScrn->scrnIndex, X_INFO,
 		       "Filling in EXA memory info\n");
 
-	    R128VerboseInitAccel(noAccel, pScreen);
+            R128AccelInit(noAccel, pScreen);
 	    info->ExaDriver->offScreenBase = pScrn->virtualY * width_bytes;
 
 	    xf86DrvMsg(pScrn->scrnIndex, X_INFO,

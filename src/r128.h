@@ -514,7 +514,7 @@ extern void        R128EngineFlush(ScrnInfoPtr pScrn);
 extern unsigned    R128INPLL(ScrnInfoPtr pScrn, int addr);
 extern void        R128WaitForVerticalSync(ScrnInfoPtr pScrn);
 
-extern Bool        R128AccelInit(ScreenPtr pScreen);
+extern Bool R128XAAAccelInit(ScreenPtr pScreen);
 extern void        R128EngineInit(ScrnInfoPtr pScrn);
 extern Bool        R128CursorInit(ScreenPtr pScreen);
 
@@ -601,6 +601,7 @@ extern int         R128CCEStop(ScrnInfoPtr pScrn);
 extern void	   R128CopySwap(uint8_t *dst, uint8_t *src, unsigned int size, int swap);
 
 #ifdef USE_EXA
+extern Bool R128EXAAccelInit(ScreenPtr pScreen);
 extern Bool	   R128EXAInit(ScreenPtr pScreen);
 extern Bool	   R128GetDatatypeBpp(int bpp, uint32_t *type);
 extern Bool	   R128GetPixmapOffsetPitch(PixmapPtr pPix, uint32_t *pitch_offset);
