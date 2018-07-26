@@ -1262,6 +1262,9 @@ exit:
 Bool R128PreInit(ScrnInfoPtr pScrn, int flags)
 {
     R128InfoPtr      info;
+#ifdef USE_EXA
+    char *optstr;
+#endif
 
     DEBUG(xf86DrvMsg(pScrn->scrnIndex, X_INFO,
                         "%s\n", __func__));
@@ -1335,6 +1338,13 @@ Bool R128PreInit(ScrnInfoPtr pScrn, int flags)
 
     info->noAccel = FALSE;
 
+    info->useEXA = FALSE;
+#ifdef USE_EXA
+#ifndef HAVE_XAA_H
+    info->useEXA = TRUE;
+#endif
+#endif
+
     /* By default, don't do VGA IOs on ppc */
 #if defined(__powerpc__) || defined(__sparc__) || !defined(WITH_VGAHW)
     info->VGAAccess = FALSE;
@@ -1378,6 +1388,34 @@ Bool R128PreInit(ScrnInfoPtr pScrn, int flags)
     if (xf86ReturnOptValBool(info->Options, OPTION_NOACCEL, FALSE)) {
         info->noAccel = TRUE;
     }
+
+#ifdef USE_EXA
+    if (!info->noAccel) {
+        optstr = (char *) xf86GetOptValString(info->Options,
+                                                OPTION_ACCELMETHOD);
+        if (optstr) {
+            xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                        "AccelMethod option found.\n");
+            if (xf86NameCmp(optstr, "EXA") == 0) {
+                info->useEXA = TRUE;
+                xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                            "AccelMethod is set to EXA, turning "
+                            "EXA on.\n");
+            }
+        }
+
+#ifdef RENDER
+        info->RenderAccel = xf86ReturnOptValBool(info->Options,
+                                                    OPTION_RENDERACCEL,
+                                                    TRUE);
+        if (info->RenderAccel)
+            xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                        "Acceleration of RENDER operations will be "
+                        "enabled upon successful loading of DRI and "
+                        "EXA.\n");
+#endif
+    }
+#endif
 
     if (xf86ReturnOptValBool(info->Options, OPTION_SHOW_CACHE, FALSE)) {
         info->showCache = TRUE;
@@ -1623,35 +1661,11 @@ Bool R128ScreenInit(SCREEN_INIT_ARGS_DECL)
 #else
     void*		  osArea = NULL;
 #endif
-    char *optstr;
 
     DEBUG(xf86DrvMsg(pScrn->scrnIndex, X_INFO,
                         "%s %lx %lx\n",
                         __func__,
                         pScrn->memPhysBase, pScrn->fbOffset));
-    info->useEXA = FALSE;
-#ifdef USE_EXA
-#ifndef HAVE_XAA_H
-    info->useEXA = TRUE;
-#endif
-#endif
-
-#ifdef USE_EXA
-    optstr = (char *)xf86GetOptValString(info->Options, OPTION_ACCELMETHOD);
-    if (optstr != NULL) {
-	xf86DrvMsg(pScrn->scrnIndex, X_INFO, "AccelMethod option found\n");
-	if (xf86NameCmp(optstr, "EXA") == 0) {
-	    xf86DrvMsg(pScrn->scrnIndex, X_INFO, "AccelMethod is set to EXA, turning EXA on\n");
-	    info->useEXA = TRUE;
-	}
-    }
-#ifdef RENDER
-    info->RenderAccel = xf86ReturnOptValBool(info->Options, OPTION_RENDERACCEL, TRUE);
-    if (info->RenderAccel)
-        xf86DrvMsg(pScrn->scrnIndex, X_INFO, "Acceleration of RENDER operations will be enabled "
-					     "upon successful loading of DRI and EXA\n");
-#endif
-#endif
 
 #ifdef R128DRI
 				/* Turn off the CCE for now. */
