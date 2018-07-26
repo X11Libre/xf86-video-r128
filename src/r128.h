@@ -335,6 +335,8 @@ typedef struct {
 #ifdef HAVE_XAA_H
     XAAInfoRecPtr     accel;
 #endif
+
+    Bool              noAccel;
     Bool              accelOn;
     Bool	      useEXA;
     Bool	      RenderAccel;

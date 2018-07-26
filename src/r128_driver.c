@@ -1333,6 +1333,8 @@ Bool R128PreInit(ScrnInfoPtr pScrn, int flags)
     memcpy(info->Options, R128Options, sizeof(R128Options));
     xf86ProcessOptions(pScrn->scrnIndex, pScrn->options, info->Options);
 
+    info->noAccel = FALSE;
+
     /* By default, don't do VGA IOs on ppc */
 #if defined(__powerpc__) || defined(__sparc__) || !defined(WITH_VGAHW)
     info->VGAAccess = FALSE;
@@ -1371,6 +1373,10 @@ Bool R128PreInit(ScrnInfoPtr pScrn, int flags)
                                 info->videoKey);
     } else {
         info->videoKey = 0x1E;
+    }
+
+    if (xf86ReturnOptValBool(info->Options, OPTION_NOACCEL, FALSE)) {
+        info->noAccel = TRUE;
     }
 
     if (xf86ReturnOptValBool(info->Options, OPTION_SHOW_CACHE, FALSE)) {
@@ -1612,7 +1618,6 @@ Bool R128ScreenInit(SCREEN_INIT_ARGS_DECL)
     int width_bytes = (pScrn->displayWidth *
 			   info->CurrentLayout.pixel_bytes);
     int         x1 = 0, x2 = 0, y1 = 0, y2 = 0;
-    Bool	noAccel;
 #ifdef USE_EXA
     ExaOffscreenArea*     osArea = NULL;
 #else
@@ -1676,8 +1681,7 @@ Bool R128ScreenInit(SCREEN_INIT_ARGS_DECL)
 			  pScrn->defaultVisual)) return FALSE;
     miSetPixmapDepths ();
 
-    noAccel = xf86ReturnOptValBool(info->Options, OPTION_NOACCEL, FALSE);
-    if (noAccel) info->useEXA = FALSE;
+    if (info->noAccel) info->useEXA = FALSE;
 
 #ifdef R128DRI
 				/* Setup DRI after visuals have been
@@ -1689,7 +1693,7 @@ Bool R128ScreenInit(SCREEN_INIT_ARGS_DECL)
 	   times the virtual size of the screen below. */
 	int maxy        = info->FbMapSize / width_bytes;
 
-	if (noAccel) {
+        if (info->noAccel) {
 	    xf86DrvMsg(pScrn->scrnIndex, X_WARNING,
 		       "Acceleration disabled, not initializing the DRI\n");
 	    info->directRenderingEnabled = FALSE;
@@ -1843,7 +1847,7 @@ Bool R128ScreenInit(SCREEN_INIT_ARGS_DECL)
 				width, height);
 	        }
 
-                R128AccelInit(noAccel, pScreen);
+                R128AccelInit(info->noAccel, pScreen);
 	    }
 	}
 #ifdef USE_EXA
@@ -1851,7 +1855,7 @@ Bool R128ScreenInit(SCREEN_INIT_ARGS_DECL)
 	    xf86DrvMsg(pScrn->scrnIndex, X_INFO,
 		       "Filling in EXA memory info\n");
 
-            R128AccelInit(noAccel, pScreen);
+            R128AccelInit(info->noAccel, pScreen);
 	    info->ExaDriver->offScreenBase = pScrn->virtualY * width_bytes;
 
 	    xf86DrvMsg(pScrn->scrnIndex, X_INFO,
@@ -2016,7 +2020,7 @@ Bool R128ScreenInit(SCREEN_INIT_ARGS_DECL)
 				width, height);
 	        }
 
-                R128AccelInit(noAccel, pScreen);
+                R128AccelInit(info->noAccel, pScreen);
 	    }
 	}
 #ifdef USE_EXA
@@ -2024,7 +2028,7 @@ Bool R128ScreenInit(SCREEN_INIT_ARGS_DECL)
 	    xf86DrvMsg(pScrn->scrnIndex, X_INFO,
 		       "Filling in EXA memory info\n");
 
-            R128AccelInit(noAccel, pScreen);
+            R128AccelInit(info->noAccel, pScreen);
 	    info->ExaDriver->offScreenBase = pScrn->virtualY * width_bytes;
 
 	    xf86DrvMsg(pScrn->scrnIndex, X_INFO,
