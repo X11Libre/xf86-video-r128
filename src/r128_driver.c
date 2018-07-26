@@ -121,7 +121,6 @@ typedef enum {
   OPTION_NOACCEL,
   OPTION_SW_CURSOR,
   OPTION_DAC_6BIT,
-  OPTION_DAC_8BIT,
 #ifdef R128DRI
   OPTION_XV_DMA,
   OPTION_IS_PCI,
@@ -154,7 +153,6 @@ static const OptionInfoRec R128Options[] = {
   { OPTION_NOACCEL,      "NoAccel",          OPTV_BOOLEAN, {0}, FALSE },
   { OPTION_SW_CURSOR,    "SWcursor",         OPTV_BOOLEAN, {0}, FALSE },
   { OPTION_DAC_6BIT,     "Dac6Bit",          OPTV_BOOLEAN, {0}, FALSE },
-  { OPTION_DAC_8BIT,     "Dac8Bit",          OPTV_BOOLEAN, {0}, TRUE  },
 #ifdef R128DRI
   { OPTION_XV_DMA,       "DMAForXv",         OPTV_BOOLEAN, {0}, FALSE },
   { OPTION_IS_PCI,       "ForcePCIMode",     OPTV_BOOLEAN, {0}, FALSE },
