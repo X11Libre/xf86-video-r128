@@ -1345,6 +1345,8 @@ Bool R128PreInit(ScrnInfoPtr pScrn, int flags)
 #endif
 #endif
 
+    info->swCursor = FALSE;
+
     /* By default, don't do VGA IOs on ppc */
 #if defined(__powerpc__) || defined(__sparc__) || !defined(WITH_VGAHW)
     info->VGAAccess = FALSE;
@@ -1431,6 +1433,11 @@ Bool R128PreInit(ScrnInfoPtr pScrn, int flags)
 	info->FBDev = TRUE;
 	xf86DrvMsg(pScrn->scrnIndex, X_CONFIG,
 		   "Using framebuffer device\n");
+    }
+
+    if (xf86ReturnOptValBool(info->Options,
+                                OPTION_SW_CURSOR, FALSE)) {
+        info->swCursor = TRUE;
     }
 
     /* Allocate an xf86CrtcConfig */
@@ -2082,7 +2089,7 @@ Bool R128ScreenInit(SCREEN_INIT_ARGS_DECL)
     miDCInitialize(pScreen, xf86GetPointerScreenFuncs());
 
 				/* Hardware cursor setup */
-    if (!xf86ReturnOptValBool(info->Options, OPTION_SW_CURSOR, FALSE)) {
+    if (!info->swCursor) {
 	if (R128CursorInit(pScreen)) {
 	    int width, height;
 

@@ -349,6 +349,7 @@ typedef struct {
     int               fifo_slots;   /* Free slots in the FIFO (64 max)       */
     int               pix24bpp;     /* Depth of pixmap for 24bpp framebuffer */
     Bool              dac6bits;     /* Use 6 bit DAC?                        */
+    Bool              swCursor;
 
 				/* Computed values for Rage 128 */
     int               pitch;
