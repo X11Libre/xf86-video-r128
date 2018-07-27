@@ -1748,8 +1748,6 @@ Bool R128ScreenInit(SCREEN_INIT_ARGS_DECL)
 			  pScrn->defaultVisual)) return FALSE;
     miSetPixmapDepths ();
 
-    if (info->noAccel) info->useEXA = FALSE;
-
 #ifdef R128DRI
 				/* Setup DRI after visuals have been
 				   established, but before fbScreenInit is
