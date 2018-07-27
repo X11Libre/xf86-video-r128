@@ -398,18 +398,6 @@ R128EXAAccelInit(ScreenPtr pScreen)
 {
     ScrnInfoPtr   pScrn = xf86ScreenToScrn(pScreen);
     R128InfoPtr   info  = R128PTR(pScrn);
-    int errmaj = 0, errmin = 0;
-
-    info->exaReq.majorversion = EXA_VERSION_MAJOR;
-    info->exaReq.minorversion = EXA_VERSION_MINOR;
-
-    xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-                "Loading EXA module...\n");
-    if (!LoadSubModule(pScrn->module, "exa", NULL, NULL, NULL,
-                    &info->exaReq, &errmaj, &errmin)) {
-        LoaderErrorMsg(NULL, "exa", errmaj, errmin);
-        return FALSE;
-    }
 
     /* Don't init EXA here because it'll be taken care of in mm init */
     xf86DrvMsg(pScrn->scrnIndex, X_INFO,

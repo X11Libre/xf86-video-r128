@@ -1325,6 +1325,46 @@ exit:
     return ret;
 }
 
+static void
+R128PreInitAccel(ScrnInfoPtr pScrn)
+{
+    R128InfoPtr      info = R128PTR(pScrn);
+#ifdef USE_EXA
+    int errmaj, errmin;
+#endif
+
+    if (!info->noAccel) {
+        if (info->useEXA) {
+#ifdef USE_EXA
+            info->exaReq.majorversion = EXA_VERSION_MAJOR;
+            info->exaReq.minorversion = EXA_VERSION_MINOR;
+
+            xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                        "Loading EXA module...\n");
+            if (LoadSubModule(pScrn->module, "exa", NULL, NULL, NULL,
+                                &info->exaReq, &errmaj, &errmin)) {
+                info->accelOn = TRUE;
+                xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                            "EXA acceleration enabled.\n");
+            } else {
+                LoaderErrorMsg(NULL, "exa", errmaj, errmin);
+            }
+#endif
+        }
+
+        if ((!info->useEXA) ||
+            ((info->useEXA) && (!info->accelOn))) {
+#ifdef HAVE_XAA_H
+            if (xf86LoadSubModule(pScrn, "xaa")) {
+                info->accelOn = TRUE;
+                xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                            "XAA acceleration enabled.\n");
+            }
+#endif
+        }
+    }
+}
+
 /* R128PreInit is called once at server startup. */
 Bool R128PreInit(ScrnInfoPtr pScrn, int flags)
 {
@@ -1404,6 +1444,7 @@ Bool R128PreInit(ScrnInfoPtr pScrn, int flags)
     xf86ProcessOptions(pScrn->scrnIndex, pScrn->options, info->Options);
 
     info->noAccel = FALSE;
+    info->accelOn = FALSE;
 
     info->useEXA = FALSE;
 #ifdef USE_EXA
@@ -1466,6 +1507,8 @@ Bool R128PreInit(ScrnInfoPtr pScrn, int flags)
 
     /* Get ScreenInit function */
     if (!xf86LoadSubModule(pScrn, "fb")) return FALSE;
+
+    R128PreInitAccel(pScrn);
 
     info->CurrentLayout.displayWidth = pScrn->displayWidth;
 
@@ -1630,14 +1673,10 @@ R128AccelInit(Bool noAccel, ScreenPtr pScreen)
     ScrnInfoPtr pScrn  = xf86ScreenToScrn(pScreen);
     R128InfoPtr info   = R128PTR(pScrn);
 
-    /* Initially, assume that acceleration is off. */
-    info->accelOn = FALSE;
-
     if (!noAccel) {
         if (info->useEXA) {
 #ifdef USE_EXA
             if (R128EXAAccelInit(pScreen)) {
-                info->accelOn = TRUE;
                 xf86DrvMsg(pScrn->scrnIndex, X_INFO,
                             "EXA acceleration enabled.\n");
             }
@@ -1648,7 +1687,6 @@ R128AccelInit(Bool noAccel, ScreenPtr pScreen)
             ((info->useEXA) && (!info->accelOn))) {
 #ifdef HAVE_XAA_H
             if (R128XAAAccelInit(pScreen)) {
-                info->accelOn = TRUE;
                 xf86DrvMsg(pScrn->scrnIndex, X_INFO,
                             "XAA acceleration enabled.\n");
             }
