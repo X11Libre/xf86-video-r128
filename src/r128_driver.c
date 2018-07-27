@@ -1031,7 +1031,7 @@ static Bool R128PreInitCursor(ScrnInfoPtr pScrn)
 {
     R128InfoPtr   info = R128PTR(pScrn);
 
-    if (!xf86ReturnOptValBool(info->Options, OPTION_SW_CURSOR, FALSE)) {
+    if (!info->swCursor) {
 	if (!xf86LoadSubModule(pScrn, "ramdac")) return FALSE;
     }
     return TRUE;
@@ -1303,6 +1303,8 @@ static Bool R128LegacyMS(ScrnInfoPtr pScrn)
 
     xf86CrtcSetSizeRange(pScrn, 320, 200, 4096, 4096);
 
+    if (!R128PreInitCursor(pScrn)) goto freeInt10;
+
     /* Don't fail on this one */
     info->DDC = R128PreInitDDC(pScrn, pInt10);
 
@@ -1464,8 +1466,6 @@ Bool R128PreInit(ScrnInfoPtr pScrn, int flags)
 
     /* Get ScreenInit function */
     if (!xf86LoadSubModule(pScrn, "fb")) return FALSE;
-
-    if (!R128PreInitCursor(pScrn))             goto fail;
 
     info->CurrentLayout.displayWidth = pScrn->displayWidth;
 
