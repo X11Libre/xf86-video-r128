@@ -109,9 +109,6 @@
 #endif
 
 
-#define USE_CRT_ONLY	0
-
-				/* Forward definitions for driver functions */
 static Bool R128CloseScreen(CLOSE_SCREEN_ARGS_DECL);
 static Bool R128SaveScreen(ScreenPtr pScreen, int mode);
 static void R128Save(ScrnInfoPtr pScrn);
@@ -139,10 +136,6 @@ typedef enum {
   OPTION_RING_SIZE,
   OPTION_BUFFER_SIZE,
   OPTION_PAGE_FLIP,
-#endif
-#if USE_CRT_ONLY
-  /* FIXME: Disable CRTOnly until it is tested */
-  OPTION_CRT,
 #endif
   OPTION_DISPLAY,
   OPTION_ACCELMETHOD,
