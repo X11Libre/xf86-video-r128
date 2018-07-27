@@ -119,8 +119,15 @@ static void R128Restore(ScrnInfoPtr pScrn);
 
 typedef enum {
   OPTION_NOACCEL,
-  OPTION_SW_CURSOR,
+  OPTION_FBDEV,
   OPTION_DAC_6BIT,
+  OPTION_VGA_ACCESS,
+  OPTION_SHOW_CACHE,
+  OPTION_SW_CURSOR,
+  OPTION_VIDEO_KEY,
+  OPTION_PANEL_WIDTH,
+  OPTION_PANEL_HEIGHT,
+  OPTION_PROG_FP_REGS,
 #ifdef R128DRI
   OPTION_XV_DMA,
   OPTION_IS_PCI,
@@ -138,21 +145,21 @@ typedef enum {
   OPTION_CRT,
 #endif
   OPTION_DISPLAY,
-  OPTION_PANEL_WIDTH,
-  OPTION_PANEL_HEIGHT,
-  OPTION_PROG_FP_REGS,
-  OPTION_FBDEV,
-  OPTION_VIDEO_KEY,
-  OPTION_SHOW_CACHE,
-  OPTION_VGA_ACCESS,
   OPTION_ACCELMETHOD,
   OPTION_RENDERACCEL
 } R128Opts;
 
 static const OptionInfoRec R128Options[] = {
-  { OPTION_NOACCEL,      "NoAccel",          OPTV_BOOLEAN, {0}, FALSE },
-  { OPTION_SW_CURSOR,    "SWcursor",         OPTV_BOOLEAN, {0}, FALSE },
-  { OPTION_DAC_6BIT,     "Dac6Bit",          OPTV_BOOLEAN, {0}, FALSE },
+{ OPTION_NOACCEL,      "NoAccel",          OPTV_BOOLEAN, {0}, FALSE },
+{ OPTION_FBDEV,        "UseFBDev",         OPTV_BOOLEAN, {0}, FALSE },
+{ OPTION_DAC_6BIT,     "Dac6Bit",          OPTV_BOOLEAN, {0}, FALSE },
+{ OPTION_VGA_ACCESS,   "VGAAccess",        OPTV_BOOLEAN, {0}, TRUE  },
+{ OPTION_SHOW_CACHE,   "ShowCache",        OPTV_BOOLEAN, {0}, FALSE },
+{ OPTION_SW_CURSOR,    "SWcursor",         OPTV_BOOLEAN, {0}, FALSE },
+{ OPTION_VIDEO_KEY,    "VideoKey",         OPTV_INTEGER, {0}, FALSE },
+{ OPTION_PANEL_WIDTH,  "PanelWidth",       OPTV_INTEGER, {0}, FALSE },
+{ OPTION_PANEL_HEIGHT, "PanelHeight",      OPTV_INTEGER, {0}, FALSE },
+{ OPTION_PROG_FP_REGS, "ProgramFPRegs",    OPTV_BOOLEAN, {0}, FALSE },
 #ifdef R128DRI
   { OPTION_XV_DMA,       "DMAForXv",         OPTV_BOOLEAN, {0}, FALSE },
   { OPTION_IS_PCI,       "ForcePCIMode",     OPTV_BOOLEAN, {0}, FALSE },
@@ -165,13 +172,6 @@ static const OptionInfoRec R128Options[] = {
   { OPTION_BUFFER_SIZE,  "BufferSize",       OPTV_INTEGER, {0}, FALSE },
   { OPTION_PAGE_FLIP,    "EnablePageFlip",   OPTV_BOOLEAN, {0}, FALSE },
 #endif
-  { OPTION_PANEL_WIDTH,  "PanelWidth",       OPTV_INTEGER, {0}, FALSE },
-  { OPTION_PANEL_HEIGHT, "PanelHeight",      OPTV_INTEGER, {0}, FALSE },
-  { OPTION_PROG_FP_REGS, "ProgramFPRegs",    OPTV_BOOLEAN, {0}, FALSE },
-  { OPTION_FBDEV,        "UseFBDev",         OPTV_BOOLEAN, {0}, FALSE },
-  { OPTION_VIDEO_KEY,    "VideoKey",         OPTV_INTEGER, {0}, FALSE },
-  { OPTION_SHOW_CACHE,   "ShowCache",        OPTV_BOOLEAN, {0}, FALSE },
-  { OPTION_VGA_ACCESS,   "VGAAccess",        OPTV_BOOLEAN, {0}, TRUE  },
   { OPTION_ACCELMETHOD,  "AccelMethod",      OPTV_STRING,  {0}, FALSE },
   { OPTION_RENDERACCEL,  "RenderAccel",      OPTV_BOOLEAN, {0}, FALSE },
   { -1,                  NULL,               OPTV_NONE,    {0}, FALSE }
@@ -1204,6 +1204,81 @@ static Bool R128PreInitControllers(ScrnInfoPtr pScrn, xf86Int10InfoPtr pInt10)
     return !!found;
 }
 
+static void R128UMSOption(ScrnInfoPtr pScrn)
+{
+    R128InfoPtr      info = R128PTR(pScrn);
+
+#ifdef __powerpc__
+    if (xf86ReturnOptValBool(info->Options, OPTION_FBDEV, TRUE))
+#else
+    if (xf86ReturnOptValBool(info->Options, OPTION_FBDEV, FALSE))
+#endif
+    {
+        info->FBDev = TRUE;
+        xf86DrvMsg(pScrn->scrnIndex, X_CONFIG,
+                    "Using framebuffer device.\n");
+    }
+
+    /* By default, don't access VGA IOs on PowerPC or SPARC. */
+#if defined(__powerpc__) || defined(__sparc__) || !defined(WITH_VGAHW)
+    info->VGAAccess = FALSE;
+#else
+    info->VGAAccess = TRUE;
+#endif
+
+#ifdef WITH_VGAHW
+    xf86GetOptValBool(info->Options, OPTION_VGA_ACCESS,
+                        &info->VGAAccess);
+    if (info->VGAAccess) {
+       if (!xf86LoadSubModule(pScrn, "vgahw"))
+           info->VGAAccess = FALSE;
+        else {
+            if (!vgaHWGetHWRec(pScrn))
+               info->VGAAccess = FALSE;
+       }
+
+       if (!info->VGAAccess) {
+           xf86DrvMsg(pScrn->scrnIndex, X_WARNING,
+                       "Loading VGA module failed, trying to "
+                       "run without it.\n");
+       }
+    } else
+           xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                       "VGAAccess option set to FALSE, VGA "
+                       "module load skipped.\n");
+    if (info->VGAAccess) {
+        vgaHWSetStdFuncs(VGAHWPTR(pScrn));
+        vgaHWGetIOBase(VGAHWPTR(pScrn));
+    }
+#else
+    xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                "VGAHW support not compiled, VGA "
+                "module load skipped.\n");
+#endif
+
+    if (xf86ReturnOptValBool(info->Options,
+                                OPTION_SHOW_CACHE, FALSE)) {
+        info->showCache = TRUE;
+        xf86DrvMsg(pScrn->scrnIndex, X_CONFIG,
+                    "ShowCache enabled.\n");
+    }
+
+    if (xf86ReturnOptValBool(info->Options,
+                                OPTION_SW_CURSOR, FALSE)) {
+        info->swCursor = TRUE;
+        xf86DrvMsg(pScrn->scrnIndex, X_CONFIG,
+                    "Software cursor requested.\n");
+    }
+
+    if(xf86GetOptValInteger(info->Options,
+                            OPTION_VIDEO_KEY, &info->videoKey)) {
+        xf86DrvMsg(pScrn->scrnIndex, X_CONFIG,
+                    "Video key set to 0x%x.\n", info->videoKey);
+    } else {
+        info->videoKey = 0x1E;
+    }
+}
+
 static Bool R128CRTCResize(ScrnInfoPtr pScrn, int width, int height)
 {
     pScrn->virtualX = width;
@@ -1345,45 +1420,7 @@ Bool R128PreInit(ScrnInfoPtr pScrn, int flags)
 
     info->swCursor = FALSE;
 
-    /* By default, don't do VGA IOs on ppc */
-#if defined(__powerpc__) || defined(__sparc__) || !defined(WITH_VGAHW)
-    info->VGAAccess = FALSE;
-#else
-    info->VGAAccess = TRUE;
-#endif
-
-#ifdef WITH_VGAHW
-    xf86GetOptValBool(info->Options, OPTION_VGA_ACCESS, &info->VGAAccess);
-    if (info->VGAAccess) {
-       if (!xf86LoadSubModule(pScrn, "vgahw"))
-           info->VGAAccess = FALSE;
-        else {
-            if (!vgaHWGetHWRec(pScrn))
-               info->VGAAccess = FALSE;
-       }
-       if (!info->VGAAccess)
-           xf86DrvMsg(pScrn->scrnIndex, X_WARNING, "Loading VGA module failed,"
-                      " trying to run without it\n");
-    } else
-           xf86DrvMsg(pScrn->scrnIndex, X_INFO, "VGAAccess option set to FALSE,"
-                      " VGA module load skipped\n");
-    if (info->VGAAccess) {
-	vgaHWSetStdFuncs(VGAHWPTR(pScrn));
-        vgaHWGetIOBase(VGAHWPTR(pScrn));
-    }
-#else
-    xf86DrvMsg(pScrn->scrnIndex, X_INFO, "VGAHW support not compiled, VGA "
-               "module load skipped\n");
-#endif
-
     if (!R128PreInitWeight(pScrn))    goto fail;
-
-    if(xf86GetOptValInteger(info->Options, OPTION_VIDEO_KEY, &(info->videoKey))) {
-        xf86DrvMsg(pScrn->scrnIndex, X_CONFIG, "video key set to 0x%x\n",
-                                info->videoKey);
-    } else {
-        info->videoKey = 0x1E;
-    }
 
     if (xf86ReturnOptValBool(info->Options, OPTION_NOACCEL, FALSE)) {
         info->noAccel = TRUE;
@@ -1417,26 +1454,7 @@ Bool R128PreInit(ScrnInfoPtr pScrn, int flags)
     }
 #endif
 
-    if (xf86ReturnOptValBool(info->Options, OPTION_SHOW_CACHE, FALSE)) {
-        info->showCache = TRUE;
-        xf86DrvMsg(pScrn->scrnIndex, X_CONFIG, "ShowCache enabled\n");
-    }
-
-#ifdef __powerpc__
-    if (xf86ReturnOptValBool(info->Options, OPTION_FBDEV, TRUE))
-#else
-    if (xf86ReturnOptValBool(info->Options, OPTION_FBDEV, FALSE))
-#endif
-    {
-	info->FBDev = TRUE;
-	xf86DrvMsg(pScrn->scrnIndex, X_CONFIG,
-		   "Using framebuffer device\n");
-    }
-
-    if (xf86ReturnOptValBool(info->Options,
-                                OPTION_SW_CURSOR, FALSE)) {
-        info->swCursor = TRUE;
-    }
+    R128UMSOption(pScrn);
 
     /* Allocate an xf86CrtcConfig */
     xf86CrtcConfigInit(pScrn, &R128CRTCResizeFuncs);
