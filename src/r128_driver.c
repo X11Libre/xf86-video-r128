@@ -1667,30 +1667,6 @@ Bool R128VerboseInitEXA(ScreenPtr pScreen)
 }
 #endif
 
-void
-R128AccelInit(Bool noAccel, ScreenPtr pScreen)
-{
-    ScrnInfoPtr pScrn  = xf86ScreenToScrn(pScreen);
-    R128InfoPtr info   = R128PTR(pScrn);
-
-    if (!noAccel) {
-        if ((!info->useEXA) ||
-            ((info->useEXA) && (!info->accelOn))) {
-#ifdef HAVE_XAA_H
-            if (R128XAAAccelInit(pScreen)) {
-                xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-                            "XAA acceleration enabled.\n");
-            }
-#endif
-        }
-
-        if (!info->accelOn) {
-            xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-                        "Acceleration disabled.\n");
-        }
-    }
-}
-
 /* Called at the start of each server generation. */
 Bool R128ScreenInit(SCREEN_INIT_ARGS_DECL)
 {
@@ -1911,9 +1887,18 @@ Bool R128ScreenInit(SCREEN_INIT_ARGS_DECL)
 				width, height);
 	        }
 
-                R128AccelInit(info->noAccel, pScreen);
-	    }
-	}
+            if (!info->noAccel) {
+                if (R128XAAAccelInit(pScreen)) {
+                    info->accelOn = TRUE;
+                    xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                                "XAA acceleration enabled.\n");
+                } else {
+                    xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                                "Acceleration disabled.\n");
+                }
+            }
+        }
+    }
 #ifdef USE_EXA
     else {
         xf86DrvMsg(pScrn->scrnIndex, X_INFO,
