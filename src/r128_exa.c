@@ -394,25 +394,6 @@ R128CCESync(ScreenPtr pScreen, int marker)
 #endif
 
 Bool
-R128EXAAccelInit(ScreenPtr pScreen)
-{
-    ScrnInfoPtr   pScrn = xf86ScreenToScrn(pScreen);
-    R128InfoPtr   info  = R128PTR(pScrn);
-
-    /* Don't init EXA here because it'll be taken care of in mm init */
-    xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-                "Allocating EXA driver...\n");
-    info->ExaDriver = exaDriverAlloc();
-    if (!info->ExaDriver) {
-        xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-                    "Could not allocate EXA driver...\n");
-        info->accelOn = FALSE;
-    }
-
-    return TRUE;
-}
-
-Bool
 R128EXAInit(ScreenPtr pScreen)
 {
     ScrnInfoPtr pScrn = xf86ScreenToScrn(pScreen);

@@ -1674,15 +1674,6 @@ R128AccelInit(Bool noAccel, ScreenPtr pScreen)
     R128InfoPtr info   = R128PTR(pScrn);
 
     if (!noAccel) {
-        if (info->useEXA) {
-#ifdef USE_EXA
-            if (R128EXAAccelInit(pScreen)) {
-                xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-                            "EXA acceleration enabled.\n");
-            }
-#endif
-        }
-
         if ((!info->useEXA) ||
             ((info->useEXA) && (!info->accelOn))) {
 #ifdef HAVE_XAA_H
@@ -1924,22 +1915,31 @@ Bool R128ScreenInit(SCREEN_INIT_ARGS_DECL)
 	    }
 	}
 #ifdef USE_EXA
-	else {
-	    xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-		       "Filling in EXA memory info\n");
+    else {
+        xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                    "Filling in EXA memory info\n");
 
-            R128AccelInit(info->noAccel, pScreen);
-	    info->ExaDriver->offScreenBase = pScrn->virtualY * width_bytes;
+        info->ExaDriver = exaDriverAlloc();
+        if (!info->ExaDriver) {
+            xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                        "Could not allocate EXA driver...\n");
+            info->accelOn = FALSE;
+        } else {
+            info->ExaDriver->offScreenBase = pScrn->virtualY * width_bytes;
 
-	    xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-		       "Filled in offs\n");
+            xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                        "Filled in offs\n");
 
-	    /* Don't give EXA the true full memory size, because the
-	       textureSize sized chunk on the end is handled by DRI */
-	    info->ExaDriver->memorySize = total;
+            /*
+             * Don't give EXA the true full memory size, because
+             * the textureSize sized chunk on the end is handled
+             * by DRI.
+             */
+            info->ExaDriver->memorySize = total;
 
-	    R128VerboseInitEXA(pScreen);
-	}
+            R128VerboseInitEXA(pScreen);
+        }
+    }
 #endif
 
 #ifdef R128DRI
