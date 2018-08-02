@@ -1343,9 +1343,8 @@ R128PreInitAccel(ScrnInfoPtr pScrn)
                         "Loading EXA module...\n");
             if (LoadSubModule(pScrn->module, "exa", NULL, NULL, NULL,
                                 &info->exaReq, &errmaj, &errmin)) {
-                info->accelOn = TRUE;
                 xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-                            "EXA acceleration enabled.\n");
+                            "Loading EXA module.\n");
             } else {
                 LoaderErrorMsg(NULL, "exa", errmaj, errmin);
             }
@@ -1356,9 +1355,8 @@ R128PreInitAccel(ScrnInfoPtr pScrn)
             ((info->useEXA) && (!info->accelOn))) {
 #ifdef HAVE_XAA_H
             if (xf86LoadSubModule(pScrn, "xaa")) {
-                info->accelOn = TRUE;
                 xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-                            "XAA acceleration enabled.\n");
+                            "Loading XAA module.\n");
             }
 #endif
         }
