@@ -1643,30 +1643,6 @@ R128BlockHandler(BLOCKHANDLER_ARGS_DECL)
     }
 }
 
-#ifdef USE_EXA
-Bool R128VerboseInitEXA(ScreenPtr pScreen)
-{
-    ScrnInfoPtr pScrn  = xf86ScreenToScrn(pScreen);
-    R128InfoPtr info   = R128PTR(pScrn);
-
-    xf86DrvMsg(pScrn->scrnIndex, X_INFO, "Going to init EXA...\n");
-
-    if (R128EXAInit(pScreen)) {
-	xf86DrvMsg(pScrn->scrnIndex, X_INFO, "EXA Acceleration enabled\n");
-	info->accelOn = TRUE;
-
-	return TRUE;
-    } else {
-	xf86DrvMsg(pScrn->scrnIndex, X_ERROR,
-		   "EXA Acceleration initialization failed\n");
-	xf86DrvMsg(pScrn->scrnIndex, X_INFO, "EXA Acceleration disabled\n");
-	info->accelOn = FALSE;
-
-	return FALSE;
-    }
-}
-#endif
-
 /* Called at the start of each server generation. */
 Bool R128ScreenInit(SCREEN_INIT_ARGS_DECL)
 {
@@ -1922,7 +1898,20 @@ Bool R128ScreenInit(SCREEN_INIT_ARGS_DECL)
              */
             info->ExaDriver->memorySize = total;
 
-            R128VerboseInitEXA(pScreen);
+            xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                        "Going to init EXA...\n");
+
+            if (R128EXAInit(pScreen)) {
+                info->accelOn = TRUE;
+                xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                            "EXA Acceleration enabled.\n");
+            } else {
+                xf86DrvMsg(pScrn->scrnIndex, X_ERROR,
+                            "EXA Acceleration initialization "
+                            "failed.\n");
+                xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                            "EXA Acceleration disabled.\n");
+            }
         }
     }
 #endif
