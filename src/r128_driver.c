@@ -1196,7 +1196,8 @@ static Bool R128PreInitControllers(ScrnInfoPtr pScrn, xf86Int10InfoPtr pInt10)
     return !!found;
 }
 
-static void R128UMSOption(ScrnInfoPtr pScrn)
+static void
+r128UMSOption(ScrnInfoPtr pScrn)
 {
     R128InfoPtr      info = R128PTR(pScrn);
 
@@ -1487,7 +1488,7 @@ Bool R128PreInit(ScrnInfoPtr pScrn, int flags)
     }
 #endif
 
-    R128UMSOption(pScrn);
+    r128UMSOption(pScrn);
 
     /* Allocate an xf86CrtcConfig */
     xf86CrtcConfigInit(pScrn, &R128CRTCResizeFuncs);
