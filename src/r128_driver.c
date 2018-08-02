@@ -663,18 +663,20 @@ static Bool R128PreInitWeight(ScrnInfoPtr pScrn)
     R128InfoPtr info          = R128PTR(pScrn);
     rgb defaultWeight = { 0, 0, 0 };
 
-    /* Save flag for 6 bit DAC to use for
-       setting CRTC registers.  Otherwise use
-       an 8 bit DAC, even if xf86SetWeight sets
-       pScrn->rgbBits to some value other than
-       8. */
-    pScrn->rgbBits = 8;
-    info->dac6bits = FALSE;
+    /*
+     * Save flag for 6 bit DAC to use for setting CRTC registers.
+     * Otherwise use an 8 bit DAC, even if xf86SetWeight sets
+     * pScrn->rgbBits to some value other than 8.
+     */
     if (pScrn->depth <= 8) {
-        if (xf86ReturnOptValBool(info->Options, OPTION_DAC_6BIT, FALSE)) {
+        if (info->dac6bits) {
             pScrn->rgbBits = 6;
-            info->dac6bits = TRUE;
+        } else {
+            pScrn->rgbBits = 8;
         }
+    } else {
+        info->dac6bits = FALSE;
+        pScrn->rgbBits = 8;
     }
 
     if (pScrn->depth > 8) {
@@ -921,18 +923,8 @@ static Bool R128PreInitConfig(ScrnInfoPtr pScrn)
     info->FbMapSize  = pScrn->videoRam * 1024;
 
 #ifdef R128DRI
-				/* DMA for Xv */
-    info->DMAForXv = xf86ReturnOptValBool(info->Options, OPTION_XV_DMA, FALSE);
-    if (info->DMAForXv) {
-	xf86DrvMsg(pScrn->scrnIndex, X_CONFIG,
-		   "Will try to use DMA for Xv image transfers\n");
-    }
-
-				/* AGP/PCI */
-    if (xf86ReturnOptValBool(info->Options, OPTION_IS_PCI, FALSE)) {
-	info->IsPCI = TRUE;
-	xf86DrvMsg(pScrn->scrnIndex, X_CONFIG, "Forced into PCI-only mode\n");
-    } else {
+    /* AGP/PCI */
+    if (!info->IsPCI) {
 	switch (info->Chipset) {
 	case PCI_CHIP_RAGE128LE:
 	case PCI_CHIP_RAGE128RE:
@@ -1054,21 +1046,6 @@ static Bool R128PreInitInt10(ScrnInfoPtr pScrn, xf86Int10InfoPtr *ppInt10)
 static Bool R128PreInitDRI(ScrnInfoPtr pScrn)
 {
     R128InfoPtr   info = R128PTR(pScrn);
-
-    if (xf86ReturnOptValBool(info->Options, OPTION_CCE_PIO, FALSE)) {
-	xf86DrvMsg(pScrn->scrnIndex, X_CONFIG, "Forcing CCE into PIO mode\n");
-	info->CCEMode = R128_DEFAULT_CCE_PIO_MODE;
-    } else {
-	info->CCEMode = R128_DEFAULT_CCE_BM_MODE;
-    }
-
-    if (xf86ReturnOptValBool(info->Options, OPTION_NO_SECURITY, FALSE)) {
-	xf86DrvMsg(pScrn->scrnIndex, X_CONFIG,
-		   "WARNING!!!  CCE Security checks disabled!!! **********\n");
-	info->CCESecure = FALSE;
-    } else {
-	info->CCESecure = TRUE;
-    }
 
     info->agpMode        = R128_DEFAULT_AGP_MODE;
     info->agpSize        = R128_DEFAULT_AGP_SIZE;
@@ -1201,6 +1178,9 @@ r128UMSOption(ScrnInfoPtr pScrn)
 {
     R128InfoPtr      info = R128PTR(pScrn);
 
+    info->dac6bits = xf86ReturnOptValBool(info->Options,
+                                            OPTION_DAC_6BIT, FALSE);
+
 #ifdef __powerpc__
     if (xf86ReturnOptValBool(info->Options, OPTION_FBDEV, TRUE))
 #else
@@ -1270,6 +1250,85 @@ r128UMSOption(ScrnInfoPtr pScrn)
     } else {
         info->videoKey = 0x1E;
     }
+
+#ifdef R128DRI
+    /* DMA for Xv */
+    info->DMAForXv = xf86ReturnOptValBool(info->Options,
+                                            OPTION_XV_DMA, FALSE);
+    if (info->DMAForXv) {
+        xf86DrvMsg(pScrn->scrnIndex, X_CONFIG,
+                   "Will try to use DMA for Xv image transfers.\n");
+    }
+
+    /* Force PCI Mode */
+    info->IsPCI = xf86ReturnOptValBool(info->Options,
+                                        OPTION_IS_PCI, FALSE);
+    if (info->IsPCI) {
+        xf86DrvMsg(pScrn->scrnIndex, X_CONFIG,
+                    "Forced into PCI only mode.\n");
+    }
+
+    if (xf86ReturnOptValBool(info->Options, OPTION_CCE_PIO, FALSE)) {
+        xf86DrvMsg(pScrn->scrnIndex, X_CONFIG,
+                    "Forcing CCE into PIO mode.\n");
+        info->CCEMode = R128_DEFAULT_CCE_PIO_MODE;
+    } else {
+        info->CCEMode = R128_DEFAULT_CCE_BM_MODE;
+    }
+
+    if (xf86ReturnOptValBool(info->Options, OPTION_NO_SECURITY, FALSE)) {
+        xf86DrvMsg(pScrn->scrnIndex, X_CONFIG,
+                    "WARNING!!! CCE Security checks disabled!!!\n");
+        info->CCESecure = FALSE;
+    } else {
+        info->CCESecure = TRUE;
+    }
+
+
+#endif
+}
+
+static void
+r128AcquireOption(ScrnInfoPtr pScrn)
+{
+    R128InfoPtr      info = R128PTR(pScrn);
+#ifdef USE_EXA
+    char *optstr;
+#endif
+
+    if (xf86ReturnOptValBool(info->Options, OPTION_NOACCEL, FALSE)) {
+        info->noAccel = TRUE;
+    }
+
+#ifdef USE_EXA
+    if (!info->noAccel) {
+        optstr = (char *) xf86GetOptValString(info->Options,
+                                                OPTION_ACCELMETHOD);
+        if (optstr) {
+            xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                        "AccelMethod option found.\n");
+            if (xf86NameCmp(optstr, "EXA") == 0) {
+                info->useEXA = TRUE;
+                xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                            "AccelMethod is set to EXA, turning "
+                            "EXA on.\n");
+            }
+        }
+
+#ifdef RENDER
+        info->RenderAccel = xf86ReturnOptValBool(info->Options,
+                                                    OPTION_RENDERACCEL,
+                                                    TRUE);
+        if (info->RenderAccel)
+            xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                        "Acceleration of RENDER operations will be "
+                        "enabled upon successful loading of DRI and "
+                        "EXA.\n");
+#endif
+    }
+#endif
+
+    r128UMSOption(pScrn);
 }
 
 static Bool R128CRTCResize(ScrnInfoPtr pScrn, int width, int height)
@@ -1368,9 +1427,6 @@ R128PreInitAccel(ScrnInfoPtr pScrn)
 Bool R128PreInit(ScrnInfoPtr pScrn, int flags)
 {
     R128InfoPtr      info;
-#ifdef USE_EXA
-    char *optstr;
-#endif
 
     DEBUG(xf86DrvMsg(pScrn->scrnIndex, X_INFO,
                         "%s\n", __func__));
@@ -1454,41 +1510,9 @@ Bool R128PreInit(ScrnInfoPtr pScrn, int flags)
 
     info->swCursor = FALSE;
 
+    r128AcquireOption(pScrn);
+
     if (!R128PreInitWeight(pScrn))    goto fail;
-
-    if (xf86ReturnOptValBool(info->Options, OPTION_NOACCEL, FALSE)) {
-        info->noAccel = TRUE;
-    }
-
-#ifdef USE_EXA
-    if (!info->noAccel) {
-        optstr = (char *) xf86GetOptValString(info->Options,
-                                                OPTION_ACCELMETHOD);
-        if (optstr) {
-            xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-                        "AccelMethod option found.\n");
-            if (xf86NameCmp(optstr, "EXA") == 0) {
-                info->useEXA = TRUE;
-                xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-                            "AccelMethod is set to EXA, turning "
-                            "EXA on.\n");
-            }
-        }
-
-#ifdef RENDER
-        info->RenderAccel = xf86ReturnOptValBool(info->Options,
-                                                    OPTION_RENDERACCEL,
-                                                    TRUE);
-        if (info->RenderAccel)
-            xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-                        "Acceleration of RENDER operations will be "
-                        "enabled upon successful loading of DRI and "
-                        "EXA.\n");
-#endif
-    }
-#endif
-
-    r128UMSOption(pScrn);
 
     /* Allocate an xf86CrtcConfig */
     xf86CrtcConfigInit(pScrn, &R128CRTCResizeFuncs);
