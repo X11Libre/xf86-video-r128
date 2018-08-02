@@ -1707,13 +1707,17 @@ Bool R128ScreenInit(SCREEN_INIT_ARGS_DECL)
     R128InfoPtr info   = R128PTR(pScrn);
     BoxRec      MemBox;
     int width_bytes = (pScrn->displayWidth *
-			   info->CurrentLayout.pixel_bytes);
-    int         x1 = 0, x2 = 0, y1 = 0, y2 = 0;
+                        info->CurrentLayout.pixel_bytes);
+    int scanlines;
+    int total = info->FbMapSize;
+    FBAreaPtr fbarea = NULL;
+#ifdef R128DRI
+    int cpp = info->CurrentLayout.pixel_bytes;
+    int x1 = 0, x2 = 0, y1 = 0, y2 = 0;
 #ifdef USE_EXA
     ExaOffscreenArea*     osArea = NULL;
-#else
-    void*		  osArea = NULL;
-#endif
+#endif /* USE_EXA */
+#endif /* R128DRI */
 
     DEBUG(xf86DrvMsg(pScrn->scrnIndex, X_INFO,
                         "%s %lx %lx\n",
@@ -1805,11 +1809,8 @@ Bool R128ScreenInit(SCREEN_INIT_ARGS_DECL)
 				/* Memory manager setup */
 #ifdef R128DRI
     if (info->directRenderingEnabled) {
-	FBAreaPtr fbarea = NULL;
-	int cpp = info->CurrentLayout.pixel_bytes;
 	int bufferSize = pScrn->virtualY * width_bytes;
-	int l, total;
-	int scanlines;
+	int l;
 
 	switch (info->CCEMode) {
 	case R128_DEFAULT_CCE_PIO_MODE:
@@ -1869,19 +1870,26 @@ Bool R128ScreenInit(SCREEN_INIT_ARGS_DECL)
 	    info->textureSize = 0;
 	}
 
-	total = info->FbMapSize - info->textureSize;
-	scanlines = total / width_bytes;
-	if (scanlines > 8191) scanlines = 8191;
+        total = info->FbMapSize - info->textureSize;
+    }
+#endif /* R128DRI */
 
-	/* Recalculate the texture offset and size to accomodate any
-	 * rounding to a whole number of scanlines.
-	 */
-	info->textureOffset = scanlines * width_bytes;
+    scanlines = total / width_bytes;
+    if (scanlines > 8191) scanlines = 8191;
 
-	MemBox.x1 = 0;
-	MemBox.y1 = 0;
-	MemBox.x2 = pScrn->displayWidth;
-	MemBox.y2 = scanlines;
+#ifdef R128DRI
+    if (info->directRenderingEnabled)
+        /*
+         * Recalculate the texture offset and size to accomodate any
+         * rounding to a whole number of scanlines.
+         */
+        info->textureOffset = scanlines * width_bytes;
+#endif /* R128DRI */
+
+    MemBox.x1 = 0;
+    MemBox.y1 = 0;
+    MemBox.x2 = pScrn->displayWidth;
+    MemBox.y2 = scanlines;
 
 	if (!info->useEXA) {
 	    if (!xf86InitFBManager(pScreen, &MemBox)) {
@@ -1934,6 +1942,8 @@ Bool R128ScreenInit(SCREEN_INIT_ARGS_DECL)
 	}
 #endif
 
+#ifdef R128DRI
+    if (info->directRenderingEnabled) {
 				/* Allocate the shared back buffer */
 	if(!info->useEXA) {
 	    fbarea = xf86AllocateOffscreenArea(pScreen,
@@ -2043,67 +2053,7 @@ Bool R128ScreenInit(SCREEN_INIT_ARGS_DECL)
 		   "Reserved %d kb for textures at offset 0x%x\n",
 		   info->textureSize/1024, info->textureOffset);
     }
-    else
 #endif /* R128DRI */
-    {
-	MemBox.x1 = 0;
-	MemBox.y1 = 0;
-	MemBox.x2 = pScrn->displayWidth;
-	y2        = (info->FbMapSize
-		     / (pScrn->displayWidth *
-			info->CurrentLayout.pixel_bytes));
-				/* The acceleration engine uses 14 bit
-				   signed coordinates, so we can't have any
-				   drawable caches beyond this region. */
-	if (y2 > 8191) y2 = 8191;
-	MemBox.y2 = y2;
-
-	if (!info->useEXA) {
-	    if (!xf86InitFBManager(pScreen, &MemBox)) {
-	        xf86DrvMsg(pScrn->scrnIndex, X_ERROR,
-		           "Memory manager initialization to (%d,%d) (%d,%d) failed\n",
-		           MemBox.x1, MemBox.y1, MemBox.x2, MemBox.y2);
-	        return FALSE;
-	    } else {
-	        int       width, height;
-	        FBAreaPtr fbarea;
-
-	        xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-		           "Memory manager initialized to (%d,%d) (%d,%d)\n",
-		           MemBox.x1, MemBox.y1, MemBox.x2, MemBox.y2);
-	        if ((fbarea = xf86AllocateOffscreenArea(pScreen, pScrn->displayWidth, 2, 0, NULL, NULL, NULL))) {
-		    xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-			       "Reserved area from (%d,%d) to (%d,%d)\n",
-			       fbarea->box.x1, fbarea->box.y1,
-			       fbarea->box.x2, fbarea->box.y2);
-	        } else {
-		    xf86DrvMsg(pScrn->scrnIndex, X_ERROR, "Unable to reserve area\n");
-	        }
-	        if (xf86QueryLargestOffscreenArea(pScreen, &width, &height, 0, 0, 0)) {
-		    xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-			       "Largest offscreen area available: %d x %d\n",
-				width, height);
-	        }
-
-                R128AccelInit(info->noAccel, pScreen);
-	    }
-	}
-#ifdef USE_EXA
-	else {
-	    xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-		       "Filling in EXA memory info\n");
-
-            R128AccelInit(info->noAccel, pScreen);
-	    info->ExaDriver->offScreenBase = pScrn->virtualY * width_bytes;
-
-	    xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-		       "Filled in offs\n");
-
-	    info->ExaDriver->memorySize = info->FbMapSize;
-	    R128VerboseInitEXA(pScreen);
-	}
-#endif
-    }
 
     pScrn->vtSema = TRUE;
     /* xf86CrtcRotate accesses pScrn->pScreen */
