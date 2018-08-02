@@ -1880,38 +1880,22 @@ Bool R128ScreenInit(SCREEN_INIT_ARGS_DECL)
         xf86DrvMsg(pScrn->scrnIndex, X_INFO,
                     "Filling in EXA memory info\n");
 
-        info->ExaDriver = exaDriverAlloc();
-        if (!info->ExaDriver) {
+
+        /*
+         * Don't give EXA the true full memory size, because
+         * the textureSize sized chunk on the end is handled
+         * by DRI.
+         */
+        if (R128EXAInit(pScreen, total)) {
+            info->accelOn = TRUE;
             xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-                        "Could not allocate EXA driver...\n");
-            info->accelOn = FALSE;
+                        "EXA Acceleration enabled.\n");
         } else {
-            info->ExaDriver->offScreenBase = pScrn->virtualY * width_bytes;
-
+            xf86DrvMsg(pScrn->scrnIndex, X_ERROR,
+                        "EXA Acceleration initialization "
+                        "failed.\n");
             xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-                        "Filled in offs\n");
-
-            /*
-             * Don't give EXA the true full memory size, because
-             * the textureSize sized chunk on the end is handled
-             * by DRI.
-             */
-            info->ExaDriver->memorySize = total;
-
-            xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-                        "Going to init EXA...\n");
-
-            if (R128EXAInit(pScreen)) {
-                info->accelOn = TRUE;
-                xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-                            "EXA Acceleration enabled.\n");
-            } else {
-                xf86DrvMsg(pScrn->scrnIndex, X_ERROR,
-                            "EXA Acceleration initialization "
-                            "failed.\n");
-                xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-                            "EXA Acceleration disabled.\n");
-            }
+                        "Acceleration disabled.\n");
         }
     }
 #endif

@@ -394,15 +394,26 @@ R128CCESync(ScreenPtr pScreen, int marker)
 #endif
 
 Bool
-R128EXAInit(ScreenPtr pScreen)
+R128EXAInit(ScreenPtr pScreen, int total)
 {
     ScrnInfoPtr pScrn = xf86ScreenToScrn(pScreen);
     R128InfoPtr info  = R128PTR(pScrn);
+
+    info->ExaDriver = exaDriverAlloc();
+    if (!info->ExaDriver) {
+        xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                    "Could not allocate EXA driver...\n");
+        return FALSE;
+    }
 
     info->ExaDriver->exa_major = EXA_VERSION_MAJOR;
     info->ExaDriver->exa_minor = EXA_VERSION_MINOR;
 
     info->ExaDriver->memoryBase = info->FB + pScrn->fbOffset;
+    info->ExaDriver->offScreenBase = pScrn->virtualY *
+                                        (pScrn->displayWidth *
+                                        info->CurrentLayout.pixel_bytes);
+    info->ExaDriver->memorySize = total;
     info->ExaDriver->flags = EXA_OFFSCREEN_PIXMAPS | EXA_OFFSCREEN_ALIGN_POT;
 
 #if EXA_VERSION_MAJOR > 2 || (EXA_VERSION_MAJOR == 2 && EXA_VERSION_MINOR >= 3)
