@@ -38,6 +38,7 @@
 #include "config.h"
 #endif
 
+#if defined(R128DRI) && defined(RENDER)
 #include "xf86.h"
 #include "exa.h"
 
@@ -742,3 +743,4 @@ R128CCEComposite(PixmapPtr pDst, int srcX, int srcY, int maskX, int maskY, int d
     ADVANCE_RING();
 }
 
+#endif
