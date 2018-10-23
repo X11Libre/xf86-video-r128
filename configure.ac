@@ -131,7 +131,7 @@ CPPFLAGS="$CPPFLAGS $XORG_CFLAGS"
 AC_MSG_CHECKING([whether to enable EXA support])
 if test "x$EXA" = xyes; then
         AC_MSG_RESULT(yes)
-        AC_CHECK_FILE(${sdkdir}/exa.h, [have_exa_h="yes"], [have_exa_h="no"])
+        AS_IF([test -f "${sdkdir}/exa.h"], [have_exa_h="yes"], [have_exa_h="no"])
 else
         AC_MSG_RESULT(no)
 fi
