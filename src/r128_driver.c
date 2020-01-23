@@ -94,7 +94,12 @@
 #include "xf86RandR12.h"
 #include "xf86cmap.h"
 #include "xf86xv.h"
+				/* VBE and int10 are only available on x86. */
+#if defined(__i386__) || defined(__x86_64__)
 #include "vbe.h"
+#else
+typedef void *xf86Int10InfoPtr;
+#endif
 
 				/* fbdevhw & vgahw */
 #ifdef WITH_VGAHW
@@ -419,11 +424,15 @@ static Bool R128GetBIOSParameters(ScrnInfoPtr pScrn, xf86Int10InfoPtr pInt10)
 	return FALSE;
     }
 
+    /* VBE and int10 are only available on x86. */
+#if defined(__i386__) || defined(__x86_64__)
     if (pInt10) {
 	info->BIOSAddr = pInt10->BIOSseg << 4;
 	(void)memcpy(info->VBIOS, xf86int10Addr(pInt10, info->BIOSAddr),
 		     R128_VBIOS_SIZE);
-    } else {
+    } else
+#endif
+    {
 #ifdef XSERVER_LIBPCIACCESS
 	if (pci_device_read_rom(info->PciInfo, info->VBIOS)) {
 	    xf86DrvMsg(pScrn->scrnIndex, X_WARNING,
@@ -1011,7 +1020,8 @@ static Bool R128PreInitConfig(ScrnInfoPtr pScrn)
 
 static Bool R128PreInitDDC(ScrnInfoPtr pScrn, xf86Int10InfoPtr pInt10)
 {
-#if !defined(__powerpc__) && !defined(__alpha__) && !defined(__sparc__)
+/* VBE and int10 are only available on x86. */
+#if defined(__i386__) || defined(__x86_64__)
     R128InfoPtr   info = R128PTR(pScrn);
     vbeInfoPtr pVbe;
 #endif
@@ -1019,8 +1029,7 @@ static Bool R128PreInitDDC(ScrnInfoPtr pScrn, xf86Int10InfoPtr pInt10)
     if (!xf86LoadSubModule(pScrn, "ddc")) return FALSE;
     if (!xf86LoadSubModule(pScrn, "i2c")) return FALSE;
 
-#if defined(__powerpc__) || defined(__alpha__) || defined(__sparc__)
-    /* Int10 is broken on PPC and some Alphas */
+#if !defined(__i386__) && !defined(__x86_64__)
     return TRUE;
 #else
     if (xf86LoadSubModule(pScrn, "vbe")) {
@@ -1056,9 +1065,9 @@ static Bool R128PreInitCursor(ScrnInfoPtr pScrn)
 
 static Bool R128PreInitInt10(ScrnInfoPtr pScrn, xf86Int10InfoPtr *ppInt10)
 {
+/* VBE and int10 are only available on x86. */
+#if defined(__i386__) || defined(__x86_64__)
     R128InfoPtr   info = R128PTR(pScrn);
-#if !defined(__powerpc__) && !defined(__alpha__)
-    /* int10 is broken on some Alphas and powerpc */
     if (xf86LoadSubModule(pScrn, "int10")) {
 	xf86DrvMsg(pScrn->scrnIndex,X_INFO,"initializing int10\n");
 	*ppInt10 = xf86InitInt10(info->pEnt->index);
@@ -1402,9 +1411,12 @@ static Bool R128LegacyMS(ScrnInfoPtr pScrn)
     ret = TRUE;
 freeInt10:
     /* Free int10 info */
+/* VBE and int10 are only available on x86. */
+#if defined(__i386__) || defined(__x86_64__)
     if (pInt10) {
         xf86FreeInt10(pInt10);
     }
+#endif
 
 exit:
     return ret;
