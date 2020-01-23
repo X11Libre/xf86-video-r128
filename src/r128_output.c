@@ -483,6 +483,7 @@ R128GetConnectorInfoFromBIOS(ScrnInfoPtr pScrn, R128OutputType *otypes)
         } else {
             otypes[0] = OUTPUT_VGA;
         }
+        return;
     }
 
     bios_header = R128_BIOS16(0x48);
