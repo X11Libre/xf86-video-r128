@@ -442,7 +442,7 @@ typedef struct {
     drmAddress        agpTex;           /* Map */
     int               log2AGPTexGran;
 
-				/* CCE 2D accleration */
+				/* CCE 2D acceleration */
     drmBufPtr         indirectBuffer;
     int               indirectStart;
 
