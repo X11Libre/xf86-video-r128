@@ -154,7 +154,7 @@ typedef struct {        /* All values in XCLKS    */
     int  Tr2w;          /* Read to Write Delay    */
     int  Rloop;         /* Loop Latency           */
     int  Rloop_fudge;   /* Add to ML to get Rloop */
-    char *name;
+    const char *name;
 } R128RAMRec, *R128RAMPtr;
 
 typedef struct {
