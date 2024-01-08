@@ -40,8 +40,7 @@ XORG_MACROS_VERSION(1.8)
 XORG_DEFAULT_OPTIONS
 
 # Initialize libtool
-AC_DISABLE_STATIC
-AC_PROG_LIBTOOL
+LT_INIT([disable-static])
 
 if test "x$GCC" = "xyes"; then
 	CPPFLAGS="$CPPFLAGS -Wall"
