@@ -389,7 +389,7 @@ R128QueryBestSize(
  *
  */
 
-Bool
+static Bool
 R128DMA(
   R128InfoPtr info,
   unsigned char *src,

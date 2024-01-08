@@ -54,7 +54,8 @@
 
 
 /* Define CRTC registers for requested video mode. */
-Bool R128InitCrtcRegisters(xf86CrtcPtr crtc, R128SavePtr save, DisplayModePtr mode)
+static Bool
+R128InitCrtcRegisters(xf86CrtcPtr crtc, R128SavePtr save, DisplayModePtr mode)
 {
     ScrnInfoPtr pScrn = crtc->scrn;
     R128InfoPtr info  = R128PTR(pScrn);
@@ -166,7 +167,8 @@ Bool R128InitCrtcRegisters(xf86CrtcPtr crtc, R128SavePtr save, DisplayModePtr mo
 }
 
 /* Define CRTC2 registers for requested video mode. */
-Bool R128InitCrtc2Registers(xf86CrtcPtr crtc, R128SavePtr save, DisplayModePtr mode)
+static Bool
+R128InitCrtc2Registers(xf86CrtcPtr crtc, R128SavePtr save, DisplayModePtr mode)
 {
     ScrnInfoPtr pScrn = crtc->scrn;
     R128InfoPtr info  = R128PTR(pScrn);
@@ -400,8 +402,9 @@ static void R128InitPLLRegisters(xf86CrtcPtr crtc, R128SavePtr save,
 }
 
 /* Define PLL2 registers for requested video mode. */
-void R128InitPLL2Registers(xf86CrtcPtr crtc, R128SavePtr save,
-                   R128PLLPtr pll, double dot_clock)
+static void
+R128InitPLL2Registers(xf86CrtcPtr crtc, R128SavePtr save,
+                      R128PLLPtr pll, double dot_clock)
 {
 #if R128_DEBUG
     ScrnInfoPtr pScrn  = crtc->scrn;
@@ -637,8 +640,9 @@ void R128RestorePLL2Registers(ScrnInfoPtr pScrn, R128SavePtr restore)
 }
 
 /* Define DDA registers for requested video mode. */
-Bool R128InitDDARegisters(xf86CrtcPtr crtc, R128SavePtr save,
-                 R128PLLPtr pll, DisplayModePtr mode)
+static Bool
+R128InitDDARegisters(xf86CrtcPtr crtc, R128SavePtr save,
+                     R128PLLPtr pll, DisplayModePtr mode)
 {
     ScrnInfoPtr pScrn = crtc->scrn;
     R128InfoPtr info  = R128PTR(pScrn);
@@ -713,8 +717,9 @@ Bool R128InitDDARegisters(xf86CrtcPtr crtc, R128SavePtr save,
 }
 
 /* Define DDA2 registers for requested video mode. */
-Bool R128InitDDA2Registers(xf86CrtcPtr crtc, R128SavePtr save,
-                 R128PLLPtr pll, DisplayModePtr mode)
+static Bool
+R128InitDDA2Registers(xf86CrtcPtr crtc, R128SavePtr save,
+                      R128PLLPtr pll, DisplayModePtr mode)
 {
     ScrnInfoPtr pScrn = crtc->scrn;
     R128InfoPtr info  = R128PTR(pScrn);

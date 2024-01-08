@@ -508,6 +508,8 @@ static inline int R128Div(int n, int d)
     return (n + (d / 2)) / d;
 }
 
+extern int         getR128EntityIndex(void);
+
 extern R128EntPtr R128EntPriv(ScrnInfoPtr pScrn);
 extern void        R128WaitForFifoFunction(ScrnInfoPtr pScrn, int entries);
 extern void        R128WaitForIdle(ScrnInfoPtr pScrn);

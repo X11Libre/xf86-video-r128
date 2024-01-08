@@ -105,8 +105,6 @@
 #include "r128_rop.h"
 #endif
 
-extern int getR128EntityIndex(void);
-
 /* Flush all dirty data in the Pixel Cache to memory. */
 void R128EngineFlush(ScrnInfoPtr pScrn)
 {

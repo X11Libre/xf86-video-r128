@@ -50,7 +50,8 @@
 static void R128ConnectorFindMonitor(ScrnInfoPtr pScrn, xf86OutputPtr output);
 
 /* Define DAC registers for the requested video mode. */
-void R128InitDACRegisters(R128SavePtr orig, R128SavePtr save, xf86OutputPtr output)
+static void
+R128InitDACRegisters(R128SavePtr orig, R128SavePtr save, xf86OutputPtr output)
 {
     ScrnInfoPtr pScrn = output->scrn;
     R128InfoPtr info = R128PTR(pScrn);
@@ -413,7 +414,8 @@ static Bool R128I2CInit(xf86OutputPtr output, I2CBusPtr *bus_ptr, char *name)
     return TRUE;
 }
 
-void R128GetConnectorInfoFromBIOS(ScrnInfoPtr pScrn, R128OutputType *otypes)
+static void
+R128GetConnectorInfoFromBIOS(ScrnInfoPtr pScrn, R128OutputType *otypes)
 {
     R128InfoPtr info = R128PTR(pScrn);
     uint16_t bios_header, offset;
