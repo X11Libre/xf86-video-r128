@@ -42,10 +42,6 @@ XORG_DEFAULT_OPTIONS
 # Initialize libtool
 LT_INIT([disable-static])
 
-if test "x$GCC" = "xyes"; then
-	CPPFLAGS="$CPPFLAGS -Wall"
-fi
-
 AH_TOP([#include "xorg-server.h"])
 
 # Define a configure option for an alternate module directory
