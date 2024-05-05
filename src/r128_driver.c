@@ -115,7 +115,6 @@
 #include <X11/extensions/dpms.h>
 #endif
 
-
 static Bool R128CloseScreen(CLOSE_SCREEN_ARGS_DECL);
 static Bool R128SaveScreen(ScreenPtr pScreen, int mode);
 static void R128Save(ScrnInfoPtr pScrn);
@@ -1455,6 +1454,9 @@ R128PreInitAccel(ScrnInfoPtr pScrn)
 Bool R128PreInit(ScrnInfoPtr pScrn, int flags)
 {
     R128InfoPtr      info;
+#ifdef WSDISPLAYIO_GET_BUSID
+    struct wsdisplayio_bus_id bid;
+#endif
 
     DEBUG(xf86DrvMsg(pScrn->scrnIndex, X_INFO,
                         "%s\n", __func__));
@@ -1491,6 +1493,29 @@ Bool R128PreInit(ScrnInfoPtr pScrn, int flags)
 	       PCI_DEV_BUS(info->PciInfo),
 	       PCI_DEV_DEV(info->PciInfo),
 	       PCI_DEV_FUNC(info->PciInfo));
+
+#ifdef WSDISPLAYIO_GET_BUSID
+    /* now check if this is the console */
+    info->HaveWSDisplay = FALSE;
+    info->HaveBacklightControl = FALSE;
+    if (ioctl(xf86Info.consoleFd, WSDISPLAYIO_GET_BUSID, &bid) != -1) {
+    	if ((bid.bus_type == WSDISPLAYIO_BUS_PCI) &&
+    	    (bid.ubus.pci.bus == PCI_DEV_BUS(info->PciInfo)) &&
+    	    (bid.ubus.pci.device == PCI_DEV_DEV(info->PciInfo)) &&
+    	    (bid.ubus.pci.function == PCI_DEV_FUNC(info->PciInfo))) {
+    	    	struct wsdisplay_param p;
+    	    	info->HaveWSDisplay = TRUE;
+
+#ifdef WSDISPLAYIO_PARAM_BACKLIGHT
+    	    	/* now see if we have hacklight control */
+    	    	p.param = WSDISPLAYIO_PARAM_BACKLIGHT;
+		if (ioctl(xf86Info.consoleFd, WSDISPLAYIO_GETPARAM, &p) != -1) {
+		    info->HaveBacklightControl = TRUE;
+		}
+#endif
+    	}
+    }
+#endif
 
 #ifndef XSERVER_LIBPCIACCESS
     info->PciTag        = pciTag(PCI_DEV_BUS(info->PciInfo),

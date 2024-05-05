@@ -310,6 +310,7 @@ typedef struct {
 
 #ifdef HAVE_DEV_WSCONS_WSCONSIO_H
     Bool              HaveWSDisplay;
+    Bool              HaveBacklightControl;
 #endif
 
     unsigned long     LinearAddr;   /* Frame buffer physical address         */
