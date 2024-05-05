@@ -264,7 +264,7 @@ static R128MonitorType R128DisplayDDCConnected(xf86OutputPtr output)
     unsigned char *R128MMIO = info->MMIO;
     R128OutputPrivatePtr r128_output = output->driver_private;
 
-    R128MonitorType MonType = MT_CRT;
+    R128MonitorType MonType = MT_NONE;
     xf86MonPtr *MonInfo = &output->MonInfo;
     uint32_t mask1, mask2;
 
@@ -427,7 +427,13 @@ R128GetConnectorInfoFromBIOS(ScrnInfoPtr pScrn, R128OutputType *otypes)
 
     /* non-x86 platform */
     if (!info->VBIOS) {
-        otypes[0] = OUTPUT_VGA;
+        if (info->isDFP) {
+            /* XXX assume LVDS on mobility chips */
+            otypes[0] = OUTPUT_LVDS;
+            otypes[1] = OUTPUT_VGA;
+        } else {
+            otypes[0] = OUTPUT_VGA;
+        }
     }
 
     bios_header = R128_BIOS16(0x48);
