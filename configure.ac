@@ -182,6 +182,8 @@ if test "x$XSERVER_LIBPCIACCESS" = xyes; then
 fi
 AM_CONDITIONAL(XSERVER_LIBPCIACCESS, test "x$XSERVER_LIBPCIACCESS" = xyes)
 
+AC_CHECK_HEADERS([dev/wscons/wsconsio.h])
+
 # Checks for headers/macros for byte swapping
 # Known variants:
 #	<byteswap.h> bswap_16, bswap_32, bswap_64  (glibc)

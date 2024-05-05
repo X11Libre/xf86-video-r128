@@ -308,6 +308,10 @@ typedef struct {
 
     Bool              FBDev;
 
+#ifdef HAVE_DEV_WSCONS_WSCONSIO_H
+    Bool              HaveWSDisplay;
+#endif
+
     unsigned long     LinearAddr;   /* Frame buffer physical address         */
     unsigned long     MMIOAddr;     /* MMIO region physical address          */
     unsigned long     BIOSAddr;     /* BIOS physical address                 */

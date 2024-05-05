@@ -70,6 +70,13 @@
 #include "r128_probe.h"
 #include "r128_reg.h"
 #include "r128_version.h"
+#include "xf86Priv.h"
+
+#ifdef HAVE_DEV_WSCONS_WSCONSIO_H
+#include <sys/time.h>
+#include <sys/ioctl.h>
+#include <dev/wscons/wsconsio.h>
+#endif
 
 #ifdef R128DRI
 #define _XF86DRI_SERVER_
@@ -463,7 +470,7 @@ void R128GetPanelInfoFromBIOS(xf86OutputPtr output)
     xf86GetOptValInteger(info->Options, OPTION_PANEL_WIDTH,  &(r128_output->PanelXRes));
     xf86GetOptValInteger(info->Options, OPTION_PANEL_HEIGHT, &(r128_output->PanelYRes));
 
-    if (!info->VBIOS) return;
+    if (!info->VBIOS) goto fallback;
     info->FPBIOSstart = 0;
 
     /* FIXME: There should be direct access to the start of the FP info
@@ -484,7 +491,7 @@ void R128GetPanelInfoFromBIOS(xf86OutputPtr output)
         }
     }
 
-    if (!FPHeader) return;
+    if (!FPHeader) goto fallback;
 
     /* Assume that only one panel is attached and supported */
     for (i = FPHeader + 20; i < FPHeader + 84; i += 2) {
@@ -539,12 +546,33 @@ void R128GetPanelInfoFromBIOS(xf86OutputPtr output)
     if (R128_BIOS8(info->FPBIOSstart + 61) & 1) {
         xf86DrvMsg(pScrn->scrnIndex, X_INFO, "Panel Interface: LVDS\n");
     } else {
-        /* FIXME: Add Non-LVDS flat pael support */
+        /* FIXME: Add Non-LVDS flat panel support */
         xf86DrvMsg(pScrn->scrnIndex, X_WARNING,
                    "Non-LVDS panel interface detected!  "
                    "This support is untested and may not "
                    "function properly\n");
     }
+    return;
+fallback:
+#ifdef WSDISPLAYIO_GINFO
+    if ((!r128_output->PanelXRes || !r128_output->PanelYRes) &&
+        (info->HaveWSDisplay)) {
+	/*
+	 * we may not be on x86 so check wsdisplay for panel dimensions
+	 * this assumes that the r128 is the console, although that should
+	 * be the case in the vast majority of cases where an LCD is hooked up
+	 * directly
+	 * We should probably just check the relevant registers but I'm not
+	 * sure they're available at this point.
+	 */
+	struct wsdisplay_fbinfo fbinfo;
+
+	if (ioctl(xf86Info.consoleFd, WSDISPLAYIO_GINFO, &fbinfo) == 0) {
+	    r128_output->PanelXRes = fbinfo.width;
+	    r128_output->PanelYRes = fbinfo.height;
+	}
+    }
+#endif
 }
 
 /* Read PLL parameters from BIOS block.  Default to typical values if there
