@@ -111,7 +111,7 @@
 #include <X11/extensions/dpms.h>
 #endif
 
-static Bool R128CloseScreen(CLOSE_SCREEN_ARGS_DECL);
+static Bool R128CloseScreen(ScreenPtr pScreen);
 static Bool R128SaveScreen(ScreenPtr pScreen, int mode);
 static void R128Save(ScrnInfoPtr pScrn);
 static void R128Restore(ScrnInfoPtr pScrn);
@@ -1691,7 +1691,6 @@ static void R128LoadPalette(ScrnInfoPtr pScrn, int numColors,
 static void
 R128BlockHandler(BLOCKHANDLER_ARGS_DECL)
 {
-    SCREEN_PTR(arg);
     ScrnInfoPtr pScrn   = xf86ScreenToScrn(pScreen);
     R128InfoPtr info    = R128PTR(pScrn);
 
@@ -1710,7 +1709,7 @@ R128BlockHandler(BLOCKHANDLER_ARGS_DECL)
 }
 
 /* Called at the start of each server generation. */
-Bool R128ScreenInit(SCREEN_INIT_ARGS_DECL)
+Bool R128ScreenInit(ScreenPtr pScreen, int argc, char **argv)
 {
     ScrnInfoPtr pScrn = xf86ScreenToScrn(pScreen);
     R128InfoPtr info   = R128PTR(pScrn);
@@ -2084,7 +2083,7 @@ Bool R128ScreenInit(SCREEN_INIT_ARGS_DECL)
     }
 
     R128SaveScreen(pScreen, SCREEN_SAVER_ON);
-    //pScrn->AdjustFrame(ADJUST_FRAME_ARGS(pScrn, pScrn->frameX0, pScrn->frameY0));
+    //pScrn->AdjustFrame(pScrn, pScrn->frameX0, pScrn->frameY0);
 
 				/* DGA setup */
 #ifdef XFreeXDGA
@@ -2715,9 +2714,8 @@ static Bool R128SaveScreen(ScreenPtr pScreen, int mode)
  * The workaround is to switch the mode, then switch to another VT, then
  * switch back. --AGD
  */
-Bool R128SwitchMode(SWITCH_MODE_ARGS_DECL)
+Bool R128SwitchMode(ScrnInfoPtr pScrn, DisplayModePtr mode)
 {
-    SCRN_INFO_PTR(arg);
     R128InfoPtr info        = R128PTR(pScrn);
     Bool ret;
 
@@ -2796,10 +2794,9 @@ ModeStatus R128DoValidMode(xf86OutputPtr output, DisplayModePtr mode, int flags)
 }
 
 /* Used to disallow modes that are not supported by the hardware. */
-ModeStatus R128ValidMode(SCRN_ARG_TYPE arg, DisplayModePtr mode,
+ModeStatus R128ValidMode(ScrnInfoPtr pScrn, DisplayModePtr mode,
                                    Bool verbose, int flags)
 {
-    SCRN_INFO_PTR(arg);
     R128EntPtr  pR128Ent = R128EntPriv(pScrn);
     xf86OutputPtr output = R128FirstOutput(pR128Ent->pCrtc[0]);
 
@@ -2808,9 +2805,8 @@ ModeStatus R128ValidMode(SCRN_ARG_TYPE arg, DisplayModePtr mode,
 
 /* Adjust viewport into virtual desktop such that (0,0) in viewport space
    is (x,y) in virtual space. */
-void R128AdjustFrame(ADJUST_FRAME_ARGS_DECL)
+void R128AdjustFrame(ScrnInfoPtr pScrn, int x, int y)
 {
-    SCRN_INFO_PTR(arg);
     R128InfoPtr   info      = R128PTR(pScrn);
     unsigned char *R128MMIO = info->MMIO;
     int           Base;
@@ -2837,9 +2833,8 @@ void R128AdjustFrame(ADJUST_FRAME_ARGS_DECL)
 
 /* Called when VT switching back to the X server.  Reinitialize the video
    mode. */
-Bool R128EnterVT(VT_FUNC_ARGS_DECL)
+Bool R128EnterVT(ScrnInfoPtr pScrn)
 {
-    SCRN_INFO_PTR(arg);
     R128InfoPtr info  = R128PTR(pScrn);
 
     DEBUG(xf86DrvMsg(pScrn->scrnIndex, X_INFO,
@@ -2847,7 +2842,7 @@ Bool R128EnterVT(VT_FUNC_ARGS_DECL)
 
     pScrn->vtSema = TRUE;
     if (info->FBDev) {
-        if (!fbdevHWEnterVT(VT_FUNC_ARGS)) return FALSE;
+        if (!fbdevHWEnterVT(pScrn)) return FALSE;
     } else {
         if (!xf86SetDesiredModes(pScrn)) return FALSE;
     }
@@ -2870,16 +2865,15 @@ Bool R128EnterVT(VT_FUNC_ARGS_DECL)
 #endif
 
     info->PaletteSavedOnVT = FALSE;
-    //pScrn->AdjustFrame(ADJUST_FRAME_ARGS(pScrn, pScrn->frameX0, pScrn->frameY0));
+    //pScrn->AdjustFrame(pScrn, pScrn->frameX0, pScrn->frameY0);
 
     return TRUE;
 }
 
 /* Called when VT switching away from the X server.  Restore the original
    text mode. */
-void R128LeaveVT(VT_FUNC_ARGS_DECL)
+void R128LeaveVT(ScrnInfoPtr pScrn)
 {
-    SCRN_INFO_PTR(arg);
     R128InfoPtr info  = R128PTR(pScrn);
     R128SavePtr save  = &info->ModeReg;
 
@@ -2898,7 +2892,7 @@ void R128LeaveVT(VT_FUNC_ARGS_DECL)
     R128SavePalette(pScrn, save);
     info->PaletteSavedOnVT = TRUE;
     if (info->FBDev)
-        fbdevHWLeaveVT(VT_FUNC_ARGS);
+        fbdevHWLeaveVT(pScrn);
     else
         R128Restore(pScrn);
 }
@@ -2907,7 +2901,7 @@ void R128LeaveVT(VT_FUNC_ARGS_DECL)
 /* Called at the end of each server generation.  Restore the original text
    mode, unmap video memory, and unwrap and call the saved CloseScreen
    function.  */
-static Bool R128CloseScreen(CLOSE_SCREEN_ARGS_DECL)
+static Bool R128CloseScreen(ScreenPtr pScreen)
 {
     ScrnInfoPtr pScrn = xf86ScreenToScrn(pScreen);
     R128InfoPtr info  = R128PTR(pScrn);
@@ -2948,12 +2942,11 @@ static Bool R128CloseScreen(CLOSE_SCREEN_ARGS_DECL)
 
     pScreen->BlockHandler = info->BlockHandler;
     pScreen->CloseScreen = info->CloseScreen;
-    return (*pScreen->CloseScreen)(CLOSE_SCREEN_ARGS);
+    return (*pScreen->CloseScreen)(pScreen);
 }
 
-void R128FreeScreen(FREE_SCREEN_ARGS_DECL)
+void R128FreeScreen(ScrnInfoPtr pScrn)
 {
-    SCRN_INFO_PTR(arg);
     R128InfoPtr   info      = R128PTR(pScrn);
 
     DEBUG(xf86DrvMsg(pScrn->scrnIndex, X_INFO,

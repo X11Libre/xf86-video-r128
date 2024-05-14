@@ -333,7 +333,7 @@ static R128MonitorType R128DisplayDDCConnected(xf86OutputPtr output)
         /* XXX: Radeon does something here to appease old monitors. */
         OUTREG(pR128I2CBus->ddc_reg, INREG(pR128I2CBus->ddc_reg)  |  mask1);
         OUTREG(pR128I2CBus->ddc_reg, INREG(pR128I2CBus->ddc_reg)  & ~mask2);
-        *MonInfo = xf86DoEDID_DDC2(XF86_SCRN_ARG(pScrn), r128_output->pI2CBus);
+        *MonInfo = xf86DoEDID_DDC2(pScrn, r128_output->pI2CBus);
     } else {
         xf86DrvMsg(pScrn->scrnIndex, X_WARNING, "DDC2/I2C is not properly initialized\n");
         return MT_NONE;

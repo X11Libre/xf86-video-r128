@@ -329,7 +329,7 @@ typedef struct {
 
     R128SaveRec       SavedReg;     /* Original (text) mode                  */
     R128SaveRec       ModeReg;      /* Current mode                          */
-    Bool              (*CloseScreen)(CLOSE_SCREEN_ARGS_DECL);
+    Bool              (*CloseScreen)(ScreenPtr pScreen);
     void              (*BlockHandler)(BLOCKHANDLER_ARGS_DECL);
 
     Bool              PaletteSavedOnVT; /* Palette saved on last VT switch   */
