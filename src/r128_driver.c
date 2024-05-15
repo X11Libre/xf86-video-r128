@@ -1910,43 +1910,43 @@ Bool R128ScreenInit(SCREEN_INIT_ARGS_DECL)
     MemBox.x2 = pScrn->displayWidth;
     MemBox.y2 = scanlines;
 
-	if (!info->useEXA) {
-	    if (!xf86InitFBManager(pScreen, &MemBox)) {
-	        xf86DrvMsg(pScrn->scrnIndex, X_ERROR,
-		           "Memory manager initialization to (%d,%d) (%d,%d) failed\n",
-		           MemBox.x1, MemBox.y1, MemBox.x2, MemBox.y2);
-	        return FALSE;
-	    } else {
-	        int width, height;
+    if (!info->useEXA) {
+        if (!xf86InitFBManager(pScreen, &MemBox)) {
+            xf86DrvMsg(pScrn->scrnIndex, X_ERROR,
+                       "Memory manager initialization to (%d,%d) (%d,%d) failed\n",
+                       MemBox.x1, MemBox.y1, MemBox.x2, MemBox.y2);
+            return FALSE;
+        } else {
+            int width, height;
 
-	        xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-		           "Memory manager initialized to (%d,%d) (%d,%d)\n",
-		           MemBox.x1, MemBox.y1, MemBox.x2, MemBox.y2);
-	        if ((fbarea = xf86AllocateOffscreenArea(pScreen,
-						        pScrn->displayWidth,
-						        2, 0, NULL, NULL, NULL))) {
-		    xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-			       "Reserved area from (%d,%d) to (%d,%d)\n",
-			       fbarea->box.x1, fbarea->box.y1,
-			       fbarea->box.x2, fbarea->box.y2);
-	        } else {
-		    xf86DrvMsg(pScrn->scrnIndex, X_ERROR, "Unable to reserve area\n");
-	        }
-	        if (xf86QueryLargestOffscreenArea(pScreen, &width,
-						  &height, 0, 0, 0)) {
-		    xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-			       "Largest offscreen area available: %d x %d\n",
-				width, height);
-	        }
+            xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                       "Memory manager initialized to (%d,%d) (%d,%d)\n",
+                       MemBox.x1, MemBox.y1, MemBox.x2, MemBox.y2);
+            if ((fbarea = xf86AllocateOffscreenArea(pScreen,
+                                                    pScrn->displayWidth,
+                                                    2, 0, NULL, NULL, NULL))) {
+                xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                           "Reserved area from (%d,%d) to (%d,%d)\n",
+                           fbarea->box.x1, fbarea->box.y1,
+                           fbarea->box.x2, fbarea->box.y2);
+            } else {
+                xf86DrvMsg(pScrn->scrnIndex, X_ERROR, "Unable to reserve area\n");
+            }
+            if (xf86QueryLargestOffscreenArea(pScreen, &width,
+                                              &height, 0, 0, 0)) {
+                xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                           "Largest offscreen area available: %d x %d\n",
+                           width, height);
+            }
 
             if (!info->noAccel) {
                 if (R128XAAAccelInit(pScreen)) {
                     info->accelOn = TRUE;
                     xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-                                "XAA acceleration enabled.\n");
+                               "XAA acceleration enabled.\n");
                 } else {
                     xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-                                "Acceleration disabled.\n");
+                               "Acceleration disabled.\n");
                 }
             }
         }
