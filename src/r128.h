@@ -48,10 +48,7 @@
 #include "exa.h"
 #endif
 
-				/* XAA and Cursor Support */
-#ifdef HAVE_XAA_H
-#include "xaa.h"
-#endif
+				/* Offscreen & Cursor Support */
 #include "xf86fbman.h"
 #include "xf86Cursor.h"
 
@@ -337,10 +334,6 @@ typedef struct {
 
     Bool              PaletteSavedOnVT; /* Palette saved on last VT switch   */
 
-#ifdef HAVE_XAA_H
-    XAAInfoRecPtr     accel;
-#endif
-
     Bool              noAccel;
     Bool              accelOn;
     Bool	      useEXA;
@@ -524,7 +517,6 @@ extern void        R128EngineFlush(ScrnInfoPtr pScrn);
 extern unsigned    R128INPLL(ScrnInfoPtr pScrn, int addr);
 extern void        R128WaitForVerticalSync(ScrnInfoPtr pScrn);
 
-extern Bool R128XAAAccelInit(ScreenPtr pScreen);
 extern void        R128EngineInit(ScrnInfoPtr pScrn);
 extern Bool        R128CursorInit(ScreenPtr pScreen);
 

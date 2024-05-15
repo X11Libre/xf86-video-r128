@@ -965,9 +965,6 @@ static Bool r128_crtc_lock(xf86CrtcPtr crtc)
     ScreenPtr     pScreen = xf86ScrnToScreen(pScrn);
     R128InfoPtr   info    = R128PTR(pScrn);
 
-#ifdef HAVE_XAA_H
-    if (info->accel) info->accel->Sync(pScrn);
-#endif
 #ifdef USE_EXA
     if (info->ExaDriver) exaWaitSync(pScreen);
 #endif
@@ -981,9 +978,6 @@ static void r128_crtc_unlock(xf86CrtcPtr crtc)
     ScreenPtr     pScreen = xf86ScrnToScreen(pScrn);
     R128InfoPtr   info    = R128PTR(pScrn);
 
-#ifdef HAVE_XAA_H
-    if (info->accel) info->accel->Sync(pScrn);
-#endif
 #ifdef USE_EXA
     if (info->ExaDriver) exaWaitSync(pScreen);
 #endif
@@ -1052,10 +1046,6 @@ static void r128_crtc_shadow_destroy(xf86CrtcPtr crtc, PixmapPtr rotate_pixmap, 
 #ifdef USE_EXA
         if (info->ExaDriver)
             exaOffscreenFree(pScreen, (ExaOffscreenArea *) r128_crtc->rotate_mem);
-#endif
-#ifdef HAVE_XAA_H
-        if (info->accel)
-            xf86FreeOffscreenLinear((FBLinearPtr) r128_crtc->rotate_mem);
 #endif
         r128_crtc->rotate_mem = NULL;
     }

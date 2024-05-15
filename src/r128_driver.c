@@ -92,10 +92,6 @@
 #include "xf86.h"
 #include "xf86_OSproc.h"
 #include "xf86RandR12.h"
-#if GET_ABI_MAJOR(ABI_VIDEODRV_VERSION) < 6
-#include "xf86RAC.h"
-#include "xf86Resources.h"
-#endif
 #include "xf86cmap.h"
 #include "xf86xv.h"
 #include "vbe.h"
@@ -1440,12 +1436,6 @@ R128PreInitAccel(ScrnInfoPtr pScrn)
 
         if ((!info->useEXA) ||
             ((info->useEXA) && (!info->accelOn))) {
-#ifdef HAVE_XAA_H
-            if (xf86LoadSubModule(pScrn, "xaa")) {
-                xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-                            "Loading XAA module.\n");
-            }
-#endif
         }
     }
 }
@@ -1556,9 +1546,7 @@ Bool R128PreInit(ScrnInfoPtr pScrn, int flags)
 
     info->useEXA = FALSE;
 #ifdef USE_EXA
-#ifndef HAVE_XAA_H
     info->useEXA = TRUE;
-#endif
 #endif
 
     info->swCursor = FALSE;
@@ -1940,14 +1928,8 @@ Bool R128ScreenInit(SCREEN_INIT_ARGS_DECL)
             }
 
             if (!info->noAccel) {
-                if (R128XAAAccelInit(pScreen)) {
-                    info->accelOn = TRUE;
-                    xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-                               "XAA acceleration enabled.\n");
-                } else {
-                    xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-                               "Acceleration disabled.\n");
-                }
+                xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                           "Acceleration disabled.\n");
             }
         }
     }
@@ -2945,16 +2927,10 @@ static Bool R128CloseScreen(CLOSE_SCREEN_ARGS_DECL)
     }
 
 #ifdef USE_EXA
-        if (info->useEXA) {
-	    exaDriverFini(pScreen);
-	    free(info->ExaDriver);
-	} else
-#endif
-#ifdef HAVE_XAA_H
-	{
-            if (info->accel)             XAADestroyInfoRec(info->accel);
-	    info->accel                  = NULL;
-        }
+    if (info->useEXA) {
+	exaDriverFini(pScreen);
+	free(info->ExaDriver);
+    }
 #endif
 
     if (info->scratch_save)      free(info->scratch_save);

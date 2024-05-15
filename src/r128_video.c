@@ -585,12 +585,6 @@ R128AllocateMemory(
     Bool do_linear = !need_accel;
     uint32_t offset = 0;
 
-#ifdef HAVE_XAA_H
-    if (!info->accel && need_accel)
-        do_linear = FALSE;
-    else
-        do_linear = TRUE;
-#endif
 #ifdef USE_EXA
     if (info->ExaDriver) {
         ExaOffscreenArea *area = *mem_struct;
