@@ -548,6 +548,7 @@ void R128GetPanelInfoFromBIOS(xf86OutputPtr output)
                    "function properly\n");
     }
     return;
+
 fallback:
 #ifdef WSDISPLAYIO_GINFO
     if ((!r128_output->PanelXRes || !r128_output->PanelYRes) &&
@@ -568,6 +569,7 @@ fallback:
 	}
     }
 #endif
+    return;
 }
 
 /* Read PLL parameters from BIOS block.  Default to typical values if there
