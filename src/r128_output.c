@@ -540,7 +540,7 @@ Bool R128SetupConnectors(ScrnInfoPtr pScrn)
         R128I2CBusRec i2c;
         R128OutputPrivatePtr r128_output;
 
-        r128_output = XNFcallocarray(sizeof(R128OutputPrivateRec), 1);
+        r128_output = XNFcallocarray(1, sizeof(R128OutputPrivateRec));
         if (!r128_output) return FALSE;
 
         r128_output->MonType = MT_UNKNOWN;

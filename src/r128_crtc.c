@@ -1084,7 +1084,7 @@ Bool R128AllocateControllers(ScrnInfoPtr pScrn)
     if (!pR128Ent->pCrtc[0])
         return FALSE;
 
-    pR128Ent->Controller[0] = XNFcallocarray(sizeof(R128CrtcPrivateRec), 1);
+    pR128Ent->Controller[0] = XNFcallocarray(1, sizeof(R128CrtcPrivateRec));
     if (!pR128Ent->Controller[0])
         return FALSE;
 
@@ -1098,7 +1098,7 @@ Bool R128AllocateControllers(ScrnInfoPtr pScrn)
     if (!pR128Ent->pCrtc[1])
         return FALSE;
 
-    pR128Ent->Controller[1] = XNFcallocarray(sizeof(R128CrtcPrivateRec), 1);
+    pR128Ent->Controller[1] = XNFcallocarray(1, sizeof(R128CrtcPrivateRec));
     if (!pR128Ent->Controller[1]) {
         free(pR128Ent->Controller[0]);
         return FALSE;

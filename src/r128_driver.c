@@ -204,7 +204,7 @@ static Bool R128GetRec(ScrnInfoPtr pScrn)
 {
     if (pScrn->driverPrivate) return TRUE;
 
-    pScrn->driverPrivate = XNFcallocarray(sizeof(R128InfoRec), 1);
+    pScrn->driverPrivate = XNFcallocarray(1, sizeof(R128InfoRec));
     return TRUE;
 }
 

@@ -819,7 +819,7 @@ Bool R128DRIScreenInit(ScreenPtr pScreen)
     pDRIInfo->SAREASize = SAREA_MAX;
 #endif
 
-    if (!(pR128DRI = (R128DRIPtr)calloc(sizeof(R128DRIRec),1))) {
+    if (!(pR128DRI = (R128DRIPtr)calloc(1, sizeof(R128DRIRec)))) {
 	DRIDestroyInfoRec(info->pDRIInfo);
 	info->pDRIInfo = NULL;
 	return FALSE;

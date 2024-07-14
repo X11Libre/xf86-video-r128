@@ -265,7 +265,7 @@ r128_get_scrninfo(int entity_num)
 
         if (!pPriv->ptr) {
             R128EntPtr pR128Ent;
-            pPriv->ptr = XNFcallocarray(sizeof(R128EntRec), 1);
+            pPriv->ptr = XNFcallocarray(1, sizeof(R128EntRec));
             pR128Ent = pPriv->ptr;
             pR128Ent->HasSecondary = FALSE;
             pR128Ent->IsSecondaryRestored = FALSE;
