@@ -234,7 +234,7 @@ AC_SUBST([DRIVER_NAME])
 AC_MSG_NOTICE(
 [Please change the Driver line in xorg.conf from "ati" to "r128" or install]
 [the ati wrapper as well:]
-[    git://anongit.freedesktop.org/git/xorg/driver/xf86-video-ati]
+[    https://gitlab.freedesktop.org/xorg/driver/xf86-video-ati]
 )
 
 AC_CONFIG_FILES([
