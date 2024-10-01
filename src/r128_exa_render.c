@@ -108,7 +108,7 @@ R128SolidPixmap(ScreenPtr pScreen, uint32_t solid)
 
     exaMoveInPixmap(pPix);
     if (!exaDrawableIsOffscreen(&pPix->drawable)) {
-        pScreen->DestroyPixmap(pPix);
+        dixDestroyPixmap(pPix, 0);
 	return NULL;
     }
     info->ExaDriver->WaitMarker(pScreen, 0);
@@ -459,7 +459,7 @@ R128CCEPrepareComposite(int op, PicturePtr pSrcPicture, PicturePtr pMaskPicture,
 	    pMask = R128SolidPixmap(pScreen, cpu_to_le32(pMaskPicture->pSourcePict->solidFill.color));
 	    if (!pMask) {
 	        if (!pSrcPicture->pDrawable)
-		    pScreen->DestroyPixmap(pSrc);
+                    dixDestroyPixmap(pSrc, 0);
 		info->state_2d.has_mask = FALSE;
             DEBUG(xf86DrvMsg(pScrn->scrnIndex, X_INFO,
                                 "Failed to create "
