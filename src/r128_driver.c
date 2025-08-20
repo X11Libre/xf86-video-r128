@@ -866,8 +866,8 @@ static Bool R128PreInitConfig(ScrnInfoPtr pScrn)
 	case PCI_CHIP_RAGE128LE:
 	case PCI_CHIP_RAGE128LF:
 	case PCI_CHIP_RAGE128MF:
-	case PCI_CHIP_RAGE128ML: 
-			info->HasPanelRegs = TRUE;  
+	case PCI_CHIP_RAGE128ML:
+			info->HasPanelRegs = TRUE;
 			/* which chips support dualhead? */
 			pR128Ent->HasCRTC2 = TRUE;
 			break;
