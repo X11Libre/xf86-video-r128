@@ -555,7 +555,10 @@ Bool R128SetupConnectors(ScrnInfoPtr pScrn)
             output = R128OutputCreate(pScrn, "DVI-%d", --num_dvi);
         }
 
-        if (!output) return FALSE;
+        if (!output) {
+            free(r128_output);
+            return FALSE;
+        }
         output->interlaceAllowed = TRUE;
         output->doubleScanAllowed = TRUE;
         output->driver_private = r128_output;
