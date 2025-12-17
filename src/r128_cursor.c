@@ -42,10 +42,7 @@
  *   SDK-G04000 Rev. 0.01), ATI Technologies: June 1999.
  *
  */
-
-#ifdef HAVE_CONFIG_H
 #include "config.h"
-#endif
 
 				/* Driver data structures */
 #include "r128.h"

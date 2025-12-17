@@ -27,10 +27,7 @@
  *    Connor Behan <connor.behan@gmail.com>
  *
  */
-
-#ifdef HAVE_CONFIG_H
 #include "config.h"
-#endif
 
 #include "r128.h"
 #include "exa.h"

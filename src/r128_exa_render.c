@@ -33,10 +33,7 @@
  */
 
 /* The following is based on the kdrive ATI driver. */
-
-#ifdef HAVE_CONFIG_H
 #include "config.h"
-#endif
 
 #if defined(R128DRI) && defined(RENDER)
 #include "xf86.h"
