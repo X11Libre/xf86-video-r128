@@ -298,9 +298,6 @@ struct r128_2d_state {
 typedef struct {
     EntityInfoPtr     pEnt;
     pciVideoPtr       PciInfo;
-#ifndef XSERVER_LIBPCIACCESS
-    PCITAG            PciTag;
-#endif
     int               Chipset;
 
     Bool              FBDev;

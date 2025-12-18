@@ -222,14 +222,6 @@ static Bool R128MapMMIO(ScrnInfoPtr pScrn)
     if (info->FBDev) {
 	info->MMIO = fbdevHWMapMMIO(pScrn);
     } else {
-#ifndef XSERVER_LIBPCIACCESS
-	info->MMIO = xf86MapPciMem(pScrn->scrnIndex,
-				   VIDMEM_MMIO | VIDMEM_READSIDEEFFECT,
-				   info->PciTag,
-				   info->MMIOAddr,
-				   R128_MMIOSIZE);
-        if (!info->MMIO) return FALSE;
-#else
 	int err = pci_device_map_range(info->PciInfo,
 				       info->MMIOAddr,
 				       R128_MMIOSIZE,
@@ -242,7 +234,6 @@ static Bool R128MapMMIO(ScrnInfoPtr pScrn)
                         strerror (err), err);
 	    return FALSE;
 	}
-#endif
     }
 
     return TRUE;
@@ -257,11 +248,7 @@ static Bool R128UnmapMMIO(ScrnInfoPtr pScrn)
     if (info->FBDev)
 	fbdevHWUnmapMMIO(pScrn);
     else {
-#ifndef XSERVER_LIBPCIACCESS
-	xf86UnMapVidMem(pScrn->scrnIndex, info->MMIO, R128_MMIOSIZE);
-#else
 	pci_device_unmap_range(info->PciInfo, info->MMIO, R128_MMIOSIZE);
-#endif
     }
     info->MMIO = NULL;
     return TRUE;
@@ -275,13 +262,6 @@ static Bool R128MapFB(ScrnInfoPtr pScrn)
     if (info->FBDev) {
 	info->FB = fbdevHWMapVidmem(pScrn);
     } else {
-#ifndef XSERVER_LIBPCIACCESS
-	info->FB = xf86MapPciMem(pScrn->scrnIndex,
-				 VIDMEM_FRAMEBUFFER,
-				 info->PciTag,
-				 info->LinearAddr,
-				 info->FbMapSize);
-#else
 	int err = pci_device_map_range(info->PciInfo,
 				       info->LinearAddr,
 				       info->FbMapSize,
@@ -295,7 +275,6 @@ static Bool R128MapFB(ScrnInfoPtr pScrn)
                         strerror (err), err);
 	    return FALSE;
 	}
-#endif
     }
 
     if (!info->FB) return FALSE;
@@ -310,11 +289,7 @@ static Bool R128UnmapFB(ScrnInfoPtr pScrn)
     if (info->FBDev)
 	fbdevHWUnmapVidmem(pScrn);
     else
-#ifndef XSERVER_LIBPCIACCESS
-	xf86UnMapVidMem(pScrn->scrnIndex, info->FB, info->FbMapSize);
-#else
 	pci_device_unmap_range(info->PciInfo, info->FB, info->FbMapSize);
-#endif
     info->FB = NULL;
     return TRUE;
 }
@@ -403,12 +378,8 @@ static Bool R128GetBIOSParameters(ScrnInfoPtr pScrn, xf86Int10InfoPtr pInt10)
 {
     R128InfoPtr info = R128PTR(pScrn);
 
-#ifdef XSERVER_LIBPCIACCESS
     int size = info->PciInfo->rom_size > R128_VBIOS_SIZE ? info->PciInfo->rom_size : R128_VBIOS_SIZE;
     info->VBIOS = malloc(size);
-#else
-    info->VBIOS = malloc(R128_VBIOS_SIZE);
-#endif
 
     if (!info->VBIOS) {
 	xf86DrvMsg(pScrn->scrnIndex, X_ERROR,
@@ -425,22 +396,10 @@ static Bool R128GetBIOSParameters(ScrnInfoPtr pScrn, xf86Int10InfoPtr pInt10)
     } else
 #endif
     {
-#ifdef XSERVER_LIBPCIACCESS
 	if (pci_device_read_rom(info->PciInfo, info->VBIOS)) {
 	    xf86DrvMsg(pScrn->scrnIndex, X_WARNING,
 		       "Failed to read PCI ROM!\n");
 	}
-#else
-	xf86ReadPciBIOS(0, info->PciTag, 0, info->VBIOS, R128_VBIOS_SIZE);
-	if (info->VBIOS[0] != 0x55 || info->VBIOS[1] != 0xaa) {
-	    xf86DrvMsg(pScrn->scrnIndex, X_WARNING,
-		       "Video BIOS not detected in PCI space!\n");
-	    xf86DrvMsg(pScrn->scrnIndex, X_WARNING,
-		       "Attempting to read Video BIOS from legacy ISA space!\n");
-	    info->BIOSAddr = 0x000c0000;
-	    xf86ReadDomainMemory(info->PciTag, info->BIOSAddr, R128_VBIOS_SIZE, info->VBIOS);
-	}
-#endif
     }
     if (info->VBIOS[0] != 0x55 || info->VBIOS[1] != 0xaa) {
 	info->BIOSAddr = 0x00000000;
@@ -795,16 +754,6 @@ static Bool R128PreInitConfig(ScrnInfoPtr pScrn)
     }
     xf86DrvMsg(pScrn->scrnIndex, from,
 	       "MMIO registers at 0x%08lx\n", info->MMIOAddr);
-
-#ifndef XSERVER_LIBPCIACCESS
-				/* BIOS */
-    from              = X_PROBED;
-    info->BIOSAddr    = info->PciInfo->biosBase & 0xfffe0000;
-    if (info->BIOSAddr) {
-	xf86DrvMsg(pScrn->scrnIndex, from,
-		   "BIOS at 0x%08lx\n", info->BIOSAddr);
-    }
-#endif
 
 				/* Flat panel (part 1) */
     if (xf86GetOptValBool(info->Options, OPTION_PROG_FP_REGS,
@@ -1511,17 +1460,6 @@ Bool R128PreInit(ScrnInfoPtr pScrn, int flags)
 #endif
     	}
     }
-#endif
-
-#ifndef XSERVER_LIBPCIACCESS
-    info->PciTag        = pciTag(PCI_DEV_BUS(info->PciInfo),
-				PCI_DEV_DEV(info->PciInfo),
-				PCI_DEV_FUNC(info->PciInfo));
-
-    if (xf86RegisterResources(info->pEnt->index, 0, ResNone)) goto fail;
-    if (xf86SetOperatingState(resVga, info->pEnt->index, ResUnusedOpr)) goto fail;
-
-    pScrn->racMemFlags  = RAC_FB | RAC_COLORMAP | RAC_VIEWPORT | RAC_CURSOR;
 #endif
 
     info->fifo_slots  = 0;

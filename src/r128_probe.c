@@ -43,10 +43,6 @@
 
 #include "r128_probe.h"
 
-#ifndef XSERVER_LIBPCIACCESS
-static Bool R128Probe(DriverPtr drv, int flags);
-#endif
-
 SymTabRec R128Chipsets[] = {
     { PCI_CHIP_RAGE128LE, "ATI Rage 128 Mobility M3 LE (PCI)" },
     { PCI_CHIP_RAGE128LF, "ATI Rage 128 Mobility M3 LF (AGP)" },
@@ -149,8 +145,6 @@ static PciChipsets R128PciChipsets[] = {
     { -1,                 -1,                 RES_UNDEFINED }
 };
 
-#ifdef XSERVER_LIBPCIACCESS
-
 static const struct pci_id_match r128_device_match[] = {
     ATI_DEVICE_MATCH( PCI_CHIP_RAGE128LE, 0 ),
     ATI_DEVICE_MATCH( PCI_CHIP_RAGE128LF, 0 ),
@@ -202,8 +196,6 @@ static const struct pci_id_match r128_device_match[] = {
     { 0, 0, 0 }
 };
 
-#endif /* XSERVER_LIBPCIACCESS */
-
 _X_EXPORT int gR128EntityIndex = -1;
 
 /* Return the options for supported chipset 'n'; NULL otherwise */
@@ -239,11 +231,7 @@ r128_get_scrninfo(int entity_num)
     pScrn->driverVersion = R128_VERSION_CURRENT;
     pScrn->driverName    = R128_DRIVER_NAME;
     pScrn->name          = R128_NAME;
-#ifdef XSERVER_LIBPCIACCESS
     pScrn->Probe         = NULL;
-#else
-    pScrn->Probe         = R128Probe;
-#endif
     pScrn->PreInit       = R128PreInit;
     pScrn->ScreenInit    = R128ScreenInit;
     pScrn->SwitchMode    = R128SwitchMode;
@@ -291,51 +279,6 @@ r128_get_scrninfo(int entity_num)
     return TRUE;
 }
 
-#ifndef XSERVER_LIBPCIACCESS
-
-/* Return TRUE if chipset is present; FALSE otherwise. */
-static Bool
-R128Probe(DriverPtr drv, int flags)
-{
-    int           numUsed;
-    int           numDevSections;
-    int           *usedChips;
-    GDevPtr       *devSections;
-    Bool          foundScreen = FALSE;
-    int           i;
-
-    if (!xf86GetPciVideoInfo()) return FALSE;
-
-    numDevSections = xf86MatchDevice(R128_NAME, &devSections);
-
-    if (!numDevSections) return FALSE;
-
-    numUsed = xf86MatchPciInstances(R128_NAME,
-				    PCI_VENDOR_ATI,
-				    R128Chipsets,
-				    R128PciChipsets,
-				    devSections,
-				    numDevSections,
-				    drv,
-				    &usedChips);
-
-    if (numUsed<=0) return FALSE;
-
-    if (flags & PROBE_DETECT)
-	foundScreen = TRUE;
-    else for (i = 0; i < numUsed; i++) {
-	if (r128_get_scrninfo(usedChips[i]))
-	    foundScreen = TRUE;
-    }
-
-    free(usedChips);
-    free(devSections);
-
-    return foundScreen;
-}
-
-#else /* XSERVER_LIBPCIACCESS */
-
 static Bool
 r128_pci_probe(
     DriverPtr          pDriver,
@@ -347,26 +290,18 @@ r128_pci_probe(
     return r128_get_scrninfo(entity_num);
 }
 
-#endif /* XSERVER_LIBPCIACCESS */
-
 _X_EXPORT DriverRec R128 =
 {
     R128_VERSION_CURRENT,
     R128_DRIVER_NAME,
     R128Identify,
-#ifdef XSERVER_LIBPCIACCESS
     NULL,
-#else
-    R128Probe,
-#endif
     R128AvailableOptions,
     NULL,
     0,
     NULL,
-#ifdef XSERVER_LIBPCIACCESS
     r128_device_match,
     r128_pci_probe,
-#endif
 #ifdef XSERVER_PLATFORM_BUS
     NULL
 #endif
