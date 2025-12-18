@@ -225,9 +225,5 @@ AC_MSG_NOTICE(
 [    https://gitlab.freedesktop.org/xorg/driver/xf86-video-ati]
 )
 
-AC_CONFIG_FILES([
-                Makefile
-                src/Makefile
-                man/Makefile
-])
+AC_CONFIG_FILES([Makefile src/Makefile man/Makefile])
 AC_OUTPUT
