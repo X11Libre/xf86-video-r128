@@ -54,7 +54,6 @@ r128_drv_la_SOURCES = \
 	$(R128_DRI_SRCS)
 
 EXTRA_DIST = \
-	compat-api.h \
 	r128.h \
 	r128_common.h \
 	r128_dri.h \

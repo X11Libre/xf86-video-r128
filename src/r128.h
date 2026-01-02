@@ -71,10 +71,7 @@
 
 #include "fb.h"
 #include "xf86Crtc.h"
-
-#include "compat-api.h"
 #include "atipcirename.h"
-
 #include "r128_probe.h"
 
 #if X_BYTE_ORDER == X_BIG_ENDIAN
@@ -303,7 +300,7 @@ typedef struct {
     R128SaveRec       SavedReg;     /* Original (text) mode                  */
     R128SaveRec       ModeReg;      /* Current mode                          */
     Bool              (*CloseScreen)(ScreenPtr pScreen);
-    void              (*BlockHandler)(BLOCKHANDLER_ARGS_DECL);
+    void              (*BlockHandler)(ScreenPtr pScreen, pointer pTimeout);
 
     Bool              PaletteSavedOnVT; /* Palette saved on last VT switch   */
 
