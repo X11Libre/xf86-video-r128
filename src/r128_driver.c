@@ -1631,7 +1631,7 @@ static void R128LoadPalette(ScrnInfoPtr pScrn, int numColors,
 }
 
 static void
-R128BlockHandler(BLOCKHANDLER_ARGS_DECL)
+R128BlockHandler(ScreenPtr pScreen, pointer pTimeout)
 {
     ScrnInfoPtr pScrn   = xf86ScreenToScrn(pScreen);
     R128InfoPtr info    = R128PTR(pScrn);
@@ -1642,7 +1642,7 @@ R128BlockHandler(BLOCKHANDLER_ARGS_DECL)
 #endif
 
     pScreen->BlockHandler = info->BlockHandler;
-    (*pScreen->BlockHandler) (BLOCKHANDLER_ARGS);
+    (*pScreen->BlockHandler) (pScreen, pTimeout);
     pScreen->BlockHandler = R128BlockHandler;
 
     if(info->VideoTimerCallback) {

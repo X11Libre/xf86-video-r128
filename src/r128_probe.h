@@ -41,8 +41,6 @@
 #include "randrstr.h"
 #include "xf86Crtc.h"
 
-#include "compat-api.h"
-
 #ifdef USE_EXA
 #include "exa.h"
 #endif
