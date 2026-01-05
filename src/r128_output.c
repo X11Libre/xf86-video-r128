@@ -448,7 +448,7 @@ static Bool R128I2CInit(xf86OutputPtr output, I2CBusPtr *bus_ptr, char *name)
     pI2CBus->I2CGetBits  = R128I2CGetBits;
     pI2CBus->AcknTimeout = 5;
 
-    pI2CBus->DriverPrivate.ptr = (pointer)pR128I2CBus;
+    pI2CBus->DriverPrivate.ptr = (void*)pR128I2CBus;
     if (!xf86I2CBusInit(pI2CBus)) return FALSE;
 
     *bus_ptr = pI2CBus;

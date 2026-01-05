@@ -48,11 +48,11 @@ static XF86ModuleVersionInfo R128VersionRec =
  *
  * This function is called every time the module is loaded.
  */
-static pointer
+static void *
 R128Setup
 (
-    pointer Module,
-    pointer Options,
+    void *Module,
+    void *Options,
     int     *ErrorMajor,
     int     *ErrorMinor
 )
@@ -65,7 +65,7 @@ R128Setup
         xf86AddDriver(&R128, Module, HaveDriverFuncs);
     }
 
-    return (pointer)TRUE;
+    return (void*)TRUE;
 }
 
 /* The following record must be called r128ModuleData */

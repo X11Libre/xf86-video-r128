@@ -300,7 +300,7 @@ typedef struct {
     R128SaveRec       SavedReg;     /* Original (text) mode                  */
     R128SaveRec       ModeReg;      /* Current mode                          */
     Bool              (*CloseScreen)(ScreenPtr pScreen);
-    void              (*BlockHandler)(ScreenPtr pScreen, pointer pTimeout);
+    void              (*BlockHandler)(ScreenPtr pScreen, void *pTimeout);
 
     Bool              PaletteSavedOnVT; /* Palette saved on last VT switch   */
 
@@ -648,7 +648,7 @@ do {									\
                 info->indirectBuffer->total ) {				\
       R128CCEFlushIndirect( pScrn, 1 );					\
    }									\
-   __head = (pointer)((char *)info->indirectBuffer->address +		\
+   __head = (void*)((char *)info->indirectBuffer->address +		\
 		       info->indirectBuffer->used);			\
    __count = 0;								\
 } while (0)
