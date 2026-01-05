@@ -26,14 +26,14 @@
 #define TIMER_MASK      (OFF_TIMER | FREE_TIMER)
 
 static XF86VideoAdaptorPtr R128SetupImageVideo(ScreenPtr);
-static int  R128SetPortAttribute(ScrnInfoPtr, Atom, INT32, pointer);
-static int  R128GetPortAttribute(ScrnInfoPtr, Atom ,INT32 *, pointer);
-static void R128StopVideo(ScrnInfoPtr, pointer, Bool);
+static int  R128SetPortAttribute(ScrnInfoPtr, Atom, INT32, void*);
+static int  R128GetPortAttribute(ScrnInfoPtr, Atom ,INT32 *, void*);
+static void R128StopVideo(ScrnInfoPtr, void*, Bool);
 static void R128QueryBestSize(ScrnInfoPtr, Bool, short, short, short, short,
-			unsigned int *, unsigned int *, pointer);
+			unsigned int *, unsigned int *, void*);
 static int  R128PutImage(ScrnInfoPtr, short, short, short, short, short,
 			short, short, short, int, unsigned char*, short,
-			short, Bool, RegionPtr, pointer, DrawablePtr);
+			short, Bool, RegionPtr, void*, DrawablePtr);
 static int  R128QueryImageAttributes(ScrnInfoPtr, int, unsigned short *,
 			unsigned short *,  int *, int *);
 
@@ -193,7 +193,7 @@ R128AllocAdaptor(ScrnInfoPtr pScrn)
     }
 
     adapt->pPortPrivates = (DevUnion*)(&pPriv[1]);
-    adapt->pPortPrivates[0].ptr = (pointer)pPriv;
+    adapt->pPortPrivates[0].ptr = pPriv;
 
     xvBrightness   = MAKE_ATOM("XV_BRIGHTNESS");
     xvSaturation   = MAKE_ATOM("XV_SATURATION");
@@ -256,7 +256,7 @@ R128SetupImageVideo(ScreenPtr pScreen)
 }
 
 static void
-R128StopVideo(ScrnInfoPtr pScrn, pointer data, Bool cleanup)
+R128StopVideo(ScrnInfoPtr pScrn, void *data, Bool cleanup)
 {
   R128InfoPtr info = R128PTR(pScrn);
   unsigned char *R128MMIO = info->MMIO;
@@ -293,7 +293,7 @@ R128SetPortAttribute(
   ScrnInfoPtr pScrn,
   Atom attribute,
   INT32 value,
-  pointer data
+  void *data
 ){
   R128InfoPtr info = R128PTR(pScrn);
   unsigned char *R128MMIO = info->MMIO;
@@ -337,7 +337,7 @@ R128GetPortAttribute(
   ScrnInfoPtr pScrn,
   Atom attribute,
   INT32 *value,
-  pointer data
+  void *data
 ){
   R128PortPrivPtr pPriv = (R128PortPrivPtr)data;
 
@@ -365,7 +365,7 @@ R128QueryBestSize(
   short vid_w, short vid_h,
   short drw_w, short drw_h,
   unsigned int *p_w, unsigned int *p_h,
-  pointer data
+  void *data
 ){
    if(vid_w > (drw_w << 4))
 	drw_w = vid_w >> 4;
@@ -838,7 +838,7 @@ R128PutImage(
   int id, unsigned char* buf,
   short width, short height,
   Bool Sync,
-  RegionPtr clipBoxes, pointer data,
+  RegionPtr clipBoxes, void *data,
   DrawablePtr pDraw
 ){
    R128InfoPtr info = R128PTR(pScrn);

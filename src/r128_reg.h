@@ -57,7 +57,7 @@
 #define OUTREG16(addr, val) MMIO_OUT16(R128MMIO, addr, val)
 #define OUTREG(addr, val)   MMIO_OUT32(R128MMIO, addr, val)
 
-#define ADDRREG(addr)       ((volatile uint32_t *)(pointer)(R128MMIO + (addr)))
+#define ADDRREG(addr)       ((volatile uint32_t *)(void*)(R128MMIO + (addr)))
 
 
 #define OUTREGP(addr, val, mask)   \
