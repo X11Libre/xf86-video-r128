@@ -1621,12 +1621,10 @@ static void R128LoadPalette(ScrnInfoPtr pScrn, int numColors,
         }
 
         /* Make the change through RandR */
-#ifdef RANDR_12_INTERFACE
         if (crtc->randr_crtc)
             RRCrtcGammaSet(crtc->randr_crtc, lut_r, lut_g, lut_b);
         else
-#endif
-        crtc->funcs->gamma_set(crtc, lut_r, lut_g, lut_b, 256);
+            crtc->funcs->gamma_set(crtc, lut_r, lut_g, lut_b, 256);
     }
 }
 
