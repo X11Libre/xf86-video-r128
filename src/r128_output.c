@@ -302,7 +302,7 @@ static R128MonitorType R128DisplayDDCConnected(xf86OutputPtr output)
 	    if (ioctl(xf86Info.consoleFd, WSDISPLAYIO_GET_EDID, &ei) != -1) {
 		xf86Msg(X_INFO, "got %d bytes worth of EDID from wsdisplay\n",
 	    	ei.data_size);
-	    	tmp = xf86InterpretEEDID(pScrn->scrnIndex, buffer);
+                tmp = xf86InterpretEDID(pScrn->scrnIndex, buffer);
 	    	tmp->flags |= MONITOR_EDID_COMPLETE_RAWDATA;
 	    	*MonInfo = tmp;
 	    	xf86OutputSetEDID(output, tmp);
