@@ -293,7 +293,7 @@ static R128MonitorType R128DisplayDDCConnected(xf86OutputPtr output)
 #ifdef WSDISPLAYIO_GET_EDID
 	if (info->HaveWSDisplay) {
 	    struct wsdisplayio_edid_info ei;
-	    char *buffer;
+	    unsigned char *buffer;
 	    xf86MonPtr tmp;
 
 	    buffer = malloc(1024);
@@ -303,9 +303,12 @@ static R128MonitorType R128DisplayDDCConnected(xf86OutputPtr output)
 		xf86Msg(X_INFO, "got %d bytes worth of EDID from wsdisplay\n",
 	    	ei.data_size);
                 tmp = xf86InterpretEDID(pScrn->scrnIndex, buffer);
-	    	tmp->flags |= MONITOR_EDID_COMPLETE_RAWDATA;
-	    	*MonInfo = tmp;
-	    	xf86OutputSetEDID(output, tmp);
+		if (tmp) {
+		    tmp->flags |= MONITOR_EDID_COMPLETE_RAWDATA;
+		    *MonInfo = tmp;
+		    xf86OutputSetEDID(output, tmp);
+		} else
+		    free(buffer);
 	    } else
 	        free(buffer);
 	}
