@@ -27,6 +27,7 @@
  */
 #include "config.h"
 
+#include <stdarg.h>
 #include <string.h>
 #include <stdio.h>
 
@@ -396,10 +397,15 @@ DisplayModePtr R128ProbeOutputModes(xf86OutputPtr output)
     return modes;
 }
 
-static xf86OutputPtr R128OutputCreate(ScrnInfoPtr pScrn, const char *name, int i)
+static xf86OutputPtr _X_ATTRIBUTE_PRINTF(2, 3)
+R128OutputCreate(ScrnInfoPtr pScrn, const char *fmt, ...)
 {
     char buf[32];
-    sprintf(buf, name, i);
+    va_list args;
+
+    va_start(args, fmt);
+    vsnprintf(buf, sizeof(buf), fmt, args);
+    va_end(args);
     return xf86OutputCreate(pScrn, &r128_output_funcs, buf);
 }
 
@@ -541,7 +547,7 @@ Bool R128SetupConnectors(ScrnInfoPtr pScrn)
         r128_output->num = i;
 
         if (otypes[i] == OUTPUT_LVDS) {
-            output = R128OutputCreate(pScrn, "LVDS", 0);
+            output = R128OutputCreate(pScrn, "LVDS");
         } else if (otypes[i] == OUTPUT_VGA) {
             output = R128OutputCreate(pScrn, "VGA-%d", --num_vga);
         } else {
