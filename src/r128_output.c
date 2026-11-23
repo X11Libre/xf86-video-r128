@@ -468,7 +468,14 @@ R128GetConnectorInfoFromBIOS(ScrnInfoPtr pScrn, R128OutputType *otypes)
 
     /* non-x86 platform */
     if (!info->VBIOS) {
-        if (info->isDFP) {
+        if (info->ForceOutput) {
+            /* 2 bits per connector, R128OutputType values */
+            otypes[0] = info->ForceOutput & 0x3;
+            otypes[1] = (info->ForceOutput >> 2) & 0x3;
+            xf86DrvMsg(pScrn->scrnIndex, X_CONFIG,
+                       "No video BIOS, using ForceOutput %d for the connectors.\n",
+                       info->ForceOutput);
+        } else if (info->isDFP) {
             /* XXX assume LVDS on mobility chips */
             otypes[0] = OUTPUT_LVDS;
             otypes[1] = OUTPUT_VGA;
