@@ -784,9 +784,9 @@ Bool R128DRIScreenInit(ScreenPtr pScreen)
 		PCI_DEV_DEV(info->PciInfo),
 		PCI_DEV_FUNC(info->PciInfo));
     }
-    pDRIInfo->ddxDriverMajorVersion      = R128_VERSION_MAJOR;
-    pDRIInfo->ddxDriverMinorVersion      = R128_VERSION_MINOR;
-    pDRIInfo->ddxDriverPatchVersion      = R128_VERSION_PATCH;
+    pDRIInfo->ddxDriverMajorVersion      = R128_DRI_VERSION_MAJOR;
+    pDRIInfo->ddxDriverMinorVersion      = R128_DRI_VERSION_MINOR;
+    pDRIInfo->ddxDriverPatchVersion      = R128_DRI_VERSION_PATCH;
     pDRIInfo->frameBufferPhysicalAddress = (void *)info->LinearAddr;
     pDRIInfo->frameBufferSize            = info->FbMapSize;
     pDRIInfo->frameBufferStride          = (pScrn->displayWidth *
