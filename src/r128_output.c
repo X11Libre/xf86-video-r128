@@ -293,7 +293,7 @@ static R128MonitorType R128DisplayDDCConnected(xf86OutputPtr output)
 #ifdef WSDISPLAYIO_GET_EDID
 	if (info->HaveWSDisplay) {
 	    struct wsdisplayio_edid_info ei;
-	    char *buffer;
+	    unsigned char *buffer;
 	    xf86MonPtr tmp;
 
 	    buffer = malloc(1024);
