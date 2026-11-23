@@ -57,6 +57,9 @@
 #define _XF86DRI_SERVER_
 #include "sarea.h"
 
+static char R128KernelDriverName[] = R128_DRIVER_NAME;
+static char R128ClientDriverName[] = R128_DRIVER_NAME;
+
 static size_t r128_drm_page_size;
 
 static void R128DRITransitionTo2d(ScreenPtr pScreen);
@@ -772,8 +775,8 @@ Bool R128DRIScreenInit(ScreenPtr pScreen)
     if (!(pDRIInfo = DRICreateInfoRec())) return FALSE;
 
     info->pDRIInfo                       = pDRIInfo;
-    pDRIInfo->drmDriverName              = R128_DRIVER_NAME;
-    pDRIInfo->clientDriverName           = R128_DRIVER_NAME;
+    pDRIInfo->drmDriverName              = R128KernelDriverName;
+    pDRIInfo->clientDriverName           = R128ClientDriverName;
     if (xf86LoaderCheckSymbol("DRICreatePCIBusID")) {
 	pDRIInfo->busIdString = DRICreatePCIBusID(info->PciInfo);
     } else {
