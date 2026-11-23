@@ -1150,8 +1150,8 @@ static void R128DRIRefreshArea(ScrnInfoPtr pScrn, int num, BoxPtr pbox)
 #endif
 
     for (i = 0 ; i < num ; i++, pbox++) {
-	int xa = max(pbox->x1, 0), xb = min(pbox->x2, pScrn->virtualX-1);
-	int ya = max(pbox->y1, 0), yb = min(pbox->y2, pScrn->virtualY-1);
+	int xa = MAX(pbox->x1, 0), xb = MIN(pbox->x2, pScrn->virtualX-1);
+	int ya = MAX(pbox->y1, 0), yb = MIN(pbox->y2, pScrn->virtualY-1);
 
 	if (xa <= xb && ya <= yb) {
 #ifdef USE_EXA
