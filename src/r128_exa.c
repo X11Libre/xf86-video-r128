@@ -406,7 +406,7 @@ R128EXAInit(ScreenPtr pScreen, int total)
     info->ExaDriver->exa_major = EXA_VERSION_MAJOR;
     info->ExaDriver->exa_minor = EXA_VERSION_MINOR;
 
-    info->ExaDriver->memoryBase = info->FB + pScrn->fbOffset;
+    info->ExaDriver->memoryBase = (uint8_t *)info->FB + pScrn->fbOffset;
     info->ExaDriver->offScreenBase = pScrn->virtualY *
                                         (pScrn->displayWidth *
                                         info->CurrentLayout.pixel_bytes);

@@ -995,7 +995,7 @@ static void *r128_crtc_shadow_allocate(xf86CrtcPtr crtc, int width, int height)
     if (rotate_offset == 0)
         return NULL;
 
-    return info->FB + rotate_offset;
+    return (uint8_t *)info->FB + rotate_offset;
 }
 
 static PixmapPtr r128_crtc_shadow_create(xf86CrtcPtr crtc, void *data, int width, int height)
