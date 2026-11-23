@@ -87,6 +87,13 @@
 
 #define R128_VBIOS_SIZE 0x00010000
 
+#ifndef MIN
+#define MIN(a, b) (((a) < (b)) ? (a) : (b))
+#endif
+#ifndef MAX
+#define MAX(a, b) (((a) > (b)) ? (a) : (b))
+#endif
+
 #if R128_DEBUG
 #include "r128_version.h"
 
