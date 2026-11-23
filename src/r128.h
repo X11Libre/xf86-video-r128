@@ -456,6 +456,7 @@ typedef struct {
     Bool              showCache;
     OptionInfoPtr     Options;
 
+    int               ForceOutput;  /* Option "ForceOutput", 0 if unset */
     Bool              isDFP;
     Bool              isPro2;
     Bool              SwitchingMode;

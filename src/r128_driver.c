@@ -137,7 +137,8 @@ typedef enum {
   OPTION_PAGE_FLIP,
 #endif
   OPTION_ACCELMETHOD,
-  OPTION_RENDERACCEL
+  OPTION_RENDERACCEL,
+  OPTION_FORCE_OUTPUT
 } R128Opts;
 
 static const OptionInfoRec R128Options[] = {
@@ -165,7 +166,8 @@ static const OptionInfoRec R128Options[] = {
 #endif
   { OPTION_ACCELMETHOD,  "AccelMethod",      OPTV_STRING,  {0}, FALSE },
   { OPTION_RENDERACCEL,  "RenderAccel",      OPTV_BOOLEAN, {0}, FALSE },
-  { -1,                  NULL,               OPTV_NONE,    {0}, FALSE }
+  { OPTION_FORCE_OUTPUT, "ForceOutput",      OPTV_INTEGER, {0}, FALSE },
+  { -1,                 NULL,               OPTV_NONE,    {0}, FALSE }
 };
 
 const OptionInfoRec *R128OptionsWeak(void) { return R128Options; }
@@ -1484,6 +1486,9 @@ Bool R128PreInit(ScrnInfoPtr pScrn, int flags)
     if (!(info->Options = malloc(sizeof(R128Options))))    goto fail;
     memcpy(info->Options, R128Options, sizeof(R128Options));
     xf86ProcessOptions(pScrn->scrnIndex, pScrn->options, info->Options);
+
+    info->ForceOutput = 0;
+    xf86GetOptValInteger(info->Options, OPTION_FORCE_OUTPUT, &info->ForceOutput);
 
     info->noAccel = FALSE;
     info->accelOn = FALSE;

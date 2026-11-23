@@ -107,6 +107,16 @@ They are used to program the flat panel registers
 and normally determined using the video card BIOS.
 If the wrong dimensions are used, the system may hang.
 .TP
+.BI "Option \*qForceOutput\*q \*q" integer \*q
+Set the connectors when the video card BIOS is not available
+(typically on non-x86 systems such as PowerPC).
+Bits 0\-1 give the first connector and bits 2\-3 the second:
+0 none, 1 VGA, 2 DVI, 3 LVDS.
+For example, 3 is the built-in panel only, 1 a single VGA output and
+7 the panel plus VGA.
+Without this option the driver assumes the panel plus VGA on laptop
+chips and a single VGA output otherwise.
+.TP
 .BI "Option \*qUseFBDev\*q \*q" boolean \*q
 Enable or disable use of an OS-specific framebuffer device interface
 (which is not supported on all OSs).
