@@ -138,10 +138,10 @@ static XF86VideoFormatRec Formats[NUM_FORMATS] =
 
 static XF86AttributeRec Attributes[NUM_ATTRIBUTES] =
 {
-   {XvSettable | XvGettable, 0, (1 << 24) - 1, "XV_COLORKEY"},
-   {XvSettable | XvGettable, -64, 63, "XV_BRIGHTNESS"},
-   {XvSettable | XvGettable, 0, 31, "XV_SATURATION"},
-   {XvSettable | XvGettable, 0, 1, "XV_DOUBLE_BUFFER"}
+   {XvSettable | XvGettable, 0, (1 << 24) - 1, (char *) "XV_COLORKEY"},
+   {XvSettable | XvGettable, -64, 63, (char *) "XV_BRIGHTNESS"},
+   {XvSettable | XvGettable, 0, 31, (char *) "XV_SATURATION"},
+   {XvSettable | XvGettable, 0, 1, (char *) "XV_DOUBLE_BUFFER"}
 };
 
 #define NUM_IMAGES 4
@@ -413,7 +413,7 @@ R128DMA(
     if (!info->directRenderingEnabled || !info->DMAForXv)
         return FALSE;
 
-    if ((hpass = min(h,(BUFSIZE/w))) == 0)
+    if ((hpass = MIN(h,(BUFSIZE/w))) == 0)
 	return FALSE;
 
     if ((passes = (h+hpass-1)/hpass) > MAXPASSES)

@@ -174,14 +174,14 @@ void r128_crtc_load_cursor_image(xf86CrtcPtr crtc, unsigned char *src)
 
 #if X_BYTE_ORDER == X_BIG_ENDIAN
     if (info->CurrentLayout.pixel_bytes == 4 || info->CurrentLayout.pixel_bytes == 3)
-        R128CopySwap(info->FB + r128_crtc->cursor_offset + pScrn->fbOffset, src,
+        R128CopySwap((uint8_t *)info->FB + r128_crtc->cursor_offset + pScrn->fbOffset, src,
                      CURSOR_WIDTH * CURSOR_HEIGHT / 4, APER_0_BIG_ENDIAN_32BPP_SWAP);
     else if (info->CurrentLayout.pixel_bytes == 2)
-        R128CopySwap(info->FB + r128_crtc->cursor_offset + pScrn->fbOffset, src,
+        R128CopySwap((uint8_t *)info->FB + r128_crtc->cursor_offset + pScrn->fbOffset, src,
                      CURSOR_WIDTH * CURSOR_HEIGHT / 4, APER_0_BIG_ENDIAN_16BPP_SWAP);
     else
 #endif
-    memcpy(info->FB + r128_crtc->cursor_offset + pScrn->fbOffset, src, CURSOR_WIDTH * CURSOR_HEIGHT / 4);
+    memcpy((uint8_t *)info->FB + r128_crtc->cursor_offset + pScrn->fbOffset, src, CURSOR_WIDTH * CURSOR_HEIGHT / 4);
 
     if (crtc_id == 0)
 	OUTREG(R128_CRTC_GEN_CNTL, save1);
