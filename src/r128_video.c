@@ -413,7 +413,7 @@ R128DMA(
     if (!info->directRenderingEnabled || !info->DMAForXv)
         return FALSE;
 
-    if ((hpass = min(h,(BUFSIZE/w))) == 0)
+    if ((hpass = MIN(h,(BUFSIZE/w))) == 0)
 	return FALSE;
 
     if ((passes = (h+hpass-1)/hpass) > MAXPASSES)
